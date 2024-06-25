@@ -1,0 +1,4 @@
+Error with command clang: clang: error: no input files
+
+Error with command clang -O: clang: error: no input files
+

@@ -1,0 +1,1006 @@
+Removed arguments: -fPIC, -c, -I/p/lustre3/shan4/tmp/llvm-project/openmp/runtime/src, -D, -Wno-int-to-void-pointer-cast
+Error with command clang++ /p/lustre3/shan4/tmp/llvm-project/openmp/runtime/src/kmp_debug.cpp -o runtime/src/CMakeFiles/omp.dir/kmp_debug.cpp.o -Domp_EXPORTS -I/p/lustre3/shan4/tmp/llvm-project/build/openmp_build/runtime/src -I/p/lustre3/shan4/tmp/llvm-project/openmp/runtime/src/i18n -I/p/lustre3/shan4/tmp/llvm-project/openmp/runtime/src/include -I/p/lustre3/shan4/tmp/llvm-project/openmp/runtime/src/thirdparty/ittnotify -Wall -fcolor-diagnostics -Wformat-pedantic -Wimplicit-fallthrough -Wsign-compare -Wno-extra -Wno-pedantic -Wno-maybe-uninitialized -fno-semantic-interposition -fdata-sections -O3 -DNDEBUG _GNU_SOURCE _REENTRANT -U_GLIBCXX_ASSERTIONS -std=c++17 -fno-rtti -Wno-covered-switch-default -Wno-strict-aliasing -Wstringop-overflow=0 -Wno-stringop-truncation -Wno-switch -Wno-uninitialized -Wno-cast-qual -MD -MT runtime/src/CMakeFiles/omp.dir/kmp_debug.cpp.o -MF runtime/src/CMakeFiles/omp.dir/kmp_debug.cpp.o.d: clang++: [0;1;31merror: [0m[1mno such file or directory: '_GNU_SOURCE'[0m
+clang++: [0;1;31merror: [0m[1mno such file or directory: '_REENTRANT'[0m
+
+Removed arguments: -Wno-extra, -I/p/lustre3/shan4/tmp/llvm-project/openmp/runtime/src/include, -Wimplicit-fallthrough, -Wno-cast-qual, -MT, _GNU_SOURCE, -D, -fno-semantic-interposition, -Wno-pedantic, -fPIC, -Wno-covered-switch-default, -fdata-sections
+Error with command clang++ /p/lustre3/shan4/tmp/llvm-project/openmp/runtime/src/kmp_csupport.cpp -o runtime/src/CMakeFiles/omp.dir/kmp_csupport.cpp.o -Domp_EXPORTS -I/p/lustre3/shan4/tmp/llvm-project/build/openmp_build/runtime/src -I/p/lustre3/shan4/tmp/llvm-project/openmp/runtime/src -I/p/lustre3/shan4/tmp/llvm-project/openmp/runtime/src/i18n -I/p/lustre3/shan4/tmp/llvm-project/openmp/runtime/src/thirdparty/ittnotify -Wall -fcolor-diagnostics -Wformat-pedantic -Wsign-compare -Wno-maybe-uninitialized -O3 -DNDEBUG _REENTRANT -U_GLIBCXX_ASSERTIONS -std=c++17 -fno-rtti -Wno-strict-aliasing -Wstringop-overflow=0 -Wno-stringop-truncation -Wno-switch -Wno-uninitialized -Wno-int-to-void-pointer-cast -MD runtime/src/CMakeFiles/omp.dir/kmp_csupport.cpp.o -MF runtime/src/CMakeFiles/omp.dir/kmp_csupport.cpp.o.d -c: clang++: [0;1;31merror: [0m[1mno such file or directory: '_REENTRANT'[0m
+clang++: [0;1;31merror: [0m[1mno such file or directory: 'runtime/src/CMakeFiles/omp.dir/kmp_csupport.cpp.o'[0m
+
+Removed arguments: -Wno-extra, -Wimplicit-fallthrough, -Wno-covered-switch-default, -I/p/lustre3/shan4/tmp/llvm-project/openmp/runtime/src/include, _REENTRANT, -std=c++17, -Wall, runtime/src/CMakeFiles/omp.dir/kmp_threadprivate.cpp.o, -MD, -Wno-maybe-uninitialized
+Error with command clang++ /p/lustre3/shan4/tmp/llvm-project/openmp/runtime/src/kmp_threadprivate.cpp -o runtime/src/CMakeFiles/omp.dir/kmp_threadprivate.cpp.o -Domp_EXPORTS -I/p/lustre3/shan4/tmp/llvm-project/build/openmp_build/runtime/src -I/p/lustre3/shan4/tmp/llvm-project/openmp/runtime/src -I/p/lustre3/shan4/tmp/llvm-project/openmp/runtime/src/i18n -I/p/lustre3/shan4/tmp/llvm-project/openmp/runtime/src/thirdparty/ittnotify -fcolor-diagnostics -Wformat-pedantic -Wsign-compare -Wno-pedantic -fno-semantic-interposition -fdata-sections -O3 -DNDEBUG -fPIC -D _GNU_SOURCE -D -U_GLIBCXX_ASSERTIONS -fno-rtti -Wno-strict-aliasing -Wstringop-overflow=0 -Wno-stringop-truncation -Wno-switch -Wno-uninitialized -Wno-cast-qual -Wno-int-to-void-pointer-cast -MT -MF runtime/src/CMakeFiles/omp.dir/kmp_threadprivate.cpp.o.d -c: clang++: [0;1;31merror: [0m[1mno such file or directory: 'runtime/src/CMakeFiles/omp.dir/kmp_threadprivate.cpp.o.d'[0m
+
+Removed arguments: _REENTRANT, -I/p/lustre3/shan4/tmp/llvm-project/openmp/runtime/src/i18n, runtime/src/CMakeFiles/omp.dir/kmp_io.cpp.o, -MD, -I/p/lustre3/shan4/tmp/llvm-project/openmp/runtime/src/thirdparty/ittnotify, -Wno-covered-switch-default, -D, -Wstringop-overflow=0, -Domp_EXPORTS, -Wno-switch, -Wformat-pedantic, -fdata-sections
+Error with command clang++ /p/lustre3/shan4/tmp/llvm-project/openmp/runtime/src/kmp_io.cpp -o runtime/src/CMakeFiles/omp.dir/kmp_io.cpp.o -I/p/lustre3/shan4/tmp/llvm-project/build/openmp_build/runtime/src -I/p/lustre3/shan4/tmp/llvm-project/openmp/runtime/src -I/p/lustre3/shan4/tmp/llvm-project/openmp/runtime/src/include -Wall -fcolor-diagnostics -Wimplicit-fallthrough -Wsign-compare -Wno-extra -Wno-pedantic -Wno-maybe-uninitialized -fno-semantic-interposition -O3 -DNDEBUG -fPIC _GNU_SOURCE -U_GLIBCXX_ASSERTIONS -std=c++17 -fno-rtti -Wno-strict-aliasing -Wno-stringop-truncation -Wno-uninitialized -Wno-cast-qual -Wno-int-to-void-pointer-cast -MT -MF runtime/src/CMakeFiles/omp.dir/kmp_io.cpp.o.d -c: clang++: [0;1;31merror: [0m[1mno such file or directory: '_GNU_SOURCE'[0m
+clang++: [0;1;31merror: [0m[1mno such file or directory: 'runtime/src/CMakeFiles/omp.dir/kmp_io.cpp.o.d'[0m
+
+Removed arguments: runtime/src/CMakeFiles/omp.dir/kmp_i18n.cpp.o, _GNU_SOURCE, -fPIC, -Wno-stringop-truncation, -DNDEBUG, -Wformat-pedantic, -std=c++17, -Wimplicit-fallthrough, -Wno-cast-qual, -Wno-int-to-void-pointer-cast, -I/p/lustre3/shan4/tmp/llvm-project/openmp/runtime/src/include
+Error with command clang++ /p/lustre3/shan4/tmp/llvm-project/openmp/runtime/src/kmp_i18n.cpp -o runtime/src/CMakeFiles/omp.dir/kmp_i18n.cpp.o -Domp_EXPORTS -I/p/lustre3/shan4/tmp/llvm-project/build/openmp_build/runtime/src -I/p/lustre3/shan4/tmp/llvm-project/openmp/runtime/src -I/p/lustre3/shan4/tmp/llvm-project/openmp/runtime/src/i18n -I/p/lustre3/shan4/tmp/llvm-project/openmp/runtime/src/thirdparty/ittnotify -Wall -fcolor-diagnostics -Wsign-compare -Wno-extra -Wno-pedantic -Wno-maybe-uninitialized -fno-semantic-interposition -fdata-sections -O3 -D -D _REENTRANT -U_GLIBCXX_ASSERTIONS -fno-rtti -Wno-covered-switch-default -Wno-strict-aliasing -Wstringop-overflow=0 -Wno-switch -Wno-uninitialized -MD -MT -MF runtime/src/CMakeFiles/omp.dir/kmp_i18n.cpp.o.d -c: clang++: [0;1;31merror: [0m[1mno such file or directory: '_REENTRANT'[0m
+clang++: [0;1;31merror: [0m[1mno such file or directory: 'runtime/src/CMakeFiles/omp.dir/kmp_i18n.cpp.o.d'[0m
+
+Removed arguments: -fPIC, -Wno-extra, -Wno-int-to-void-pointer-cast, -DNDEBUG, -U_GLIBCXX_ASSERTIONS, -MF, -Wno-pedantic, -I/p/lustre3/shan4/tmp/llvm-project/build/openmp_build/runtime/src, -Wno-stringop-truncation
+Error with command clang++ /p/lustre3/shan4/tmp/llvm-project/openmp/runtime/src/kmp_environment.cpp -o runtime/src/CMakeFiles/omp.dir/kmp_environment.cpp.o -Domp_EXPORTS -I/p/lustre3/shan4/tmp/llvm-project/openmp/runtime/src -I/p/lustre3/shan4/tmp/llvm-project/openmp/runtime/src/i18n -I/p/lustre3/shan4/tmp/llvm-project/openmp/runtime/src/include -I/p/lustre3/shan4/tmp/llvm-project/openmp/runtime/src/thirdparty/ittnotify -Wall -fcolor-diagnostics -Wformat-pedantic -Wimplicit-fallthrough -Wsign-compare -Wno-maybe-uninitialized -fno-semantic-interposition -fdata-sections -O3 -D _GNU_SOURCE -D _REENTRANT -std=c++17 -fno-rtti -Wno-covered-switch-default -Wno-strict-aliasing -Wstringop-overflow=0 -Wno-switch -Wno-uninitialized -Wno-cast-qual -MD -MT runtime/src/CMakeFiles/omp.dir/kmp_environment.cpp.o runtime/src/CMakeFiles/omp.dir/kmp_environment.cpp.o.d -c: clang++: [0;1;31merror: [0m[1mno such file or directory: 'runtime/src/CMakeFiles/omp.dir/kmp_environment.cpp.o.d'[0m
+
+Removed arguments: -Wno-switch, runtime/src/CMakeFiles/omp.dir/kmp_global.cpp.o, _REENTRANT, -Wno-int-to-void-pointer-cast, -O3, -Wno-uninitialized, -fno-rtti, -MD, -fcolor-diagnostics, -fdata-sections, -fPIC, -MF, -Wimplicit-fallthrough
+Error with command clang++ /p/lustre3/shan4/tmp/llvm-project/openmp/runtime/src/kmp_global.cpp -o runtime/src/CMakeFiles/omp.dir/kmp_global.cpp.o -Domp_EXPORTS -I/p/lustre3/shan4/tmp/llvm-project/build/openmp_build/runtime/src -I/p/lustre3/shan4/tmp/llvm-project/openmp/runtime/src -I/p/lustre3/shan4/tmp/llvm-project/openmp/runtime/src/i18n -I/p/lustre3/shan4/tmp/llvm-project/openmp/runtime/src/include -I/p/lustre3/shan4/tmp/llvm-project/openmp/runtime/src/thirdparty/ittnotify -Wall -Wformat-pedantic -Wsign-compare -Wno-extra -Wno-pedantic -Wno-maybe-uninitialized -fno-semantic-interposition -DNDEBUG -D _GNU_SOURCE -D -U_GLIBCXX_ASSERTIONS -std=c++17 -Wno-covered-switch-default -Wno-strict-aliasing -Wstringop-overflow=0 -Wno-stringop-truncation -Wno-cast-qual -MT runtime/src/CMakeFiles/omp.dir/kmp_global.cpp.o.d -c: clang++: warning: argument unused during compilation: '-MT runtime/src/CMakeFiles/omp.dir/kmp_global.cpp.o.d' [-Wunused-command-line-argument]
+warning: unknown warning option '-Wno-maybe-uninitialized'; did you mean '-Wno-uninitialized'? [-Wunknown-warning-option]
+warning: unknown warning option '-Wstringop-overflow=0'; did you mean '-Wshift-overflow'? [-Wunknown-warning-option]
+warning: unknown warning option '-Wno-stringop-truncation'; did you mean '-Wno-format-truncation'? [-Wunknown-warning-option]
+In file included from <built-in>:456:
+<command line>:4:9: error: macro name must be an identifier
+    4 | #define -U_GLIBCXX_ASSERTIONS 1
+      |         ^
+3 warnings and 1 error generated.
+
+Removed arguments: _REENTRANT, -Wformat-pedantic
+Error with command clang++ /p/lustre3/shan4/tmp/llvm-project/openmp/runtime/src/kmp_alloc.cpp -o runtime/src/CMakeFiles/omp.dir/kmp_alloc.cpp.o -Domp_EXPORTS -I/p/lustre3/shan4/tmp/llvm-project/build/openmp_build/runtime/src -I/p/lustre3/shan4/tmp/llvm-project/openmp/runtime/src -I/p/lustre3/shan4/tmp/llvm-project/openmp/runtime/src/i18n -I/p/lustre3/shan4/tmp/llvm-project/openmp/runtime/src/include -I/p/lustre3/shan4/tmp/llvm-project/openmp/runtime/src/thirdparty/ittnotify -Wall -fcolor-diagnostics -Wimplicit-fallthrough -Wsign-compare -Wno-extra -Wno-pedantic -Wno-maybe-uninitialized -fno-semantic-interposition -fdata-sections -O3 -DNDEBUG -fPIC -D _GNU_SOURCE -D -U_GLIBCXX_ASSERTIONS -std=c++17 -fno-rtti -Wno-covered-switch-default -Wno-strict-aliasing -Wstringop-overflow=0 -Wno-stringop-truncation -Wno-switch -Wno-uninitialized -Wno-cast-qual -Wno-int-to-void-pointer-cast -MD -MT runtime/src/CMakeFiles/omp.dir/kmp_alloc.cpp.o -MF runtime/src/CMakeFiles/omp.dir/kmp_alloc.cpp.o.d -c: [0;1;35mwarning: [0m[1munknown warning option '-Wno-maybe-uninitialized'; did you mean '-Wno-uninitialized'? [-Wunknown-warning-option][0m
+[0;1;35mwarning: [0m[1munknown warning option '-Wstringop-overflow=0'; did you mean '-Wshift-overflow'? [-Wunknown-warning-option][0m
+[0;1;35mwarning: [0m[1munknown warning option '-Wno-stringop-truncation'; did you mean '-Wno-format-truncation'? [-Wunknown-warning-option][0m
+In file included from <built-in>:452:
+[1m<command line>:4:9: [0m[0;1;31merror: [0m[1mmacro name must be an identifier[0m
+    4 | #define -U_GLIBCXX_ASSERTIONS [0;32m1[0m
+      | [0;1;32m        ^
+[0m3 warnings and 1 error generated.
+
+Removed arguments: -fno-rtti, -Domp_EXPORTS, -MF, -DNDEBUG, runtime/src/CMakeFiles/omp.dir/kmp_utility.cpp.o, -Wno-stringop-truncation, -Wimplicit-fallthrough, -Wno-uninitialized
+SUCCESS: clang++, /p/lustre3/shan4/tmp/llvm-project/openmp/runtime/src/kmp_utility.cpp, -o, runtime/src/CMakeFiles/omp.dir/kmp_utility.cpp.o, -I/p/lustre3/shan4/tmp/llvm-project/build/openmp_build/runtime/src, -I/p/lustre3/shan4/tmp/llvm-project/openmp/runtime/src, -I/p/lustre3/shan4/tmp/llvm-project/openmp/runtime/src/i18n, -I/p/lustre3/shan4/tmp/llvm-project/openmp/runtime/src/include, -I/p/lustre3/shan4/tmp/llvm-project/openmp/runtime/src/thirdparty/ittnotify, -Wall, -fcolor-diagnostics, -Wformat-pedantic, -Wsign-compare, -Wno-extra, -Wno-pedantic, -Wno-maybe-uninitialized, -fno-semantic-interposition, -fdata-sections, -O3, -fPIC, -D, _GNU_SOURCE, -D, _REENTRANT, -U_GLIBCXX_ASSERTIONS, -std=c++17, -Wno-covered-switch-default, -Wno-strict-aliasing, -Wstringop-overflow=0, -Wno-switch, -Wno-cast-qual, -Wno-int-to-void-pointer-cast, -MD, -MT, runtime/src/CMakeFiles/omp.dir/kmp_utility.cpp.o.d, -c
+Removed arguments: -std=c++17, -Wno-int-to-void-pointer-cast
+SUCCESS: clang++, /p/lustre3/shan4/tmp/llvm-project/openmp/runtime/src/kmp_error.cpp, -o, runtime/src/CMakeFiles/omp.dir/kmp_error.cpp.o, -Domp_EXPORTS, -I/p/lustre3/shan4/tmp/llvm-project/build/openmp_build/runtime/src, -I/p/lustre3/shan4/tmp/llvm-project/openmp/runtime/src, -I/p/lustre3/shan4/tmp/llvm-project/openmp/runtime/src/i18n, -I/p/lustre3/shan4/tmp/llvm-project/openmp/runtime/src/include, -I/p/lustre3/shan4/tmp/llvm-project/openmp/runtime/src/thirdparty/ittnotify, -Wall, -fcolor-diagnostics, -Wformat-pedantic, -Wimplicit-fallthrough, -Wsign-compare, -Wno-extra, -Wno-pedantic, -Wno-maybe-uninitialized, -fno-semantic-interposition, -fdata-sections, -O3, -DNDEBUG, -fPIC, -D, _GNU_SOURCE, -D, _REENTRANT, -U_GLIBCXX_ASSERTIONS, -fno-rtti, -Wno-covered-switch-default, -Wno-strict-aliasing, -Wstringop-overflow=0, -Wno-stringop-truncation, -Wno-switch, -Wno-uninitialized, -Wno-cast-qual, -MD, -MT, runtime/src/CMakeFiles/omp.dir/kmp_error.cpp.o, -MF, runtime/src/CMakeFiles/omp.dir/kmp_error.cpp.o.d, -c
+Removed arguments: -Wno-switch, -c, -fcolor-diagnostics, -O3, -fno-semantic-interposition, runtime/src/CMakeFiles/omp.dir/kmp_wait_release.cpp.o, -I/p/lustre3/shan4/tmp/llvm-project/openmp/runtime/src/include, -fPIC, -I/p/lustre3/shan4/tmp/llvm-project/openmp/runtime/src/i18n, -I/p/lustre3/shan4/tmp/llvm-project/build/openmp_build/runtime/src
+Error with command clang++ /p/lustre3/shan4/tmp/llvm-project/openmp/runtime/src/kmp_wait_release.cpp -o runtime/src/CMakeFiles/omp.dir/kmp_wait_release.cpp.o -Domp_EXPORTS -I/p/lustre3/shan4/tmp/llvm-project/openmp/runtime/src -I/p/lustre3/shan4/tmp/llvm-project/openmp/runtime/src/thirdparty/ittnotify -Wall -Wformat-pedantic -Wimplicit-fallthrough -Wsign-compare -Wno-extra -Wno-pedantic -Wno-maybe-uninitialized -fdata-sections -DNDEBUG -D _GNU_SOURCE -D _REENTRANT -U_GLIBCXX_ASSERTIONS -std=c++17 -fno-rtti -Wno-covered-switch-default -Wno-strict-aliasing -Wstringop-overflow=0 -Wno-stringop-truncation -Wno-uninitialized -Wno-cast-qual -Wno-int-to-void-pointer-cast -MD -MT -MF runtime/src/CMakeFiles/omp.dir/kmp_wait_release.cpp.o.d: clang++: error: no such file or directory: 'runtime/src/CMakeFiles/omp.dir/kmp_wait_release.cpp.o.d'
+
+Removed arguments: -I/p/lustre3/shan4/tmp/llvm-project/openmp/runtime/src/i18n, -c
+Error with command clang++ /p/lustre3/shan4/tmp/llvm-project/openmp/runtime/src/kmp_itt.cpp -o runtime/src/CMakeFiles/omp.dir/kmp_itt.cpp.o -Domp_EXPORTS -I/p/lustre3/shan4/tmp/llvm-project/build/openmp_build/runtime/src -I/p/lustre3/shan4/tmp/llvm-project/openmp/runtime/src -I/p/lustre3/shan4/tmp/llvm-project/openmp/runtime/src/include -I/p/lustre3/shan4/tmp/llvm-project/openmp/runtime/src/thirdparty/ittnotify -Wall -fcolor-diagnostics -Wformat-pedantic -Wimplicit-fallthrough -Wsign-compare -Wno-extra -Wno-pedantic -Wno-maybe-uninitialized -fno-semantic-interposition -fdata-sections -O3 -DNDEBUG -fPIC -D _GNU_SOURCE -D _REENTRANT -U_GLIBCXX_ASSERTIONS -std=c++17 -fno-rtti -Wno-covered-switch-default -Wno-strict-aliasing -Wstringop-overflow=0 -Wno-stringop-truncation -Wno-switch -Wno-uninitialized -Wno-cast-qual -Wno-int-to-void-pointer-cast -MD -MT runtime/src/CMakeFiles/omp.dir/kmp_itt.cpp.o -MF runtime/src/CMakeFiles/omp.dir/kmp_itt.cpp.o.d: [0;1;35mwarning: [0m[1munknown warning option '-Wno-maybe-uninitialized'; did you mean '-Wno-uninitialized'? [-Wunknown-warning-option][0m
+[0;1;35mwarning: [0m[1munknown warning option '-Wstringop-overflow=0'; did you mean '-Wshift-overflow'? [-Wunknown-warning-option][0m
+[0;1;35mwarning: [0m[1munknown warning option '-Wno-stringop-truncation'; did you mean '-Wno-format-truncation'? [-Wunknown-warning-option][0m
+3 warnings generated.
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: /lib/../lib64/Scrt1.o: in function `_start':
+(.text+0x24): undefined reference to `main'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: /var/tmp/shan4/kmp_itt-6cf9bc.o: in function `__kmp_itt_reset()':
+kmp_itt.cpp:(.text+0x3): undefined reference to `__kmp_itt__ittapi_global'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: /var/tmp/shan4/kmp_itt-6cf9bc.o: in function `__kmp_itt_initialize()':
+kmp_itt.cpp:(.text+0x32): undefined reference to `__kmp_itt__ittapi_global'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_itt.cpp:(.text+0x5a): undefined reference to `__kmp_version_major'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_itt.cpp:(.text+0x63): undefined reference to `__kmp_version_minor'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_itt.cpp:(.text+0x6c): undefined reference to `__kmp_version_build'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_itt.cpp:(.text+0x82): undefined reference to `__kmp_str_buf_print'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_itt.cpp:(.text+0x89): undefined reference to `__kmp_itt_api_version_ptr__3_0'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_itt.cpp:(.text+0xa7): undefined reference to `__kmp_str_buf_print'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_itt.cpp:(.text+0xae): undefined reference to `__kmp_itt_mark_create_ptr__3_0'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_itt.cpp:(.text+0xc5): undefined reference to `__kmp_itt_mark_ptr__3_0'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_itt.cpp:(.text+0xdb): undefined reference to `__kmp_str_buf_free'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: /var/tmp/shan4/kmp_itt-6cf9bc.o: in function `__kmp_itt_destroy()':
+kmp_itt.cpp:(.text+0xf1): undefined reference to `__kmp_itt_fini_ittlib'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: /var/tmp/shan4/kmp_itt-6cf9bc.o: in function `__kmp_itt_error_handler':
+kmp_itt.cpp:(.text+0x282): undefined reference to `__kmp_msg_format'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_itt.cpp:(.text+0x289): undefined reference to `__kmp_msg_null'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_itt.cpp:(.text+0x2ef): undefined reference to `__kmp_msg_format'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_itt.cpp:(.text+0x2f6): undefined reference to `__kmp_msg_null'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_itt.cpp:(.text+0x353): undefined reference to `__kmp_msg_format'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_itt.cpp:(.text+0x35a): undefined reference to `__kmp_msg_null'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_itt.cpp:(.text+0x3ac): undefined reference to `__kmp_msg_error_code'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_itt.cpp:(.text+0x3c3): undefined reference to `__kmp_msg_format'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_itt.cpp:(.text+0x3ca): undefined reference to `__kmp_msg_null'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_itt.cpp:(.text+0x431): undefined reference to `__kmp_msg_error_mesg'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_itt.cpp:(.text+0x448): undefined reference to `__kmp_msg_format'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_itt.cpp:(.text+0x44f): undefined reference to `__kmp_msg_null'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_itt.cpp:(.text+0x4c0): undefined reference to `__kmp_msg_format'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_itt.cpp:(.text+0x4c7): undefined reference to `__kmp_msg_null'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_itt.cpp:(.text+0x4fd): undefined reference to `__kmp_msg'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_itt.cpp:(.text+0x52d): undefined reference to `__kmp_msg_error_code'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_itt.cpp:(.text+0x544): undefined reference to `__kmp_msg_format'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_itt.cpp:(.text+0x54b): undefined reference to `__kmp_msg_null'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_itt.cpp:(.text+0x595): undefined reference to `__kmp_msg'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_itt.cpp:(.text+0x59c): undefined reference to `__kmp_generate_warnings'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_itt.cpp:(.text+0x5af): undefined reference to `__kmp_str_free'
+clang++: [0;1;31merror: [0m[1mlinker command failed with exit code 1 (use -v to see invocation)[0m
+
+Removed arguments: -fno-rtti, -Wsign-compare, -std=c++17, -Wno-stringop-truncation, -Wno-pedantic, -I/p/lustre3/shan4/tmp/llvm-project/openmp/runtime/src, -U_GLIBCXX_ASSERTIONS, -Wimplicit-fallthrough, -fcolor-diagnostics, -D, -fno-semantic-interposition, -Wno-covered-switch-default, -c
+Error with command clang++ /p/lustre3/shan4/tmp/llvm-project/openmp/runtime/src/kmp_dispatch.cpp -o runtime/src/CMakeFiles/omp.dir/kmp_dispatch.cpp.o -Domp_EXPORTS -I/p/lustre3/shan4/tmp/llvm-project/build/openmp_build/runtime/src -I/p/lustre3/shan4/tmp/llvm-project/openmp/runtime/src/i18n -I/p/lustre3/shan4/tmp/llvm-project/openmp/runtime/src/include -I/p/lustre3/shan4/tmp/llvm-project/openmp/runtime/src/thirdparty/ittnotify -Wall -Wformat-pedantic -Wno-extra -Wno-maybe-uninitialized -fdata-sections -O3 -DNDEBUG -fPIC _GNU_SOURCE _REENTRANT -Wno-strict-aliasing -Wstringop-overflow=0 -Wno-switch -Wno-uninitialized -Wno-cast-qual -Wno-int-to-void-pointer-cast -MD -MT runtime/src/CMakeFiles/omp.dir/kmp_dispatch.cpp.o -MF runtime/src/CMakeFiles/omp.dir/kmp_dispatch.cpp.o.d: clang++: error: no such file or directory: '_GNU_SOURCE'
+clang++: error: no such file or directory: '_REENTRANT'
+
+Removed arguments: -I/p/lustre3/shan4/tmp/llvm-project/openmp/runtime/src/include, -MD, -fno-semantic-interposition, -Wstringop-overflow=0, -I/p/lustre3/shan4/tmp/llvm-project/build/openmp_build/runtime/src, -fcolor-diagnostics, runtime/src/CMakeFiles/omp.dir/kmp_lock.cpp.o
+Error with command clang++ /p/lustre3/shan4/tmp/llvm-project/openmp/runtime/src/kmp_lock.cpp -o runtime/src/CMakeFiles/omp.dir/kmp_lock.cpp.o -Domp_EXPORTS -I/p/lustre3/shan4/tmp/llvm-project/openmp/runtime/src -I/p/lustre3/shan4/tmp/llvm-project/openmp/runtime/src/i18n -I/p/lustre3/shan4/tmp/llvm-project/openmp/runtime/src/thirdparty/ittnotify -Wall -Wformat-pedantic -Wimplicit-fallthrough -Wsign-compare -Wno-extra -Wno-pedantic -Wno-maybe-uninitialized -fdata-sections -O3 -DNDEBUG -fPIC -D _GNU_SOURCE -D _REENTRANT -U_GLIBCXX_ASSERTIONS -std=c++17 -fno-rtti -Wno-covered-switch-default -Wno-strict-aliasing -Wno-stringop-truncation -Wno-switch -Wno-uninitialized -Wno-cast-qual -Wno-int-to-void-pointer-cast -MT -MF runtime/src/CMakeFiles/omp.dir/kmp_lock.cpp.o.d -c: clang++: error: no such file or directory: 'runtime/src/CMakeFiles/omp.dir/kmp_lock.cpp.o.d'
+
+Removed arguments: -Wno-maybe-uninitialized, -Wno-pedantic, -Wno-covered-switch-default, -I/p/lustre3/shan4/tmp/llvm-project/openmp/runtime/src/i18n, -MD, -I/p/lustre3/shan4/tmp/llvm-project/openmp/runtime/src, -I/p/lustre3/shan4/tmp/llvm-project/openmp/runtime/src/include, -I/p/lustre3/shan4/tmp/llvm-project/openmp/runtime/src/thirdparty/ittnotify, -I/p/lustre3/shan4/tmp/llvm-project/build/openmp_build/runtime/src, runtime/src/CMakeFiles/omp.dir/kmp_sched.cpp.o.d, -Wno-extra, -MT
+Error with command clang++ /p/lustre3/shan4/tmp/llvm-project/openmp/runtime/src/kmp_sched.cpp -o runtime/src/CMakeFiles/omp.dir/kmp_sched.cpp.o -Domp_EXPORTS -Wall -fcolor-diagnostics -Wformat-pedantic -Wimplicit-fallthrough -Wsign-compare -fno-semantic-interposition -fdata-sections -O3 -DNDEBUG -fPIC -D _GNU_SOURCE -D _REENTRANT -U_GLIBCXX_ASSERTIONS -std=c++17 -fno-rtti -Wno-strict-aliasing -Wstringop-overflow=0 -Wno-stringop-truncation -Wno-switch -Wno-uninitialized -Wno-cast-qual -Wno-int-to-void-pointer-cast runtime/src/CMakeFiles/omp.dir/kmp_sched.cpp.o -MF -c: clang++: [0;1;31merror: [0m[1mno such file or directory: 'runtime/src/CMakeFiles/omp.dir/kmp_sched.cpp.o'[0m
+
+Removed arguments: -fcolor-diagnostics, -I/p/lustre3/shan4/tmp/llvm-project/openmp/runtime/src/include, -fdata-sections, runtime/src/CMakeFiles/omp.dir/kmp_str.cpp.o.d, -std=c++17, -Wall, -Wstringop-overflow=0, -Wno-switch, -fno-semantic-interposition, -Wno-cast-qual, -U_GLIBCXX_ASSERTIONS, -I/p/lustre3/shan4/tmp/llvm-project/openmp/runtime/src/i18n, -Wno-strict-aliasing
+Error with command clang++ /p/lustre3/shan4/tmp/llvm-project/openmp/runtime/src/kmp_str.cpp -o runtime/src/CMakeFiles/omp.dir/kmp_str.cpp.o -Domp_EXPORTS -I/p/lustre3/shan4/tmp/llvm-project/build/openmp_build/runtime/src -I/p/lustre3/shan4/tmp/llvm-project/openmp/runtime/src -I/p/lustre3/shan4/tmp/llvm-project/openmp/runtime/src/thirdparty/ittnotify -Wformat-pedantic -Wimplicit-fallthrough -Wsign-compare -Wno-extra -Wno-pedantic -Wno-maybe-uninitialized -O3 -DNDEBUG -fPIC -D _GNU_SOURCE -D _REENTRANT -fno-rtti -Wno-covered-switch-default -Wno-stringop-truncation -Wno-uninitialized -Wno-int-to-void-pointer-cast -MD -MT runtime/src/CMakeFiles/omp.dir/kmp_str.cpp.o -MF -c: warning: unknown warning option '-Wno-maybe-uninitialized'; did you mean '-Wno-uninitialized'? [-Wunknown-warning-option]
+warning: unknown warning option '-Wno-stringop-truncation'; did you mean '-Wno-format-truncation'? [-Wunknown-warning-option]
+2 warnings generated.
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: /lib/../lib64/Scrt1.o: in function `_start':
+(.text+0x24): undefined reference to `main'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: /var/tmp/shan4/kmp_str-56fdb2.o: in function `__kmp_str_buf_reserve':
+kmp_str.cpp:(.text+0xa2): undefined reference to `__kmp_msg_format'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_str.cpp:(.text+0xa9): undefined reference to `__kmp_msg_null'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_str.cpp:(.text+0xd4): undefined reference to `__kmp_fatal'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_str.cpp:(.text+0xe5): undefined reference to `__kmp_msg_format'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_str.cpp:(.text+0xec): undefined reference to `__kmp_msg_null'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_str.cpp:(.text+0x117): undefined reference to `__kmp_fatal'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: /var/tmp/shan4/kmp_str-56fdb2.o: in function `__kmp_str_buf_detach':
+kmp_str.cpp:(.text+0x16f): undefined reference to `__kmp_msg_format'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_str.cpp:(.text+0x176): undefined reference to `__kmp_msg_null'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_str.cpp:(.text+0x1a1): undefined reference to `__kmp_fatal'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: /var/tmp/shan4/kmp_str-56fdb2.o: in function `__kmp_str_buf_cat':
+kmp_str.cpp:(.text+0x23f): undefined reference to `__kmp_debug_assert'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: /var/tmp/shan4/kmp_str-56fdb2.o: in function `__kmp_str_format':
+kmp_str.cpp:(.text+0x6cc): undefined reference to `__kmp_msg_format'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_str.cpp:(.text+0x6d3): undefined reference to `__kmp_msg_null'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_str.cpp:(.text+0x6fe): undefined reference to `__kmp_fatal'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_str.cpp:(.text+0x724): undefined reference to `__kmp_msg_format'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_str.cpp:(.text+0x72b): undefined reference to `__kmp_msg_null'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_str.cpp:(.text+0x756): undefined reference to `__kmp_fatal'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: /var/tmp/shan4/kmp_str-56fdb2.o: in function `__kmp_str_to_size':
+kmp_str.cpp:(.text+0x1447): undefined reference to `__kmp_i18n_catgets'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_str.cpp:(.text+0x1467): undefined reference to `__kmp_i18n_catgets'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: /var/tmp/shan4/kmp_str-56fdb2.o: in function `__kmp_str_to_uint':
+kmp_str.cpp:(.text+0x1551): undefined reference to `__kmp_i18n_catgets'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_str.cpp:(.text+0x156d): undefined reference to `__kmp_i18n_catgets'
+clang++: error: linker command failed with exit code 1 (use -v to see invocation)
+
+Removed arguments: -MT, -I/p/lustre3/shan4/tmp/llvm-project/openmp/runtime/src/include, -MF, -Wno-extra, -U_GLIBCXX_ASSERTIONS, -Wno-maybe-uninitialized
+Error with command clang++ /p/lustre3/shan4/tmp/llvm-project/openmp/runtime/src/kmp_collapse.cpp -o runtime/src/CMakeFiles/omp.dir/kmp_collapse.cpp.o -Domp_EXPORTS -I/p/lustre3/shan4/tmp/llvm-project/build/openmp_build/runtime/src -I/p/lustre3/shan4/tmp/llvm-project/openmp/runtime/src -I/p/lustre3/shan4/tmp/llvm-project/openmp/runtime/src/i18n -I/p/lustre3/shan4/tmp/llvm-project/openmp/runtime/src/thirdparty/ittnotify -Wall -fcolor-diagnostics -Wformat-pedantic -Wimplicit-fallthrough -Wsign-compare -Wno-pedantic -fno-semantic-interposition -fdata-sections -O3 -DNDEBUG -fPIC -D _GNU_SOURCE -D _REENTRANT -std=c++17 -fno-rtti -Wno-covered-switch-default -Wno-strict-aliasing -Wstringop-overflow=0 -Wno-stringop-truncation -Wno-switch -Wno-uninitialized -Wno-cast-qual -Wno-int-to-void-pointer-cast -MD runtime/src/CMakeFiles/omp.dir/kmp_collapse.cpp.o runtime/src/CMakeFiles/omp.dir/kmp_collapse.cpp.o.d -c: clang++: [0;1;31merror: [0m[1mno such file or directory: 'runtime/src/CMakeFiles/omp.dir/kmp_collapse.cpp.o'[0m
+clang++: [0;1;31merror: [0m[1mno such file or directory: 'runtime/src/CMakeFiles/omp.dir/kmp_collapse.cpp.o.d'[0m
+
+Removed arguments: -O3, -Wno-pedantic, -I/p/lustre3/shan4/tmp/llvm-project/openmp/runtime/src/i18n
+SUCCESS: clang++, /p/lustre3/shan4/tmp/llvm-project/openmp/runtime/src/kmp_tasking.cpp, -o, runtime/src/CMakeFiles/omp.dir/kmp_tasking.cpp.o, -Domp_EXPORTS, -I/p/lustre3/shan4/tmp/llvm-project/build/openmp_build/runtime/src, -I/p/lustre3/shan4/tmp/llvm-project/openmp/runtime/src, -I/p/lustre3/shan4/tmp/llvm-project/openmp/runtime/src/include, -I/p/lustre3/shan4/tmp/llvm-project/openmp/runtime/src/thirdparty/ittnotify, -Wall, -fcolor-diagnostics, -Wformat-pedantic, -Wimplicit-fallthrough, -Wsign-compare, -Wno-extra, -Wno-maybe-uninitialized, -fno-semantic-interposition, -fdata-sections, -DNDEBUG, -fPIC, -D, _GNU_SOURCE, -D, _REENTRANT, -U_GLIBCXX_ASSERTIONS, -std=c++17, -fno-rtti, -Wno-covered-switch-default, -Wno-strict-aliasing, -Wstringop-overflow=0, -Wno-stringop-truncation, -Wno-switch, -Wno-uninitialized, -Wno-cast-qual, -Wno-int-to-void-pointer-cast, -MD, -MT, runtime/src/CMakeFiles/omp.dir/kmp_tasking.cpp.o, -MF, runtime/src/CMakeFiles/omp.dir/kmp_tasking.cpp.o.d, -c
+Removed arguments: -MD, _REENTRANT, -Wall, -Wno-strict-aliasing, -fno-rtti, runtime/src/CMakeFiles/omp.dir/kmp_gsupport.cpp.o, -MT, -fPIC, -Wno-stringop-truncation, -fcolor-diagnostics, -D, -Wsign-compare
+Error with command clang++ /p/lustre3/shan4/tmp/llvm-project/openmp/runtime/src/kmp_gsupport.cpp -o runtime/src/CMakeFiles/omp.dir/kmp_gsupport.cpp.o -Domp_EXPORTS -I/p/lustre3/shan4/tmp/llvm-project/build/openmp_build/runtime/src -I/p/lustre3/shan4/tmp/llvm-project/openmp/runtime/src -I/p/lustre3/shan4/tmp/llvm-project/openmp/runtime/src/i18n -I/p/lustre3/shan4/tmp/llvm-project/openmp/runtime/src/include -I/p/lustre3/shan4/tmp/llvm-project/openmp/runtime/src/thirdparty/ittnotify -Wformat-pedantic -Wimplicit-fallthrough -Wno-extra -Wno-pedantic -Wno-maybe-uninitialized -fno-semantic-interposition -fdata-sections -O3 -DNDEBUG _GNU_SOURCE -U_GLIBCXX_ASSERTIONS -std=c++17 -Wno-covered-switch-default -Wstringop-overflow=0 -Wno-switch -Wno-uninitialized -Wno-cast-qual -Wno-int-to-void-pointer-cast -MF runtime/src/CMakeFiles/omp.dir/kmp_gsupport.cpp.o.d -c: clang++: error: no such file or directory: '_GNU_SOURCE'
+
+Removed arguments: -I/p/lustre3/shan4/tmp/llvm-project/openmp/runtime/src, -Wno-switch, -fcolor-diagnostics, -Wno-maybe-uninitialized
+Error with command clang++ /p/lustre3/shan4/tmp/llvm-project/openmp/runtime/src/kmp_barrier.cpp -o runtime/src/CMakeFiles/omp.dir/kmp_barrier.cpp.o -Domp_EXPORTS -I/p/lustre3/shan4/tmp/llvm-project/build/openmp_build/runtime/src -I/p/lustre3/shan4/tmp/llvm-project/openmp/runtime/src/i18n -I/p/lustre3/shan4/tmp/llvm-project/openmp/runtime/src/include -I/p/lustre3/shan4/tmp/llvm-project/openmp/runtime/src/thirdparty/ittnotify -Wall -Wformat-pedantic -Wimplicit-fallthrough -Wsign-compare -Wno-extra -Wno-pedantic -fno-semantic-interposition -fdata-sections -O3 -DNDEBUG -fPIC -D _GNU_SOURCE -D _REENTRANT -U_GLIBCXX_ASSERTIONS -std=c++17 -fno-rtti -Wno-covered-switch-default -Wno-strict-aliasing -Wstringop-overflow=0 -Wno-stringop-truncation -Wno-uninitialized -Wno-cast-qual -Wno-int-to-void-pointer-cast -MD -MT runtime/src/CMakeFiles/omp.dir/kmp_barrier.cpp.o -MF runtime/src/CMakeFiles/omp.dir/kmp_barrier.cpp.o.d -c: warning: unknown warning option '-Wstringop-overflow=0'; did you mean '-Wshift-overflow'? [-Wunknown-warning-option]
+warning: unknown warning option '-Wno-stringop-truncation'; did you mean '-Wno-format-truncation'? [-Wunknown-warning-option]
+In file included from /p/lustre3/shan4/tmp/llvm-project/openmp/runtime/src/kmp_barrier.cpp:13:
+In file included from /p/lustre3/shan4/tmp/llvm-project/openmp/runtime/src/kmp_wait_release.h:16:
+In file included from /p/lustre3/shan4/tmp/llvm-project/openmp/runtime/src/kmp.h:17:
+/p/lustre3/shan4/tmp/llvm-project/build/openmp_build/runtime/src/kmp_config.h:14:10: fatal error: 'kmp_platform.h' file not found
+   14 | #include "kmp_platform.h"
+      |          ^~~~~~~~~~~~~~~~
+2 warnings and 1 error generated.
+
+Removed arguments: -I/p/lustre3/shan4/tmp/llvm-project/openmp/runtime/src, -MD, -c, _GNU_SOURCE, -Wimplicit-fallthrough, -fno-semantic-interposition, -Wno-covered-switch-default, -Wformat-pedantic, -I/p/lustre3/shan4/tmp/llvm-project/openmp/runtime/src/include, -O3, -Wstringop-overflow=0, -Wno-stringop-truncation, -fno-rtti
+Error with command clang++ /p/lustre3/shan4/tmp/llvm-project/openmp/runtime/src/thirdparty/ittnotify/ittnotify_static.cpp -o runtime/src/CMakeFiles/omp.dir/thirdparty/ittnotify/ittnotify_static.cpp.o -Domp_EXPORTS -I/p/lustre3/shan4/tmp/llvm-project/build/openmp_build/runtime/src -I/p/lustre3/shan4/tmp/llvm-project/openmp/runtime/src/i18n -I/p/lustre3/shan4/tmp/llvm-project/openmp/runtime/src/thirdparty/ittnotify -Wall -fcolor-diagnostics -Wsign-compare -Wno-extra -Wno-pedantic -Wno-maybe-uninitialized -fdata-sections -DNDEBUG -fPIC -D -D _REENTRANT -U_GLIBCXX_ASSERTIONS -std=c++17 -Wno-strict-aliasing -Wno-switch -Wno-uninitialized -Wno-cast-qual -Wno-int-to-void-pointer-cast -MT runtime/src/CMakeFiles/omp.dir/thirdparty/ittnotify/ittnotify_static.cpp.o -MF runtime/src/CMakeFiles/omp.dir/thirdparty/ittnotify/ittnotify_static.cpp.o.d: clang++: [0;1;31merror: [0m[1mno such file or directory: '_REENTRANT'[0m
+
+Removed arguments: -I/p/lustre3/shan4/tmp/llvm-project/build/openmp_build/runtime/src, -Wno-strict-aliasing, -Wno-maybe-uninitialized, -fcolor-diagnostics, -I/p/lustre3/shan4/tmp/llvm-project/openmp/runtime/src/include, -MT, -Wall, -D
+Error with command clang++ /p/lustre3/shan4/tmp/llvm-project/openmp/runtime/src/kmp_cancel.cpp -o runtime/src/CMakeFiles/omp.dir/kmp_cancel.cpp.o -Domp_EXPORTS -I/p/lustre3/shan4/tmp/llvm-project/openmp/runtime/src -I/p/lustre3/shan4/tmp/llvm-project/openmp/runtime/src/i18n -I/p/lustre3/shan4/tmp/llvm-project/openmp/runtime/src/thirdparty/ittnotify -Wformat-pedantic -Wimplicit-fallthrough -Wsign-compare -Wno-extra -Wno-pedantic -fno-semantic-interposition -fdata-sections -O3 -DNDEBUG -fPIC _GNU_SOURCE _REENTRANT -U_GLIBCXX_ASSERTIONS -std=c++17 -fno-rtti -Wno-covered-switch-default -Wstringop-overflow=0 -Wno-stringop-truncation -Wno-switch -Wno-uninitialized -Wno-cast-qual -Wno-int-to-void-pointer-cast -MD runtime/src/CMakeFiles/omp.dir/kmp_cancel.cpp.o -MF runtime/src/CMakeFiles/omp.dir/kmp_cancel.cpp.o.d -c: clang++: error: no such file or directory: '_GNU_SOURCE'
+clang++: error: no such file or directory: '_REENTRANT'
+clang++: error: no such file or directory: 'runtime/src/CMakeFiles/omp.dir/kmp_cancel.cpp.o'
+
+Removed arguments: -fno-semantic-interposition, -fno-rtti, -c, -Wno-maybe-uninitialized, runtime/src/CMakeFiles/omp.dir/kmp_taskdeps.cpp.o, -I/p/lustre3/shan4/tmp/llvm-project/build/openmp_build/runtime/src, -I/p/lustre3/shan4/tmp/llvm-project/openmp/runtime/src/include, -Wno-covered-switch-default, -MT, -O3, -Wimplicit-fallthrough, -I/p/lustre3/shan4/tmp/llvm-project/openmp/runtime/src/thirdparty/ittnotify
+Error with command clang++ /p/lustre3/shan4/tmp/llvm-project/openmp/runtime/src/kmp_taskdeps.cpp -o runtime/src/CMakeFiles/omp.dir/kmp_taskdeps.cpp.o -Domp_EXPORTS -I/p/lustre3/shan4/tmp/llvm-project/openmp/runtime/src -I/p/lustre3/shan4/tmp/llvm-project/openmp/runtime/src/i18n -Wall -fcolor-diagnostics -Wformat-pedantic -Wsign-compare -Wno-extra -Wno-pedantic -fdata-sections -DNDEBUG -fPIC -D _GNU_SOURCE -D _REENTRANT -U_GLIBCXX_ASSERTIONS -std=c++17 -Wno-strict-aliasing -Wstringop-overflow=0 -Wno-stringop-truncation -Wno-switch -Wno-uninitialized -Wno-cast-qual -Wno-int-to-void-pointer-cast -MD -MF runtime/src/CMakeFiles/omp.dir/kmp_taskdeps.cpp.o.d: [0;1;35mwarning: [0m[1munknown warning option '-Wstringop-overflow=0'; did you mean '-Wshift-overflow'? [-Wunknown-warning-option][0m
+[0;1;35mwarning: [0m[1munknown warning option '-Wno-stringop-truncation'; did you mean '-Wno-format-truncation'? [-Wunknown-warning-option][0m
+In file included from /p/lustre3/shan4/tmp/llvm-project/openmp/runtime/src/kmp_taskdeps.cpp:15:
+[1m/p/lustre3/shan4/tmp/llvm-project/openmp/runtime/src/kmp.h:17:10: [0m[0;1;31mfatal error: [0m[1m'kmp_config.h' file not found[0m
+   17 | #include [0;32m"kmp_config.h"[0m
+      | [0;1;32m         ^~~~~~~~~~~~~~
+[0m2 warnings and 1 error generated.
+
+Removed arguments: _REENTRANT, -Wno-covered-switch-default, -I/p/lustre3/shan4/tmp/llvm-project/build/openmp_build/runtime/src, -fdata-sections, -Wno-strict-aliasing, -I/p/lustre3/shan4/tmp/llvm-project/openmp/runtime/src/thirdparty/ittnotify
+Error with command clang++ /p/lustre3/shan4/tmp/llvm-project/openmp/runtime/src/kmp_ftn_cdecl.cpp -o runtime/src/CMakeFiles/omp.dir/kmp_ftn_cdecl.cpp.o -Domp_EXPORTS -I/p/lustre3/shan4/tmp/llvm-project/openmp/runtime/src -I/p/lustre3/shan4/tmp/llvm-project/openmp/runtime/src/i18n -I/p/lustre3/shan4/tmp/llvm-project/openmp/runtime/src/include -Wall -fcolor-diagnostics -Wformat-pedantic -Wimplicit-fallthrough -Wsign-compare -Wno-extra -Wno-pedantic -Wno-maybe-uninitialized -fno-semantic-interposition -O3 -DNDEBUG -fPIC -D _GNU_SOURCE -D -U_GLIBCXX_ASSERTIONS -std=c++17 -fno-rtti -Wstringop-overflow=0 -Wno-stringop-truncation -Wno-switch -Wno-uninitialized -Wno-cast-qual -Wno-int-to-void-pointer-cast -MD -MT runtime/src/CMakeFiles/omp.dir/kmp_ftn_cdecl.cpp.o -MF runtime/src/CMakeFiles/omp.dir/kmp_ftn_cdecl.cpp.o.d -c: [0;1;35mwarning: [0m[1munknown warning option '-Wno-maybe-uninitialized'; did you mean '-Wno-uninitialized'? [-Wunknown-warning-option][0m
+[0;1;35mwarning: [0m[1munknown warning option '-Wstringop-overflow=0'; did you mean '-Wshift-overflow'? [-Wunknown-warning-option][0m
+[0;1;35mwarning: [0m[1munknown warning option '-Wno-stringop-truncation'; did you mean '-Wno-format-truncation'? [-Wunknown-warning-option][0m
+In file included from <built-in>:452:
+[1m<command line>:4:9: [0m[0;1;31merror: [0m[1mmacro name must be an identifier[0m
+    4 | #define -U_GLIBCXX_ASSERTIONS [0;32m1[0m
+      | [0;1;32m        ^
+[0mIn file included from /p/lustre3/shan4/tmp/llvm-project/openmp/runtime/src/kmp_ftn_cdecl.cpp:13:
+[1m/p/lustre3/shan4/tmp/llvm-project/openmp/runtime/src/kmp.h:17:10: [0m[0;1;31mfatal error: [0m[1m'kmp_config.h' file not found[0m
+   17 | #include [0;32m"kmp_config.h"[0m
+      | [0;1;32m         ^~~~~~~~~~~~~~
+[0m3 warnings and 2 errors generated.
+
+Removed arguments: -Wall
+SUCCESS: clang++, /p/lustre3/shan4/tmp/llvm-project/openmp/runtime/src/kmp_atomic.cpp, -o, runtime/src/CMakeFiles/omp.dir/kmp_atomic.cpp.o, -Domp_EXPORTS, -I/p/lustre3/shan4/tmp/llvm-project/build/openmp_build/runtime/src, -I/p/lustre3/shan4/tmp/llvm-project/openmp/runtime/src, -I/p/lustre3/shan4/tmp/llvm-project/openmp/runtime/src/i18n, -I/p/lustre3/shan4/tmp/llvm-project/openmp/runtime/src/include, -I/p/lustre3/shan4/tmp/llvm-project/openmp/runtime/src/thirdparty/ittnotify, -fcolor-diagnostics, -Wformat-pedantic, -Wimplicit-fallthrough, -Wsign-compare, -Wno-extra, -Wno-pedantic, -Wno-maybe-uninitialized, -fno-semantic-interposition, -fdata-sections, -O3, -DNDEBUG, -fPIC, -D, _GNU_SOURCE, -D, _REENTRANT, -U_GLIBCXX_ASSERTIONS, -std=c++17, -fno-rtti, -Wno-covered-switch-default, -Wno-strict-aliasing, -Wstringop-overflow=0, -Wno-stringop-truncation, -Wno-switch, -Wno-uninitialized, -Wno-cast-qual, -Wno-int-to-void-pointer-cast, -MD, -MT, runtime/src/CMakeFiles/omp.dir/kmp_atomic.cpp.o, -MF, runtime/src/CMakeFiles/omp.dir/kmp_atomic.cpp.o.d, -c
+Removed arguments: -c, -I/p/lustre3/shan4/tmp/llvm-project/openmp/runtime/src, -I/p/lustre3/shan4/tmp/llvm-project/openmp/runtime/src/include, -D
+Error with command clang -o runtime/src/CMakeFiles/omp.dir/z_Linux_asm.S.o -Domp_EXPORTS -I/p/lustre3/shan4/tmp/llvm-project/build/openmp_build/runtime/src -I/p/lustre3/shan4/tmp/llvm-project/openmp/runtime/src/i18n -I/p/lustre3/shan4/tmp/llvm-project/openmp/runtime/src/thirdparty/ittnotify _GNU_SOURCE _REENTRANT -U_GLIBCXX_ASSERTIONS /p/lustre3/shan4/tmp/llvm-project/openmp/runtime/src/z_Linux_asm.S: clang: error: no such file or directory: '_GNU_SOURCE'
+clang: error: no such file or directory: '_REENTRANT'
+
+Removed arguments: -Wno-cast-qual, -I/p/lustre3/shan4/tmp/llvm-project/openmp/runtime/src/include, -MT, runtime/src/CMakeFiles/omp.dir/kmp_ftn_extra.cpp.o, -Wno-int-to-void-pointer-cast, -DNDEBUG, -Domp_EXPORTS
+SUCCESS: clang++, /p/lustre3/shan4/tmp/llvm-project/openmp/runtime/src/kmp_ftn_extra.cpp, -o, runtime/src/CMakeFiles/omp.dir/kmp_ftn_extra.cpp.o, -I/p/lustre3/shan4/tmp/llvm-project/build/openmp_build/runtime/src, -I/p/lustre3/shan4/tmp/llvm-project/openmp/runtime/src, -I/p/lustre3/shan4/tmp/llvm-project/openmp/runtime/src/i18n, -I/p/lustre3/shan4/tmp/llvm-project/openmp/runtime/src/thirdparty/ittnotify, -Wall, -fcolor-diagnostics, -Wformat-pedantic, -Wimplicit-fallthrough, -Wsign-compare, -Wno-extra, -Wno-pedantic, -Wno-maybe-uninitialized, -fno-semantic-interposition, -fdata-sections, -O3, -fPIC, -D, _GNU_SOURCE, -D, _REENTRANT, -U_GLIBCXX_ASSERTIONS, -std=c++17, -fno-rtti, -Wno-covered-switch-default, -Wno-strict-aliasing, -Wstringop-overflow=0, -Wno-stringop-truncation, -Wno-switch, -Wno-uninitialized, -MD, -MF, runtime/src/CMakeFiles/omp.dir/kmp_ftn_extra.cpp.o.d, -c
+Removed arguments: -U_GLIBCXX_ASSERTIONS, -Wno-maybe-uninitialized, -Domp_EXPORTS
+SUCCESS: clang++, /p/lustre3/shan4/tmp/llvm-project/openmp/runtime/src/kmp_version.cpp, -o, runtime/src/CMakeFiles/omp.dir/kmp_version.cpp.o, -I/p/lustre3/shan4/tmp/llvm-project/build/openmp_build/runtime/src, -I/p/lustre3/shan4/tmp/llvm-project/openmp/runtime/src, -I/p/lustre3/shan4/tmp/llvm-project/openmp/runtime/src/i18n, -I/p/lustre3/shan4/tmp/llvm-project/openmp/runtime/src/include, -I/p/lustre3/shan4/tmp/llvm-project/openmp/runtime/src/thirdparty/ittnotify, -Wall, -fcolor-diagnostics, -Wformat-pedantic, -Wimplicit-fallthrough, -Wsign-compare, -Wno-extra, -Wno-pedantic, -fno-semantic-interposition, -fdata-sections, -O3, -DNDEBUG, -fPIC, -D, _GNU_SOURCE, -D, _REENTRANT, -std=c++17, -fno-rtti, -Wno-covered-switch-default, -Wno-strict-aliasing, -Wstringop-overflow=0, -Wno-stringop-truncation, -Wno-switch, -Wno-uninitialized, -Wno-cast-qual, -Wno-int-to-void-pointer-cast, -MD, -MT, runtime/src/CMakeFiles/omp.dir/kmp_version.cpp.o, -MF, runtime/src/CMakeFiles/omp.dir/kmp_version.cpp.o.d, -c
+Removed arguments: -std=c++17, -fdata-sections
+SUCCESS: clang++, /p/lustre3/shan4/tmp/llvm-project/openmp/runtime/src/z_Linux_util.cpp, -o, runtime/src/CMakeFiles/omp.dir/z_Linux_util.cpp.o, -Domp_EXPORTS, -I/p/lustre3/shan4/tmp/llvm-project/build/openmp_build/runtime/src, -I/p/lustre3/shan4/tmp/llvm-project/openmp/runtime/src, -I/p/lustre3/shan4/tmp/llvm-project/openmp/runtime/src/i18n, -I/p/lustre3/shan4/tmp/llvm-project/openmp/runtime/src/include, -I/p/lustre3/shan4/tmp/llvm-project/openmp/runtime/src/thirdparty/ittnotify, -Wall, -fcolor-diagnostics, -Wformat-pedantic, -Wimplicit-fallthrough, -Wsign-compare, -Wno-extra, -Wno-pedantic, -Wno-maybe-uninitialized, -fno-semantic-interposition, -O3, -DNDEBUG, -fPIC, -D, _GNU_SOURCE, -D, _REENTRANT, -U_GLIBCXX_ASSERTIONS, -fno-rtti, -Wno-covered-switch-default, -Wno-strict-aliasing, -Wstringop-overflow=0, -Wno-stringop-truncation, -Wno-switch, -Wno-uninitialized, -Wno-cast-qual, -Wno-int-to-void-pointer-cast, -MD, -MT, runtime/src/CMakeFiles/omp.dir/z_Linux_util.cpp.o, -MF, runtime/src/CMakeFiles/omp.dir/z_Linux_util.cpp.o.d, -c
+Removed arguments: -Wno-uninitialized, -fcolor-diagnostics, -Wstringop-overflow=0
+SUCCESS: clang++, /p/lustre3/shan4/tmp/llvm-project/openmp/runtime/src/kmp_runtime.cpp, -o, runtime/src/CMakeFiles/omp.dir/kmp_runtime.cpp.o, -Domp_EXPORTS, -I/p/lustre3/shan4/tmp/llvm-project/build/openmp_build/runtime/src, -I/p/lustre3/shan4/tmp/llvm-project/openmp/runtime/src, -I/p/lustre3/shan4/tmp/llvm-project/openmp/runtime/src/i18n, -I/p/lustre3/shan4/tmp/llvm-project/openmp/runtime/src/include, -I/p/lustre3/shan4/tmp/llvm-project/openmp/runtime/src/thirdparty/ittnotify, -Wall, -Wformat-pedantic, -Wimplicit-fallthrough, -Wsign-compare, -Wno-extra, -Wno-pedantic, -Wno-maybe-uninitialized, -fno-semantic-interposition, -fdata-sections, -O3, -DNDEBUG, -fPIC, -D, _GNU_SOURCE, -D, _REENTRANT, -U_GLIBCXX_ASSERTIONS, -std=c++17, -fno-rtti, -Wno-covered-switch-default, -Wno-strict-aliasing, -Wno-stringop-truncation, -Wno-switch, -Wno-cast-qual, -Wno-int-to-void-pointer-cast, -MD, -MT, runtime/src/CMakeFiles/omp.dir/kmp_runtime.cpp.o, -MF, runtime/src/CMakeFiles/omp.dir/kmp_runtime.cpp.o.d, -c
+Removed arguments: -Wno-maybe-uninitialized
+SUCCESS: clang++, /p/lustre3/shan4/tmp/llvm-project/openmp/runtime/src/kmp_settings.cpp, -o, runtime/src/CMakeFiles/omp.dir/kmp_settings.cpp.o, -Domp_EXPORTS, -I/p/lustre3/shan4/tmp/llvm-project/build/openmp_build/runtime/src, -I/p/lustre3/shan4/tmp/llvm-project/openmp/runtime/src, -I/p/lustre3/shan4/tmp/llvm-project/openmp/runtime/src/i18n, -I/p/lustre3/shan4/tmp/llvm-project/openmp/runtime/src/include, -I/p/lustre3/shan4/tmp/llvm-project/openmp/runtime/src/thirdparty/ittnotify, -Wall, -fcolor-diagnostics, -Wformat-pedantic, -Wimplicit-fallthrough, -Wsign-compare, -Wno-extra, -Wno-pedantic, -fno-semantic-interposition, -fdata-sections, -O3, -DNDEBUG, -fPIC, -D, _GNU_SOURCE, -D, _REENTRANT, -U_GLIBCXX_ASSERTIONS, -std=c++17, -fno-rtti, -Wno-covered-switch-default, -Wno-strict-aliasing, -Wstringop-overflow=0, -Wno-stringop-truncation, -Wno-switch, -Wno-uninitialized, -Wno-cast-qual, -Wno-int-to-void-pointer-cast, -MD, -MT, runtime/src/CMakeFiles/omp.dir/kmp_settings.cpp.o, -MF, runtime/src/CMakeFiles/omp.dir/kmp_settings.cpp.o.d, -c
+Removed arguments: -Wno-covered-switch-default, -Domp_EXPORTS, -std=c++17, -Wno-int-to-void-pointer-cast, runtime/src/CMakeFiles/omp.dir/kmp_affinity.cpp.o.d, -Wsign-compare, -fcolor-diagnostics, -Wno-strict-aliasing
+Error with command clang++ /p/lustre3/shan4/tmp/llvm-project/openmp/runtime/src/kmp_affinity.cpp -o runtime/src/CMakeFiles/omp.dir/kmp_affinity.cpp.o -I/p/lustre3/shan4/tmp/llvm-project/build/openmp_build/runtime/src -I/p/lustre3/shan4/tmp/llvm-project/openmp/runtime/src -I/p/lustre3/shan4/tmp/llvm-project/openmp/runtime/src/i18n -I/p/lustre3/shan4/tmp/llvm-project/openmp/runtime/src/include -I/p/lustre3/shan4/tmp/llvm-project/openmp/runtime/src/thirdparty/ittnotify -Wall -Wformat-pedantic -Wimplicit-fallthrough -Wno-extra -Wno-pedantic -Wno-maybe-uninitialized -fno-semantic-interposition -fdata-sections -O3 -DNDEBUG -fPIC -D _GNU_SOURCE -D _REENTRANT -U_GLIBCXX_ASSERTIONS -fno-rtti -Wstringop-overflow=0 -Wno-stringop-truncation -Wno-switch -Wno-uninitialized -Wno-cast-qual -MD -MT runtime/src/CMakeFiles/omp.dir/kmp_affinity.cpp.o -MF -c: warning: unknown warning option '-Wno-maybe-uninitialized'; did you mean '-Wno-uninitialized'? [-Wunknown-warning-option]
+warning: unknown warning option '-Wstringop-overflow=0'; did you mean '-Wshift-overflow'? [-Wunknown-warning-option]
+warning: unknown warning option '-Wno-stringop-truncation'; did you mean '-Wno-format-truncation'? [-Wunknown-warning-option]
+3 warnings generated.
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: /lib/../lib64/Scrt1.o: in function `_start':
+(.text+0x24): undefined reference to `main'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: /var/tmp/shan4/kmp_affinity-10f7ac.o: in function `__kmp_cleanup_hierarchy':
+kmp_affinity.cpp:(.text+0x18): undefined reference to `___kmp_free'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: /var/tmp/shan4/kmp_affinity-10f7ac.o: in function `__kmp_get_hierarchy':
+kmp_affinity.cpp:(.text+0xa5): undefined reference to `__kmp_debug_assert'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: /var/tmp/shan4/kmp_affinity-10f7ac.o: in function `__kmp_hw_get_catalog_string':
+kmp_affinity.cpp:(.text+0xe1): undefined reference to `__kmp_i18n_catgets'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0xf0): undefined reference to `__kmp_i18n_catgets'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0xff): undefined reference to `__kmp_i18n_catgets'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x114): undefined reference to `__kmp_i18n_catgets'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x123): undefined reference to `__kmp_i18n_catgets'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: /var/tmp/shan4/kmp_affinity-10f7ac.o:kmp_affinity.cpp:(.text+0x132): more undefined references to `__kmp_i18n_catgets' follow
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: /var/tmp/shan4/kmp_affinity-10f7ac.o: in function `__kmp_hw_get_catalog_string':
+kmp_affinity.cpp:(.text+0x1ba): undefined reference to `__kmp_debug_assert'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: /var/tmp/shan4/kmp_affinity-10f7ac.o: in function `__kmp_hw_get_keyword':
+kmp_affinity.cpp:(.text+0x30e): undefined reference to `__kmp_debug_assert'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: /var/tmp/shan4/kmp_affinity-10f7ac.o: in function `__kmp_hw_get_core_type_string':
+kmp_affinity.cpp:(.text+0x365): undefined reference to `__kmp_debug_assert'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: /var/tmp/shan4/kmp_affinity-10f7ac.o: in function `kmp_hw_thread_t::print() const':
+kmp_affinity.cpp:(.text+0x576): undefined reference to `__kmp_debug_assert'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: /var/tmp/shan4/kmp_affinity-10f7ac.o: in function `kmp_topology_t::_remove_radix1_layers()':
+kmp_affinity.cpp:(.text+0x814): undefined reference to `__kmp_debug_assert'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: /var/tmp/shan4/kmp_affinity-10f7ac.o:kmp_affinity.cpp:(.text+0x832): more undefined references to `__kmp_debug_assert' follow
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: /var/tmp/shan4/kmp_affinity-10f7ac.o: in function `kmp_topology_t::_set_last_level_cache()':
+kmp_affinity.cpp:(.text+0xd1e): undefined reference to `__kmp_mic_type'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0xe48): undefined reference to `__kmp_debug_assert'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: /var/tmp/shan4/kmp_affinity-10f7ac.o: in function `kmp_topology_t::_gather_enumeration_information()':
+kmp_affinity.cpp:(.text+0x1067): undefined reference to `__kmp_cpuinfo'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x10f2): undefined reference to `__kmp_debug_assert'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: /var/tmp/shan4/kmp_affinity-10f7ac.o: in function `kmp_topology_t::_get_ncores_with_attr(kmp_hw_attr_t const&, int, bool) const':
+kmp_affinity.cpp:(.text+0x11f6): undefined reference to `__kmp_debug_assert'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: /var/tmp/shan4/kmp_affinity-10f7ac.o: in function `kmp_topology_t::_set_globals()':
+kmp_affinity.cpp:(.text+0x16fe): undefined reference to `__kmp_debug_assert'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x174b): undefined reference to `__kmp_debug_assert'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x19b2): undefined reference to `__kmp_debug_assert'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: /var/tmp/shan4/kmp_affinity-10f7ac.o: in function `kmp_topology_t::allocate(int, int, kmp_hw_t const*)':
+kmp_affinity.cpp:(.text+0x1a1b): undefined reference to `___kmp_allocate'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: /var/tmp/shan4/kmp_affinity-10f7ac.o: in function `kmp_topology_t::deallocate(kmp_topology_t*)':
+kmp_affinity.cpp:(.text+0x1b45): undefined reference to `___kmp_free'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: /var/tmp/shan4/kmp_affinity-10f7ac.o: in function `kmp_topology_t::dump() const':
+kmp_affinity.cpp:(.text+0x2007): undefined reference to `__kmp_debug_assert'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: /var/tmp/shan4/kmp_affinity-10f7ac.o: in function `kmp_topology_t::print(char const*) const':
+kmp_affinity.cpp:(.text+0x206a): undefined reference to `__kmp_msg_format'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x207b): undefined reference to `__kmp_xproc'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x2094): undefined reference to `__kmp_msg_format'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x20a3): undefined reference to `__kmp_msg_null'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x20db): undefined reference to `__kmp_msg'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x20fe): undefined reference to `__kmp_msg_format'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x2124): undefined reference to `__kmp_msg_format'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x2133): undefined reference to `__kmp_msg_null'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x216b): undefined reference to `__kmp_msg'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x21c9): undefined reference to `__kmp_i18n_catgets'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x21e6): undefined reference to `__kmp_i18n_catgets'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x2200): undefined reference to `__kmp_msg_format'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x2207): undefined reference to `__kmp_msg_null'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x223a): undefined reference to `__kmp_msg'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x2264): undefined reference to `__kmp_debug_assert'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x22d9): undefined reference to `__kmp_str_buf_clear'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x2347): undefined reference to `__kmp_debug_assert'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x2480): undefined reference to `__kmp_i18n_catgets'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x249b): undefined reference to `__kmp_str_buf_print'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x2504): undefined reference to `__kmp_debug_assert'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x2631): undefined reference to `__kmp_i18n_catgets'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x2653): undefined reference to `__kmp_i18n_catgets'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x2671): undefined reference to `__kmp_str_buf_print'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x26a8): undefined reference to `__kmp_msg_format'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x26af): undefined reference to `__kmp_msg_null'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x26e2): undefined reference to `__kmp_msg'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x26e9): undefined reference to `__kmp_cpuinfo'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x27c5): undefined reference to `__kmp_msg_format'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x27cc): undefined reference to `__kmp_msg_null'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x27ff): undefined reference to `__kmp_msg'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x2820): undefined reference to `__kmp_debug_assert'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x28c1): undefined reference to `__kmp_debug_assert'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x29ed): undefined reference to `__kmp_msg_format'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x29f4): undefined reference to `__kmp_msg_null'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x2a27): undefined reference to `__kmp_msg'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x2a50): undefined reference to `__kmp_msg_format'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x2a57): undefined reference to `__kmp_msg_null'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x2a8a): undefined reference to `__kmp_msg'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x2acd): undefined reference to `__kmp_str_buf_print'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x2afa): undefined reference to `__kmp_msg_format'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x2b01): undefined reference to `__kmp_msg_null'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x2b34): undefined reference to `__kmp_msg'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x2b55): undefined reference to `__kmp_str_buf_clear'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x2b90): undefined reference to `__kmp_i18n_catgets'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x2ba0): undefined reference to `__kmp_str_buf_print'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x2bb8): undefined reference to `__kmp_str_buf_print'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x2bca): undefined reference to `__kmp_cpuinfo'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x2c43): undefined reference to `__kmp_str_buf_free'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x2c6d): undefined reference to `__kmp_debug_assert'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x2c85): undefined reference to `__kmp_debug_assert'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: /var/tmp/shan4/kmp_affinity-10f7ac.o: in function `kmp_topology_t::set_granularity(kmp_affinity_t&) const':
+kmp_affinity.cpp:(.text+0x2cc1): undefined reference to `__kmp_cpuinfo'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x2d07): undefined reference to `__kmp_i18n_catgets'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x2d28): undefined reference to `__kmp_msg_format'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x2d45): undefined reference to `__kmp_i18n_catgets'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x2d5c): undefined reference to `__kmp_msg_format'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x2d63): undefined reference to `__kmp_msg_null'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x2d93): undefined reference to `__kmp_msg'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x2dc8): undefined reference to `__kmp_i18n_catgets'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x2de9): undefined reference to `__kmp_msg_format'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x2df0): undefined reference to `__kmp_msg_null'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x2e1f): undefined reference to `__kmp_msg'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x2ea8): undefined reference to `__kmp_debug_assert'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x2ee5): undefined reference to `__kmp_i18n_catgets'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x2efb): undefined reference to `__kmp_i18n_catgets'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x2f15): undefined reference to `__kmp_msg_format'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x2f1c): undefined reference to `__kmp_msg_null'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x2f4c): undefined reference to `__kmp_msg'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x2fb1): undefined reference to `__kmp_debug_assert'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: /var/tmp/shan4/kmp_affinity-10f7ac.o: in function `kmp_topology_t::canonicalize()':
+kmp_affinity.cpp:(.text+0x321e): undefined reference to `__kmp_mic_type'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x32ad): undefined reference to `__kmp_debug_assert'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x331c): undefined reference to `__kmp_debug_assert'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x3339): undefined reference to `__kmp_debug_assert'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x3359): undefined reference to `__kmp_debug_assert'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: /var/tmp/shan4/kmp_affinity-10f7ac.o: in function `kmp_topology_t::canonicalize(int, int, int, int)':
+kmp_affinity.cpp:(.text+0x35d4): undefined reference to `__kmp_xproc'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: /var/tmp/shan4/kmp_affinity-10f7ac.o: in function `kmp_topology_t::restrict_to_mask(KMPAffinity::Mask const*)':
+kmp_affinity.cpp:(.text+0x3765): undefined reference to `__kmp_avail_proc'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: /var/tmp/shan4/kmp_affinity-10f7ac.o: in function `kmp_topology_t::filter_hw_subset()':
+kmp_affinity.cpp:(.text+0x3a1d): undefined reference to `__kmp_debug_assert'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x3d37): undefined reference to `__kmp_cpuinfo'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x3d44): undefined reference to `__kmp_affinity'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x3d70): undefined reference to `__kmp_affinity'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x3da0): undefined reference to `__kmp_msg_format'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x3ea8): undefined reference to `__kmp_affinity'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x3ed8): undefined reference to `__kmp_msg_format'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x3ee6): undefined reference to `__kmp_msg_null'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x3f29): undefined reference to `__kmp_msg'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x4093): undefined reference to `__kmp_affinity_dispatch'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x4535): undefined reference to `__kmp_affinity'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x4563): undefined reference to `__kmp_msg_format'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x456e): undefined reference to `__kmp_msg_null'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x459f): undefined reference to `__kmp_affinity'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x45ba): undefined reference to `__kmp_affinity'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x45e0): undefined reference to `__kmp_i18n_catgets'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x45f9): undefined reference to `__kmp_msg_format'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x4604): undefined reference to `__kmp_msg_null'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x4653): undefined reference to `__kmp_affinity'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x4669): undefined reference to `__kmp_affinity'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x468d): undefined reference to `__kmp_msg_format'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x4698): undefined reference to `__kmp_msg_null'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x46c8): undefined reference to `__kmp_affinity'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x46e3): undefined reference to `__kmp_affinity'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x4709): undefined reference to `__kmp_i18n_catgets'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x4726): undefined reference to `__kmp_i18n_catgets'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x4742): undefined reference to `__kmp_msg_format'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x474d): undefined reference to `__kmp_msg_null'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x477d): undefined reference to `__kmp_affinity'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x4798): undefined reference to `__kmp_affinity'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x47e4): undefined reference to `__kmp_affinity'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x47fa): undefined reference to `__kmp_affinity'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x481e): undefined reference to `__kmp_msg_format'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x4829): undefined reference to `__kmp_msg_null'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x4890): undefined reference to `__kmp_str_buf_print'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x48b1): undefined reference to `__kmp_msg_format'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x48cb): undefined reference to `__kmp_msg_format'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x48d6): undefined reference to `__kmp_msg_null'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x4922): undefined reference to `__kmp_msg'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x492e): undefined reference to `__kmp_str_buf_free'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x494b): undefined reference to `__kmp_affinity'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x496b): undefined reference to `__kmp_msg_format'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x4976): undefined reference to `__kmp_msg_null'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x49da): undefined reference to `__kmp_affinity'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x49f3): undefined reference to `__kmp_affinity'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x4a21): undefined reference to `__kmp_msg_format'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x4a2c): undefined reference to `__kmp_msg_null'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x4a80): undefined reference to `__kmp_affinity'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x4a92): undefined reference to `__kmp_affinity'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x4aa2): undefined reference to `__kmp_i18n_catgets'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x4abf): undefined reference to `__kmp_msg_format'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x4aca): undefined reference to `__kmp_msg_null'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x4afe): undefined reference to `__kmp_msg'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x4b0e): undefined reference to `__kmp_str_buf_free'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x4bf3): undefined reference to `__kmp_i18n_catgets'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x4c0c): undefined reference to `__kmp_msg_format'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x4c17): undefined reference to `__kmp_msg_null'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x4c4c): undefined reference to `__kmp_msg'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x4c7a): undefined reference to `__kmp_debug_assert'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x4c92): undefined reference to `__kmp_debug_assert'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: /var/tmp/shan4/kmp_affinity-10f7ac.o: in function `__kmp_hw_get_catalog_core_string(kmp_hw_attr_t const&, kmp_str_buf*, bool)':
+kmp_affinity.cpp:(.text+0x4cf1): undefined reference to `__kmp_i18n_catgets'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x4d0a): undefined reference to `__kmp_str_buf_print'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x4d3a): undefined reference to `__kmp_i18n_catgets'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x4d51): undefined reference to `__kmp_str_buf_print'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x4d74): undefined reference to `__kmp_debug_assert'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: /var/tmp/shan4/kmp_affinity-10f7ac.o: in function `KMPAffinity::Mask::operator new(unsigned long)':
+kmp_affinity.cpp:(.text+0x4e01): undefined reference to `___kmp_allocate'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: /var/tmp/shan4/kmp_affinity-10f7ac.o: in function `KMPAffinity::Mask::operator new[](unsigned long)':
+kmp_affinity.cpp:(.text+0x4e11): undefined reference to `___kmp_allocate'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: /var/tmp/shan4/kmp_affinity-10f7ac.o: in function `KMPAffinity::Mask::operator delete(void*)':
+kmp_affinity.cpp:(.text+0x4e22): undefined reference to `___kmp_free'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: /var/tmp/shan4/kmp_affinity-10f7ac.o: in function `KMPAffinity::Mask::operator delete[](void*)':
+kmp_affinity.cpp:(.text+0x4e32): undefined reference to `___kmp_free'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: /var/tmp/shan4/kmp_affinity-10f7ac.o: in function `KMPAffinity::operator new(unsigned long)':
+kmp_affinity.cpp:(.text+0x4e41): undefined reference to `___kmp_allocate'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: /var/tmp/shan4/kmp_affinity-10f7ac.o: in function `KMPAffinity::operator delete(void*)':
+kmp_affinity.cpp:(.text+0x4e52): undefined reference to `___kmp_free'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: /var/tmp/shan4/kmp_affinity-10f7ac.o: in function `KMPAffinity::pick_api()':
+kmp_affinity.cpp:(.text+0x4e73): undefined reference to `___kmp_allocate'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x4e88): undefined reference to `__kmp_affinity_dispatch'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: /var/tmp/shan4/kmp_affinity-10f7ac.o: in function `KMPAffinity::destroy_api()':
+kmp_affinity.cpp:(.text+0x4ea4): undefined reference to `__kmp_affinity_dispatch'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: /var/tmp/shan4/kmp_affinity-10f7ac.o: in function `__kmp_affinity_print_mask':
+kmp_affinity.cpp:(.text+0x512b): undefined reference to `__kmp_debug_assert'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x5155): undefined reference to `__kmp_debug_assert'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x5176): undefined reference to `__kmp_debug_assert'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x5197): undefined reference to `__kmp_debug_assert'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: /var/tmp/shan4/kmp_affinity-10f7ac.o: in function `__kmp_affinity_str_buf_mask':
+kmp_affinity.cpp:(.text+0x51c7): undefined reference to `__kmp_str_buf_clear'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x51f7): undefined reference to `__kmp_str_buf_print'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x522f): undefined reference to `__kmp_str_buf_print'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x52c4): undefined reference to `__kmp_str_buf_print'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x52e7): undefined reference to `__kmp_str_buf_print'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x5305): undefined reference to `__kmp_str_buf_print'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x532f): undefined reference to `__kmp_debug_assert'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x5350): undefined reference to `__kmp_debug_assert'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: /var/tmp/shan4/kmp_affinity-10f7ac.o: in function `__kmp_affinity_get_offline_cpus()':
+kmp_affinity.cpp:(.text+0x536e): undefined reference to `__kmp_affinity_dispatch'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x5400): undefined reference to `__kmp_xproc'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: /var/tmp/shan4/kmp_affinity-10f7ac.o: in function `__kmp_affinity_entire_machine_mask(KMPAffinity::Mask*)':
+kmp_affinity.cpp:(.text+0x55dc): undefined reference to `__kmp_xproc'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x561e): undefined reference to `__kmp_affinity_dispatch'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: /var/tmp/shan4/kmp_affinity-10f7ac.o: in function `__kmp_affinity_process_placelist(kmp_affinity_t&)':
+kmp_affinity.cpp:(.text+0x567d): undefined reference to `__kmp_affinity_dispatch'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x576d): undefined reference to `__kmp_affinity_dispatch'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x5794): undefined reference to `__kmp_debug_assert'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x57d3): undefined reference to `__kmp_debug_assert'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x57f7): undefined reference to `__kmp_str_to_int'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x5818): undefined reference to `__kmp_debug_assert'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x587a): undefined reference to `__kmp_affinity_dispatch'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x595c): undefined reference to `__kmp_debug_assert'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x59f4): undefined reference to `__kmp_debug_assert'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x5a17): undefined reference to `__kmp_str_to_int'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x5a89): undefined reference to `__kmp_affinity_dispatch'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x5aab): undefined reference to `__kmp_affinity_dispatch'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x5b98): undefined reference to `__kmp_msg_format'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x5b9f): undefined reference to `__kmp_msg_null'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x5bd5): undefined reference to `__kmp_msg'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x5c43): undefined reference to `__kmp_affinity_dispatch'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x5d4b): undefined reference to `__kmp_debug_assert'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x5d6e): undefined reference to `__kmp_affinity_dispatch'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x5df9): undefined reference to `__kmp_affinity_dispatch'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: /var/tmp/shan4/kmp_affinity-10f7ac.o: in function `__kmp_process_place(char const**, kmp_affinity_t&, int, KMPAffinity::Mask*, int*)':
+kmp_affinity.cpp:(.text+0x5eb8): undefined reference to `__kmp_msg_format'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x5ebf): undefined reference to `__kmp_msg_null'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x5ef5): undefined reference to `__kmp_msg'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x5f39): undefined reference to `__kmp_debug_assert'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x5f64): undefined reference to `__kmp_str_to_int'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x5f7f): undefined reference to `__kmp_debug_assert'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x5fe6): undefined reference to `__kmp_affinity_dispatch'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x6008): undefined reference to `__kmp_affinity_dispatch'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x6075): undefined reference to `__kmp_debug_assert'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x60aa): undefined reference to `__kmp_debug_assert'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x60d6): undefined reference to `__kmp_str_to_int'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x60f1): undefined reference to `__kmp_debug_assert'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x615d): undefined reference to `__kmp_affinity_dispatch'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x61cd): undefined reference to `__kmp_debug_assert'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x6244): undefined reference to `__kmp_debug_assert'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x6279): undefined reference to `__kmp_str_to_int'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x629a): undefined reference to `__kmp_debug_assert'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x630d): undefined reference to `__kmp_affinity_dispatch'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x63a1): undefined reference to `__kmp_msg_format'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x63a8): undefined reference to `__kmp_msg_null'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x63de): undefined reference to `__kmp_msg'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x6417): undefined reference to `__kmp_debug_assert'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x6451): undefined reference to `__kmp_msg_format'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x6458): undefined reference to `__kmp_msg_null'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x648e): undefined reference to `__kmp_msg'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x64cc): undefined reference to `__kmp_debug_assert'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x6544): undefined reference to `__kmp_str_to_int'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x657e): undefined reference to `__kmp_debug_assert'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x6596): undefined reference to `__kmp_debug_assert'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x65a3): undefined reference to `__kmp_affinity_dispatch'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x6615): undefined reference to `__kmp_msg_format'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x661c): undefined reference to `__kmp_msg_null'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x664c): undefined reference to `__kmp_msg'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: /var/tmp/shan4/kmp_affinity-10f7ac.o: in function `__kmp_affinity_initialize':
+kmp_affinity.cpp:(.text+0x667d): undefined reference to `__kmp_affin_mask_size'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x66c3): undefined reference to `__kmp_debug_assert'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: /var/tmp/shan4/kmp_affinity-10f7ac.o: in function `__kmp_aux_affinity_initialize(kmp_affinity_t&)':
+kmp_affinity.cpp:(.text+0x672c): undefined reference to `__kmp_debug_assert'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x673e): undefined reference to `__kmp_affinity'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x677f): undefined reference to `__kmp_affinity'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x6798): undefined reference to `__kmp_affin_mask_size'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x67aa): undefined reference to `__kmp_affinity_dispatch'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x67c5): undefined reference to `__kmp_affinity_dispatch'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x67d8): undefined reference to `__kmp_affin_mask_size'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x6813): undefined reference to `__kmp_avail_proc'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x6864): undefined reference to `__kmp_xproc'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x6891): undefined reference to `__kmp_msg_format'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x6898): undefined reference to `__kmp_msg_null'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x68d0): undefined reference to `__kmp_msg'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x68de): undefined reference to `__kmp_affin_mask_size'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x6922): undefined reference to `__kmp_msg_format'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x6929): undefined reference to `__kmp_msg_null'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x695e): undefined reference to `__kmp_msg'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x6979): undefined reference to `__kmp_xproc'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x69f2): undefined reference to `__kmp_msg_format'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x69f9): undefined reference to `__kmp_msg_null'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x6a2e): undefined reference to `__kmp_msg'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x6a39): undefined reference to `__kmp_affinity_dispatch'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x6a4c): undefined reference to `__kmp_avail_proc'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x6a7e): undefined reference to `__kmp_cpuinfo_file'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x6a8d): undefined reference to `__kmp_affinity_top_method'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x6b16): undefined reference to `__kmp_debug_assert'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x6b1d): undefined reference to `__kmp_i18n_catgets'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x6b34): undefined reference to `__kmp_msg_format'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x6b3b): undefined reference to `__kmp_msg_null'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x6b6c): undefined reference to `__kmp_fatal'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x6b93): undefined reference to `__kmp_i18n_catgets'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x6bad): undefined reference to `__kmp_msg_format'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x6bb4): undefined reference to `__kmp_msg_null'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x6be9): undefined reference to `__kmp_msg'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x6c1b): undefined reference to `__kmp_i18n_catgets'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x6c35): undefined reference to `__kmp_msg_format'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x6c3c): undefined reference to `__kmp_msg_null'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x6c71): undefined reference to `__kmp_msg'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x6cad): undefined reference to `__kmp_i18n_catgets'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x6cc7): undefined reference to `__kmp_msg_format'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x6cce): undefined reference to `__kmp_msg_null'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x6d03): undefined reference to `__kmp_msg'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x6d6b): undefined reference to `__kmp_debug_assert'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x6d72): undefined reference to `__kmp_i18n_catgets'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x6d89): undefined reference to `__kmp_msg_format'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x6d90): undefined reference to `__kmp_msg_null'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x6dc1): undefined reference to `__kmp_fatal'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x6dfe): undefined reference to `__kmp_affin_mask_size'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x6e17): undefined reference to `__kmp_affinity'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x6e31): undefined reference to `__kmp_msg_format'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x6e38): undefined reference to `__kmp_msg_null'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x6e70): undefined reference to `__kmp_msg'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x6eae): undefined reference to `___kmp_allocate'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x6f43): undefined reference to `__kmp_xproc'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x6fd9): undefined reference to `__kmp_avail_proc'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x6ffb): undefined reference to `__kmp_debug_assert'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x7004): undefined reference to `__kmp_affinity'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x7012): undefined reference to `__kmp_affin_mask_size'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x70a5): undefined reference to `__kmp_debug_assert'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x70d1): undefined reference to `__kmp_debug_assert'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x72cd): undefined reference to `__kmp_affinity_dispatch'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x72fa): undefined reference to `__kmp_debug_assert'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x7328): undefined reference to `__kmp_msg_format'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x732f): undefined reference to `__kmp_msg_null'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x7364): undefined reference to `__kmp_msg'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x7393): undefined reference to `__kmp_msg_format'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x739a): undefined reference to `__kmp_msg_null'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x73d2): undefined reference to `__kmp_msg'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x73d9): undefined reference to `__kmp_affinity_dispatch'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x7517): undefined reference to `__kmp_affinity_dispatch'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x76a7): undefined reference to `__kmp_affinity_dispatch'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x76f9): undefined reference to `__kmp_debug_assert'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x7871): undefined reference to `__kmp_affinity_dispatch'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x78ca): undefined reference to `__kmp_affinity_dispatch'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x793c): undefined reference to `__kmp_affinity_dispatch'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x79a2): undefined reference to `__kmp_i18n_catgets'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x79c1): undefined reference to `__kmp_msg_format'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x79c8): undefined reference to `__kmp_msg_null'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x79fe): undefined reference to `__kmp_msg'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x7a51): undefined reference to `__kmp_debug_assert'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x7a77): undefined reference to `__kmp_debug_assert'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x7b6d): undefined reference to `__kmp_affinity_dispatch'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x7b9a): undefined reference to `__kmp_debug_assert'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x7bc8): undefined reference to `__kmp_msg_format'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x7bcf): undefined reference to `__kmp_msg_null'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x7c04): undefined reference to `__kmp_msg'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x7c33): undefined reference to `__kmp_msg_format'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x7c3a): undefined reference to `__kmp_msg_null'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x7c72): undefined reference to `__kmp_msg'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x7c86): undefined reference to `__kmp_affinity_dispatch'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x7e35): undefined reference to `__kmp_affinity_dispatch'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x7e88): undefined reference to `__kmp_debug_assert'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x7f42): undefined reference to `__kmp_affinity_dispatch'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x7f91): undefined reference to `__kmp_debug_assert'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x7fc2): undefined reference to `__kmp_affinity_dispatch'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x802b): undefined reference to `__kmp_affinity_dispatch'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x808f): undefined reference to `__kmp_hh_affinity'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x8098): undefined reference to `__kmp_nested_proc_bind'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x80c9): undefined reference to `__kmp_affinity_dispatch'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x816e): undefined reference to `__kmp_debug_assert'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x8196): undefined reference to `__kmp_str_to_int'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x81d4): undefined reference to `__kmp_debug_assert'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x821b): undefined reference to `__kmp_str_to_int'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x823b): undefined reference to `__kmp_debug_assert'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x8305): undefined reference to `__kmp_debug_assert'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x8334): undefined reference to `__kmp_str_to_int'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x8354): undefined reference to `__kmp_debug_assert'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x8389): undefined reference to `__kmp_affinity_dispatch'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x8400): undefined reference to `__kmp_debug_assert'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x8427): undefined reference to `__kmp_str_to_int'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x8439): undefined reference to `__kmp_affinity_dispatch'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x8457): undefined reference to `__kmp_debug_assert'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x8477): undefined reference to `__kmp_debug_assert'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x8483): undefined reference to `__kmp_affinity_dispatch'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x84a9): undefined reference to `__kmp_affinity_dispatch'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x84fb): undefined reference to `__kmp_msg_format'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x8502): undefined reference to `__kmp_msg_null'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x853a): undefined reference to `__kmp_msg'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x8562): undefined reference to `__kmp_msg_format'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x8569): undefined reference to `__kmp_msg_null'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x85a1): undefined reference to `__kmp_msg'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x85ac): undefined reference to `__kmp_affinity_dispatch'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x862e): undefined reference to `__kmp_debug_assert'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x8656): undefined reference to `__kmp_str_to_int'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x8684): undefined reference to `__kmp_debug_assert'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x8691): undefined reference to `__kmp_affinity_dispatch'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x86db): undefined reference to `__kmp_affinity_dispatch'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x8770): undefined reference to `__kmp_msg_format'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x8777): undefined reference to `__kmp_msg_null'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x87af): undefined reference to `__kmp_msg'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x88a6): undefined reference to `__kmp_debug_assert'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x88ad): undefined reference to `__kmp_affinity_dispatch'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x88de): undefined reference to `__kmp_debug_assert'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x8909): undefined reference to `__kmp_debug_assert'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x8932): undefined reference to `__kmp_msg_format'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x8939): undefined reference to `__kmp_msg_null'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x8971): undefined reference to `__kmp_msg'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x8ae2): undefined reference to `__kmp_msg_format'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x8ae9): undefined reference to `__kmp_msg_null'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x8b21): undefined reference to `__kmp_msg'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x8dd5): undefined reference to `__kmp_avail_proc'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x8de8): undefined reference to `__kmp_hh_affinity'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x8e1e): undefined reference to `__kmp_msg_format'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x8e25): undefined reference to `__kmp_msg_null'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x8e69): undefined reference to `__kmp_debug_assert'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x8f3b): undefined reference to `__kmp_avail_proc'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x8fa2): undefined reference to `__kmp_msg_format'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x8fa9): undefined reference to `__kmp_msg_null'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x902a): undefined reference to `__kmp_msg_format'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x9031): undefined reference to `__kmp_msg_null'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x9069): undefined reference to `__kmp_msg'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x908d): undefined reference to `___kmp_allocate'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x9175): undefined reference to `__kmp_avail_proc'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x9183): undefined reference to `__kmp_nested_proc_bind'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x9192): undefined reference to `__kmp_affinity_num_places'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x919f): undefined reference to `__kmp_hh_affinity'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x91b4): undefined reference to `__kmp_affinity_dispatch'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x9264): undefined reference to `__kmp_affinity_dispatch'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x92b3): undefined reference to `__kmp_debug_assert'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x9338): undefined reference to `__kmp_affinity_dispatch'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x93a6): undefined reference to `__kmp_debug_assert'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x93c4): undefined reference to `__kmp_i18n_catgets'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x93e6): undefined reference to `__kmp_msg_format'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x93ed): undefined reference to `__kmp_msg_null'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x941e): undefined reference to `__kmp_fatal'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x9438): undefined reference to `__kmp_msg_format'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x943f): undefined reference to `__kmp_msg_null'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x9470): undefined reference to `__kmp_fatal'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x94aa): undefined reference to `__kmp_affinity_dispatch'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x94ca): undefined reference to `__kmp_affinity_dispatch'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x94ec): undefined reference to `__kmp_affinity_dispatch'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: /var/tmp/shan4/kmp_affinity-10f7ac.o: in function `__kmp_affinity_uninitialize':
+kmp_affinity.cpp:(.text+0x9517): undefined reference to `__kmp_affinities'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x952a): undefined reference to `__kmp_affinity_dispatch'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x9543): undefined reference to `__kmp_affinity_dispatch'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x9559): undefined reference to `___kmp_free'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x9567): undefined reference to `___kmp_free'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x9575): undefined reference to `___kmp_free'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x95c1): undefined reference to `__kmp_affinity_dispatch'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x95da): undefined reference to `__kmp_affinity_dispatch'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x95f0): undefined reference to `___kmp_free'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x95fe): undefined reference to `___kmp_free'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x960c): undefined reference to `___kmp_free'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x9656): undefined reference to `__kmp_affin_mask_size'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x9671): undefined reference to `__kmp_affinity_dispatch'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x9688): undefined reference to `__kmp_affinity_num_places'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x969f): undefined reference to `___kmp_free'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x96bb): undefined reference to `___kmp_free'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x96de): undefined reference to `___kmp_free'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x96e6): undefined reference to `___kmp_free'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x9701): undefined reference to `___kmp_free'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x970f): undefined reference to `__kmp_affinity_dispatch'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: /var/tmp/shan4/kmp_affinity-10f7ac.o: in function `__kmp_affinity_set_init_mask':
+kmp_affinity.cpp:(.text+0x9751): undefined reference to `__kmp_threads'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x978c): undefined reference to `__kmp_affin_mask_size'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x97b5): undefined reference to `__kmp_affinity_dispatch'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x97d1): undefined reference to `__kmp_hidden_helper_threads_num'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x97e7): undefined reference to `__kmp_hh_affinity'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x97f0): undefined reference to `__kmp_affinity'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x97f7): undefined reference to `__kmp_nested_proc_bind'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x980d): undefined reference to `__kmp_affinity'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x984b): undefined reference to `__kmp_hh_affinity'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x986d): undefined reference to `__kmp_affinity'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x9877): undefined reference to `__kmp_hh_affinity'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x98c2): undefined reference to `__kmp_debug_assert'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x990a): undefined reference to `__kmp_debug_assert'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x9933): undefined reference to `__kmp_affinity'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x994e): undefined reference to `__kmp_affinity_dispatch'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x9982): undefined reference to `__kmp_affinity'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x999f): undefined reference to `__kmp_affinity_dispatch'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x99d7): undefined reference to `__kmp_affinity'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x99fb): undefined reference to `__kmp_hh_affinity'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x9a16): undefined reference to `__kmp_affinity'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x9a2d): undefined reference to `__kmp_affinity'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: /var/tmp/shan4/kmp_affinity-10f7ac.o: in function `__kmp_select_mask_by_gtid(int, kmp_affinity_t const*, int*, KMPAffinity::Mask**)':
+kmp_affinity.cpp:(.text+0x9ad2): undefined reference to `__kmp_hidden_helper_threads_num'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x9b0a): undefined reference to `__kmp_affinity_dispatch'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: /var/tmp/shan4/kmp_affinity-10f7ac.o: in function `__kmp_affinity_bind_init_mask':
+kmp_affinity.cpp:(.text+0x9b23): undefined reference to `__kmp_affin_mask_size'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x9b43): undefined reference to `__kmp_threads'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x9b56): undefined reference to `__kmp_hidden_helper_threads_num'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x9b68): undefined reference to `__kmp_hh_affinity'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x9b73): undefined reference to `__kmp_affinity'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x9c49): undefined reference to `__kmp_msg_format'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x9c50): undefined reference to `__kmp_msg_null'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x9c7d): undefined reference to `__kmp_msg'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: /var/tmp/shan4/kmp_affinity-10f7ac.o: in function `__kmp_affinity_bind_place':
+kmp_affinity.cpp:(.text+0x9cb3): undefined reference to `__kmp_affin_mask_size'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x9cc4): undefined reference to `__kmp_hidden_helper_threads_num'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x9cdd): undefined reference to `__kmp_threads'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x9cfb): undefined reference to `__kmp_affinity'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x9d30): undefined reference to `__kmp_debug_assert'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x9d3e): undefined reference to `__kmp_affinity'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x9d5c): undefined reference to `__kmp_debug_assert'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x9d9b): undefined reference to `__kmp_debug_assert'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x9da2): undefined reference to `__kmp_affinity_dispatch'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x9e2f): undefined reference to `__kmp_msg_format'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x9e36): undefined reference to `__kmp_msg_null'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x9e63): undefined reference to `__kmp_msg'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: /var/tmp/shan4/kmp_affinity-10f7ac.o: in function `__kmp_aux_set_affinity':
+kmp_affinity.cpp:(.text+0x9ea2): undefined reference to `__kmp_affin_mask_size'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x9eb4): undefined reference to `__kmp_get_global_thread_id_reg'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x9ebd): undefined reference to `__kmp_env_consistency_check'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x9f60): undefined reference to `__kmp_threads'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x9fb0): undefined reference to `__kmp_affinity'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0x9ff9): undefined reference to `__kmp_msg_format'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0xa000): undefined reference to `__kmp_msg_null'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0xa02b): undefined reference to `__kmp_fatal'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0xa043): undefined reference to `__kmp_msg_format'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0xa04a): undefined reference to `__kmp_msg_null'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0xa075): undefined reference to `__kmp_fatal'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0xa08d): undefined reference to `__kmp_msg_format'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0xa094): undefined reference to `__kmp_msg_null'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0xa0bf): undefined reference to `__kmp_fatal'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: /var/tmp/shan4/kmp_affinity-10f7ac.o: in function `__kmp_aux_get_affinity':
+kmp_affinity.cpp:(.text+0xa0d8): undefined reference to `__kmp_affin_mask_size'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0xa0e6): undefined reference to `__kmp_get_global_thread_id_reg'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0xa0ed): undefined reference to `__kmp_env_consistency_check'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0xa117): undefined reference to `__kmp_msg_format'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0xa11e): undefined reference to `__kmp_msg_null'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0xa149): undefined reference to `__kmp_fatal'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: /var/tmp/shan4/kmp_affinity-10f7ac.o: in function `__kmp_aux_get_affinity_max_proc':
+kmp_affinity.cpp:(.text+0xa173): undefined reference to `__kmp_affin_mask_size'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0xa182): undefined reference to `__kmp_xproc'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: /var/tmp/shan4/kmp_affinity-10f7ac.o: in function `__kmp_aux_set_affinity_mask_proc':
+kmp_affinity.cpp:(.text+0xa19a): undefined reference to `__kmp_affin_mask_size'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0xa1ae): undefined reference to `__kmp_env_consistency_check'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0xa1c9): undefined reference to `__kmp_xproc'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0xa21a): undefined reference to `__kmp_msg_format'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0xa221): undefined reference to `__kmp_msg_null'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0xa24c): undefined reference to `__kmp_fatal'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: /var/tmp/shan4/kmp_affinity-10f7ac.o: in function `__kmp_aux_unset_affinity_mask_proc':
+kmp_affinity.cpp:(.text+0xa25a): undefined reference to `__kmp_affin_mask_size'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0xa26e): undefined reference to `__kmp_env_consistency_check'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0xa289): undefined reference to `__kmp_xproc'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0xa2da): undefined reference to `__kmp_msg_format'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0xa2e1): undefined reference to `__kmp_msg_null'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0xa30c): undefined reference to `__kmp_fatal'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: /var/tmp/shan4/kmp_affinity-10f7ac.o: in function `__kmp_aux_get_affinity_mask_proc':
+kmp_affinity.cpp:(.text+0xa31a): undefined reference to `__kmp_affin_mask_size'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0xa32e): undefined reference to `__kmp_env_consistency_check'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0xa349): undefined reference to `__kmp_xproc'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0xa398): undefined reference to `__kmp_msg_format'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0xa39f): undefined reference to `__kmp_msg_null'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0xa3ca): undefined reference to `__kmp_fatal'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: /var/tmp/shan4/kmp_affinity-10f7ac.o: in function `__kmp_balanced_affinity':
+kmp_affinity.cpp:(.text+0xa475): undefined reference to `__kmp_hidden_helper_threads_num'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0xa484): undefined reference to `__kmp_affinity'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0xa4c7): undefined reference to `__kmp_avail_proc'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0xa571): undefined reference to `__kmp_avail_proc'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0xa663): undefined reference to `__kmp_affinity'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0xa6c5): undefined reference to `__kmp_msg_format'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0xa6d0): undefined reference to `__kmp_msg_null'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0xa703): undefined reference to `__kmp_msg'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0xa70e): undefined reference to `__kmp_affin_mask_size'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0xad49): undefined reference to `___kmp_allocate'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0xaf94): undefined reference to `__kmp_avail_proc'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0xb00a): undefined reference to `___kmp_free'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0xb015): undefined reference to `__kmp_affinity'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0xb077): undefined reference to `__kmp_msg_format'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0xb082): undefined reference to `__kmp_msg_null'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0xb0b2): undefined reference to `__kmp_msg'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0xb0bd): undefined reference to `__kmp_affin_mask_size'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: /var/tmp/shan4/kmp_affinity-10f7ac.o: in function `kmp_set_thread_affinity_mask_initial':
+kmp_affinity.cpp:(.text+0xb3a2): undefined reference to `__kmp_get_global_thread_id'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0xb3ad): undefined reference to `__kmp_affin_mask_size'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0xb3ba): undefined reference to `__kmp_init_middle'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: /var/tmp/shan4/kmp_affinity-10f7ac.o: in function `__kmp_create_affinity_none_places(kmp_affinity_t&)':
+kmp_affinity.cpp:(.text+0xb409): undefined reference to `__kmp_debug_assert'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0xb427): undefined reference to `__kmp_debug_assert'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0xb42e): undefined reference to `__kmp_avail_proc'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0xb457): undefined reference to `__kmp_debug_assert'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0xb465): undefined reference to `__kmp_affinity_dispatch'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: /var/tmp/shan4/kmp_affinity-10f7ac.o: in function `__kmp_aux_affinity_initialize_other_data(kmp_affinity_t&)':
+kmp_affinity.cpp:(.text+0xb4db): undefined reference to `__kmp_affin_mask_size'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0xb509): undefined reference to `__kmp_debug_assert'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0xb528): undefined reference to `__kmp_debug_assert'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0xb5fc): undefined reference to `__kmp_debug_assert'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0xb61f): undefined reference to `__kmp_debug_assert'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0xb64b): undefined reference to `__kmp_debug_assert'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0xb660): undefined reference to `___kmp_allocate'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0xb67b): undefined reference to `___kmp_allocate'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0xb695): undefined reference to `___kmp_allocate'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0xb711): undefined reference to `__kmp_affinity_dispatch'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0xb7c4): undefined reference to `__kmp_first_osid_with_ecore'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: /var/tmp/shan4/kmp_affinity-10f7ac.o: in function `__kmp_affinity_create_x2apicid_map(kmp_i18n_id*)':
+kmp_affinity.cpp:(.text+0xb7ff): undefined reference to `__kmp_affinity'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0xb80f): undefined reference to `__kmp_i18n_catgets'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0xb82d): undefined reference to `__kmp_msg_format'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0xb834): undefined reference to `__kmp_msg_null'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0xb869): undefined reference to `__kmp_msg'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0xb879): undefined reference to `__kmp_affinity_top_method'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0xb96f): undefined reference to `__kmp_debug_assert'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0xb97b): undefined reference to `__kmp_affin_mask_size'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0xb9cb): undefined reference to `__kmp_affinity'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0xb9e9): undefined reference to `__kmp_debug_assert'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0xbad1): undefined reference to `__kmp_avail_proc'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0xbae4): undefined reference to `___kmp_allocate'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0xbe22): undefined reference to `__kmp_affin_mask_size'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0xbe2f): undefined reference to `__kmp_affinity_dispatch'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0xbe60): undefined reference to `__kmp_debug_assert'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0xbf13): undefined reference to `__kmp_affinity_dispatch'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0xc04b): undefined reference to `__kmp_cpuinfo'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0xc0ad): undefined reference to `__kmp_debug_assert'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0xc134): undefined reference to `___kmp_free'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0xc171): undefined reference to `__kmp_affin_mask_size'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0xc190): undefined reference to `__kmp_affinity_dispatch'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0xc235): undefined reference to `__kmp_xproc'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: /var/tmp/shan4/kmp_affinity-10f7ac.o: in function `__kmp_affinity_create_apicid_map(kmp_i18n_id*)':
+kmp_affinity.cpp:(.text+0xc2ad): undefined reference to `__kmp_affinity'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0xc2be): undefined reference to `__kmp_i18n_catgets'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0xc2d9): undefined reference to `__kmp_msg_format'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0xc2e0): undefined reference to `__kmp_msg_null'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0xc312): undefined reference to `__kmp_msg'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0xc332): undefined reference to `__kmp_affin_mask_size'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0xc34d): undefined reference to `__kmp_affinity_dispatch'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0xc37b): undefined reference to `__kmp_debug_assert'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0xc398): undefined reference to `__kmp_avail_proc'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0xc3ab): undefined reference to `___kmp_allocate'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0xc403): undefined reference to `__kmp_affinity_dispatch'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0xc513): undefined reference to `__kmp_debug_assert'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0xc549): undefined reference to `__kmp_xproc'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0xc576): undefined reference to `__kmp_affin_mask_size'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0xc593): undefined reference to `__kmp_affinity_dispatch'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0xc731): undefined reference to `___kmp_free'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0xc75e): undefined reference to `___kmp_allocate'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0xc88c): undefined reference to `___kmp_free'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0xc907): undefined reference to `___kmp_free'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0xc91b): undefined reference to `__kmp_affin_mask_size'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0xc935): undefined reference to `___kmp_free'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0xc93c): undefined reference to `___kmp_free'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0xc958): undefined reference to `__kmp_affin_mask_size'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0xc97d): undefined reference to `__kmp_affinity_dispatch'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0xc9d5): undefined reference to `___kmp_free'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: /var/tmp/shan4/kmp_affinity-10f7ac.o: in function `__kmp_affinity_create_cpuinfo_map(int*, kmp_i18n_id*)':
+kmp_affinity.cpp:(.text+0xca2f): undefined reference to `__kmp_cpuinfo_file'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0xca55): undefined reference to `__kmp_affinity'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0xca79): undefined reference to `__kmp_msg_format'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0xca80): undefined reference to `__kmp_msg_null'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0xcab5): undefined reference to `__kmp_msg'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0xcb53): undefined reference to `__kmp_xproc'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0xcc3f): undefined reference to `___kmp_allocate'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0xcc5d): undefined reference to `___kmp_allocate'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0xccf8): undefined reference to `__kmp_debug_assert'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0xcd20): undefined reference to `__kmp_debug_assert'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0xcd58): undefined reference to `___kmp_allocate'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0xcd6c): undefined reference to `___kmp_allocate'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0xcd87): undefined reference to `___kmp_allocate'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0xcd9b): undefined reference to `___kmp_allocate'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0xd8e1): undefined reference to `___kmp_free'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0xd8f2): undefined reference to `___kmp_free'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0xdc85): undefined reference to `___kmp_free'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0xdc96): undefined reference to `___kmp_free'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0xdcd6): undefined reference to `__kmp_affin_mask_size'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0xdd14): undefined reference to `__kmp_debug_assert'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0xdd9a): undefined reference to `___kmp_free'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0xddab): undefined reference to `___kmp_free'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0xddca): undefined reference to `___kmp_free'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0xdddb): undefined reference to `___kmp_free'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0xde60): undefined reference to `___kmp_free'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: /var/tmp/shan4/kmp_affinity-10f7ac.o:kmp_affinity.cpp:(.text+0xde68): more undefined references to `___kmp_free' follow
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: /var/tmp/shan4/kmp_affinity-10f7ac.o: in function `__kmp_affinity_create_cpuinfo_map(int*, kmp_i18n_id*)':
+kmp_affinity.cpp:(.text+0xe203): undefined reference to `__kmp_affin_mask_size'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0xe21d): undefined reference to `___kmp_allocate'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0xe2c7): undefined reference to `__kmp_debug_assert'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0xe2d2): undefined reference to `__kmp_affinity'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0xe2f4): undefined reference to `__kmp_debug_assert'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0xe41f): undefined reference to `__kmp_debug_assert'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0xe448): undefined reference to `___kmp_allocate'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0xe58e): undefined reference to `___kmp_free'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0xe596): undefined reference to `___kmp_free'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0xe59e): undefined reference to `___kmp_free'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0xe5a6): undefined reference to `___kmp_free'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0xe5ae): undefined reference to `___kmp_free'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: /var/tmp/shan4/kmp_affinity-10f7ac.o:kmp_affinity.cpp:(.text+0xe5cc): more undefined references to `___kmp_free' follow
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: /var/tmp/shan4/kmp_affinity-10f7ac.o: in function `__kmp_affinity_create_flat_map(kmp_i18n_id*)':
+kmp_affinity.cpp:(.text+0xe997): undefined reference to `__kmp_affinity'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0xe9b6): undefined reference to `__kmp_msg_format'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0xe9bd): undefined reference to `__kmp_msg_null'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0xe9ec): undefined reference to `__kmp_msg'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0xe9f3): undefined reference to `__kmp_affin_mask_size'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0xea04): undefined reference to `__kmp_avail_proc'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0xea39): undefined reference to `___kmp_allocate'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0xeb28): undefined reference to `__kmp_msg_format'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0xeb2f): undefined reference to `__kmp_msg_null'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0xeb5e): undefined reference to `__kmp_msg'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0xeb7f): undefined reference to `__kmp_debug_assert'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text+0xeb86): undefined reference to `__kmp_xproc'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: /var/tmp/shan4/kmp_affinity-10f7ac.o: in function `__kmp_x2apicid_get_levels(int, cpuid_level_info_t*, unsigned long long)':
+kmp_affinity.cpp:(.text+0xed1b): undefined reference to `__kmp_debug_assert'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: /var/tmp/shan4/kmp_affinity-10f7ac.o: in function `__kmp_aux_affinity_initialize(kmp_affinity_t&)::$_0::operator()(int) const':
+kmp_affinity.cpp:(.text+0xef82): undefined reference to `__kmp_debug_assert'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: /var/tmp/shan4/kmp_affinity-10f7ac.o: in function `__kmp_affinity_get_mask_topology_info(KMPAffinity::Mask const*, kmp_affinity_ids_t&, kmp_affinity_attrs_t&)':
+kmp_affinity.cpp:(.text+0xf0ce): undefined reference to `__kmp_affin_mask_size'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: /var/tmp/shan4/kmp_affinity-10f7ac.o: in function `hierarchy_info::init(int)':
+kmp_affinity.cpp:(.text._ZN14hierarchy_info4initEi[_ZN14hierarchy_info4initEi]+0x2f): undefined reference to `___kmp_allocate'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: /var/tmp/shan4/kmp_affinity-10f7ac.o: in function `hierarchy_info::resize(unsigned int)':
+kmp_affinity.cpp:(.text._ZN14hierarchy_info6resizeEj[_ZN14hierarchy_info6resizeEj]+0xdc): undefined reference to `___kmp_allocate'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text._ZN14hierarchy_info6resizeEj[_ZN14hierarchy_info6resizeEj]+0x25c): undefined reference to `___kmp_free'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: /var/tmp/shan4/kmp_affinity-10f7ac.o: in function `kmp_hw_subset_t::push_back(int, kmp_hw_t, int, kmp_hw_attr_t)':
+kmp_affinity.cpp:(.text._ZN15kmp_hw_subset_t9push_backEi8kmp_hw_ti13kmp_hw_attr_t[_ZN15kmp_hw_subset_t9push_backEi8kmp_hw_ti13kmp_hw_attr_t]+0x5b): undefined reference to `___kmp_allocate'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text._ZN15kmp_hw_subset_t9push_backEi8kmp_hw_ti13kmp_hw_attr_t[_ZN15kmp_hw_subset_t9push_backEi8kmp_hw_ti13kmp_hw_attr_t]+0xd2): undefined reference to `___kmp_free'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: /var/tmp/shan4/kmp_affinity-10f7ac.o: in function `KMPNativeAffinity::~KMPNativeAffinity()':
+kmp_affinity.cpp:(.text._ZN17KMPNativeAffinityD0Ev[_ZN17KMPNativeAffinityD0Ev]+0x2): undefined reference to `___kmp_free'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: /var/tmp/shan4/kmp_affinity-10f7ac.o: in function `KMPNativeAffinity::determine_capable(char const*)':
+kmp_affinity.cpp:(.text._ZN17KMPNativeAffinity17determine_capableEPKc[_ZN17KMPNativeAffinity17determine_capableEPKc]+0x4): undefined reference to `__kmp_affinity_determine_capable'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: /var/tmp/shan4/kmp_affinity-10f7ac.o: in function `KMPNativeAffinity::bind_thread(int)':
+kmp_affinity.cpp:(.text._ZN17KMPNativeAffinity11bind_threadEi[_ZN17KMPNativeAffinity11bind_threadEi]+0x3): undefined reference to `__kmp_affinity_bind_thread'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: /var/tmp/shan4/kmp_affinity-10f7ac.o: in function `KMPNativeAffinity::allocate_mask()':
+kmp_affinity.cpp:(.text._ZN17KMPNativeAffinity13allocate_maskEv[_ZN17KMPNativeAffinity13allocate_maskEv]+0xa): undefined reference to `___kmp_allocate'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text._ZN17KMPNativeAffinity13allocate_maskEv[_ZN17KMPNativeAffinity13allocate_maskEv]+0x22): undefined reference to `__kmp_affin_mask_size'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text._ZN17KMPNativeAffinity13allocate_maskEv[_ZN17KMPNativeAffinity13allocate_maskEv]+0x2a): undefined reference to `___kmp_allocate'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text._ZN17KMPNativeAffinity13allocate_maskEv[_ZN17KMPNativeAffinity13allocate_maskEv]+0x44): undefined reference to `___kmp_free'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: /var/tmp/shan4/kmp_affinity-10f7ac.o: in function `KMPNativeAffinity::allocate_mask_array(int)':
+kmp_affinity.cpp:(.text._ZN17KMPNativeAffinity19allocate_mask_arrayEi[_ZN17KMPNativeAffinity19allocate_mask_arrayEi]+0x26): undefined reference to `___kmp_allocate'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text._ZN17KMPNativeAffinity19allocate_mask_arrayEi[_ZN17KMPNativeAffinity19allocate_mask_arrayEi]+0x46): undefined reference to `__kmp_affin_mask_size'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text._ZN17KMPNativeAffinity19allocate_mask_arrayEi[_ZN17KMPNativeAffinity19allocate_mask_arrayEi]+0x5a): undefined reference to `___kmp_allocate'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text._ZN17KMPNativeAffinity19allocate_mask_arrayEi[_ZN17KMPNativeAffinity19allocate_mask_arrayEi]+0xa3): undefined reference to `___kmp_free'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: /var/tmp/shan4/kmp_affinity-10f7ac.o: in function `KMPNativeAffinity::deallocate_mask_array(KMPAffinity::Mask*)':
+kmp_affinity.cpp:(.text._ZN17KMPNativeAffinity21deallocate_mask_arrayEPN11KMPAffinity4MaskE[_ZN17KMPNativeAffinity21deallocate_mask_arrayEPN11KMPAffinity4MaskE]+0x45): undefined reference to `___kmp_free'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text._ZN17KMPNativeAffinity21deallocate_mask_arrayEPN11KMPAffinity4MaskE[_ZN17KMPNativeAffinity21deallocate_mask_arrayEPN11KMPAffinity4MaskE]+0x4f): undefined reference to `___kmp_free'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: /var/tmp/shan4/kmp_affinity-10f7ac.o: in function `KMPNativeAffinity::Mask::~Mask()':
+kmp_affinity.cpp:(.text._ZN17KMPNativeAffinity4MaskD2Ev[_ZN17KMPNativeAffinity4MaskD2Ev]+0x19): undefined reference to `___kmp_free'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: /var/tmp/shan4/kmp_affinity-10f7ac.o: in function `KMPNativeAffinity::Mask::~Mask()':
+kmp_affinity.cpp:(.text._ZN17KMPNativeAffinity4MaskD0Ev[_ZN17KMPNativeAffinity4MaskD0Ev]+0x1c): undefined reference to `___kmp_free'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: /var/tmp/shan4/kmp_affinity-10f7ac.o:kmp_affinity.cpp:(.text._ZN17KMPNativeAffinity4MaskD0Ev[_ZN17KMPNativeAffinity4MaskD0Ev]+0x24): more undefined references to `___kmp_free' follow
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: /var/tmp/shan4/kmp_affinity-10f7ac.o: in function `KMPNativeAffinity::Mask::zero()':
+kmp_affinity.cpp:(.text._ZN17KMPNativeAffinity4Mask4zeroEv[_ZN17KMPNativeAffinity4Mask4zeroEv]+0x3): undefined reference to `__kmp_affin_mask_size'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: /var/tmp/shan4/kmp_affinity-10f7ac.o: in function `KMPNativeAffinity::Mask::empty() const':
+kmp_affinity.cpp:(.text._ZNK17KMPNativeAffinity4Mask5emptyEv[_ZNK17KMPNativeAffinity4Mask5emptyEv]+0x3): undefined reference to `__kmp_affin_mask_size'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: /var/tmp/shan4/kmp_affinity-10f7ac.o: in function `KMPNativeAffinity::Mask::copy(KMPAffinity::Mask const*)':
+kmp_affinity.cpp:(.text._ZN17KMPNativeAffinity4Mask4copyEPKN11KMPAffinity4MaskE[_ZN17KMPNativeAffinity4Mask4copyEPKN11KMPAffinity4MaskE]+0x3): undefined reference to `__kmp_affin_mask_size'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: /var/tmp/shan4/kmp_affinity-10f7ac.o: in function `KMPNativeAffinity::Mask::bitwise_and(KMPAffinity::Mask const*)':
+kmp_affinity.cpp:(.text._ZN17KMPNativeAffinity4Mask11bitwise_andEPKN11KMPAffinity4MaskE[_ZN17KMPNativeAffinity4Mask11bitwise_andEPKN11KMPAffinity4MaskE]+0x3): undefined reference to `__kmp_affin_mask_size'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: /var/tmp/shan4/kmp_affinity-10f7ac.o: in function `KMPNativeAffinity::Mask::bitwise_or(KMPAffinity::Mask const*)':
+kmp_affinity.cpp:(.text._ZN17KMPNativeAffinity4Mask10bitwise_orEPKN11KMPAffinity4MaskE[_ZN17KMPNativeAffinity4Mask10bitwise_orEPKN11KMPAffinity4MaskE]+0x3): undefined reference to `__kmp_affin_mask_size'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: /var/tmp/shan4/kmp_affinity-10f7ac.o:kmp_affinity.cpp:(.text._ZN17KMPNativeAffinity4Mask11bitwise_notEv[_ZN17KMPNativeAffinity4Mask11bitwise_notEv]+0x3): more undefined references to `__kmp_affin_mask_size' follow
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: /var/tmp/shan4/kmp_affinity-10f7ac.o: in function `KMPNativeAffinity::Mask::end() const':
+kmp_affinity.cpp:(.text._ZNK17KMPNativeAffinity4Mask3endEv[_ZNK17KMPNativeAffinity4Mask3endEv]+0x32): undefined reference to `__kmp_debug_assert'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: /var/tmp/shan4/kmp_affinity-10f7ac.o: in function `KMPNativeAffinity::Mask::set_system_affinity(bool) const':
+kmp_affinity.cpp:(.text._ZNK17KMPNativeAffinity4Mask19set_system_affinityEb[_ZNK17KMPNativeAffinity4Mask19set_system_affinityEb]+0x12): undefined reference to `__kmp_affin_mask_size'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text._ZNK17KMPNativeAffinity4Mask19set_system_affinityEb[_ZNK17KMPNativeAffinity4Mask19set_system_affinityEb]+0x32): undefined reference to `__kmp_debug_assert'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text._ZNK17KMPNativeAffinity4Mask19set_system_affinityEb[_ZNK17KMPNativeAffinity4Mask19set_system_affinityEb]+0x7e): undefined reference to `__kmp_msg_format'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text._ZNK17KMPNativeAffinity4Mask19set_system_affinityEb[_ZNK17KMPNativeAffinity4Mask19set_system_affinityEb]+0x8a): undefined reference to `__kmp_msg_error_code'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text._ZNK17KMPNativeAffinity4Mask19set_system_affinityEb[_ZNK17KMPNativeAffinity4Mask19set_system_affinityEb]+0x91): undefined reference to `__kmp_msg_null'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text._ZNK17KMPNativeAffinity4Mask19set_system_affinityEb[_ZNK17KMPNativeAffinity4Mask19set_system_affinityEb]+0xd0): undefined reference to `__kmp_fatal'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: /var/tmp/shan4/kmp_affinity-10f7ac.o: in function `KMPNativeAffinity::Mask::get_system_affinity(bool)':
+kmp_affinity.cpp:(.text._ZN17KMPNativeAffinity4Mask19get_system_affinityEb[_ZN17KMPNativeAffinity4Mask19get_system_affinityEb]+0x12): undefined reference to `__kmp_affin_mask_size'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text._ZN17KMPNativeAffinity4Mask19get_system_affinityEb[_ZN17KMPNativeAffinity4Mask19get_system_affinityEb]+0x32): undefined reference to `__kmp_debug_assert'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text._ZN17KMPNativeAffinity4Mask19get_system_affinityEb[_ZN17KMPNativeAffinity4Mask19get_system_affinityEb]+0x7e): undefined reference to `__kmp_msg_format'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text._ZN17KMPNativeAffinity4Mask19get_system_affinityEb[_ZN17KMPNativeAffinity4Mask19get_system_affinityEb]+0x8a): undefined reference to `__kmp_msg_error_code'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text._ZN17KMPNativeAffinity4Mask19get_system_affinityEb[_ZN17KMPNativeAffinity4Mask19get_system_affinityEb]+0x91): undefined reference to `__kmp_msg_null'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text._ZN17KMPNativeAffinity4Mask19get_system_affinityEb[_ZN17KMPNativeAffinity4Mask19get_system_affinityEb]+0xd0): undefined reference to `__kmp_fatal'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: /var/tmp/shan4/kmp_affinity-10f7ac.o: in function `kmp_affinity_raii_t::~kmp_affinity_raii_t()':
+kmp_affinity.cpp:(.text._ZN19kmp_affinity_raii_tD2Ev[_ZN19kmp_affinity_raii_tD2Ev]+0xf): undefined reference to `__kmp_affin_mask_size'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text._ZN19kmp_affinity_raii_tD2Ev[_ZN19kmp_affinity_raii_tD2Ev]+0x2d): undefined reference to `__kmp_affinity_dispatch'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: /var/tmp/shan4/kmp_affinity-10f7ac.o: in function `kmp_safe_raii_file_t::open(char const*, char const*, char const*)':
+kmp_affinity.cpp:(.text._ZN20kmp_safe_raii_file_t4openEPKcS1_S1_[_ZN20kmp_safe_raii_file_t4openEPKcS1_S1_]+0x35): undefined reference to `__kmp_debug_assert'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text._ZN20kmp_safe_raii_file_t4openEPKcS1_S1_[_ZN20kmp_safe_raii_file_t4openEPKcS1_S1_]+0x7b): undefined reference to `__kmp_msg_format'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text._ZN20kmp_safe_raii_file_t4openEPKcS1_S1_[_ZN20kmp_safe_raii_file_t4openEPKcS1_S1_]+0x87): undefined reference to `__kmp_msg_error_code'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text._ZN20kmp_safe_raii_file_t4openEPKcS1_S1_[_ZN20kmp_safe_raii_file_t4openEPKcS1_S1_]+0x8e): undefined reference to `__kmp_msg_null'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text._ZN20kmp_safe_raii_file_t4openEPKcS1_S1_[_ZN20kmp_safe_raii_file_t4openEPKcS1_S1_]+0xd3): undefined reference to `__kmp_fatal'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text._ZN20kmp_safe_raii_file_t4openEPKcS1_S1_[_ZN20kmp_safe_raii_file_t4openEPKcS1_S1_]+0xea): undefined reference to `__kmp_msg_format'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text._ZN20kmp_safe_raii_file_t4openEPKcS1_S1_[_ZN20kmp_safe_raii_file_t4openEPKcS1_S1_]+0xf9): undefined reference to `__kmp_msg_error_code'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text._ZN20kmp_safe_raii_file_t4openEPKcS1_S1_[_ZN20kmp_safe_raii_file_t4openEPKcS1_S1_]+0x113): undefined reference to `__kmp_msg_format'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text._ZN20kmp_safe_raii_file_t4openEPKcS1_S1_[_ZN20kmp_safe_raii_file_t4openEPKcS1_S1_]+0x11a): undefined reference to `__kmp_msg_null'
+/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12/../../../../bin/ld: kmp_affinity.cpp:(.text._ZN20kmp_safe_raii_file_t4openEPKcS1_S1_[_ZN20kmp_safe_raii_file_t4openEPKcS1_S1_]+0x17f): undefined reference to `__kmp_fatal'
+clang++: error: linker command failed with exit code 1 (use -v to see invocation)
+
+Removed arguments: runtime/src/CMakeFiles/omp.dir/kmp_csupport.cpp.o, -lm, -Wl,-z,noexecstack, -static-libgcc, runtime/src/CMakeFiles/omp.dir/kmp_io.cpp.o, runtime/src/CMakeFiles/omp.dir/kmp_environment.cpp.o, -O3, runtime/src/CMakeFiles/omp.dir/kmp_sched.cpp.o, -Wno-maybe-uninitialized, -Wall, runtime/src/CMakeFiles/omp.dir/kmp_threadprivate.cpp.o, runtime/src/CMakeFiles/omp.dir/kmp_i18n.cpp.o, -fno-semantic-interposition, runtime/src/CMakeFiles/omp.dir/kmp_dispatch.cpp.o, -ldl, -DNDEBUG, runtime/src/CMakeFiles/omp.dir/kmp_cancel.cpp.o, runtime/src/CMakeFiles/omp.dir/kmp_str.cpp.o
+SUCCESS: clang, -o, runtime/src/libomp.so, -fPIC, -fcolor-diagnostics, -Wformat-pedantic, -Wimplicit-fallthrough, -Wsign-compare, -Wno-extra, -Wno-pedantic, -fdata-sections, -Wl,--as-needed, -Wl,--version-script=/p/lustre3/shan4/tmp/llvm-project/openmp/runtime/src/exports_so.txt, -shared, -Wl,-soname,libomp.so, runtime/src/CMakeFiles/omp.dir/kmp_alloc.cpp.o, runtime/src/CMakeFiles/omp.dir/kmp_atomic.cpp.o, runtime/src/CMakeFiles/omp.dir/kmp_debug.cpp.o, runtime/src/CMakeFiles/omp.dir/kmp_itt.cpp.o, runtime/src/CMakeFiles/omp.dir/kmp_error.cpp.o, runtime/src/CMakeFiles/omp.dir/kmp_global.cpp.o, runtime/src/CMakeFiles/omp.dir/kmp_runtime.cpp.o, runtime/src/CMakeFiles/omp.dir/kmp_settings.cpp.o, runtime/src/CMakeFiles/omp.dir/kmp_tasking.cpp.o, runtime/src/CMakeFiles/omp.dir/kmp_utility.cpp.o, runtime/src/CMakeFiles/omp.dir/kmp_barrier.cpp.o, runtime/src/CMakeFiles/omp.dir/kmp_wait_release.cpp.o, runtime/src/CMakeFiles/omp.dir/kmp_affinity.cpp.o, runtime/src/CMakeFiles/omp.dir/kmp_lock.cpp.o, runtime/src/CMakeFiles/omp.dir/kmp_collapse.cpp.o, runtime/src/CMakeFiles/omp.dir/z_Linux_util.cpp.o, runtime/src/CMakeFiles/omp.dir/kmp_gsupport.cpp.o, runtime/src/CMakeFiles/omp.dir/thirdparty/ittnotify/ittnotify_static.cpp.o, runtime/src/CMakeFiles/omp.dir/kmp_taskdeps.cpp.o, runtime/src/CMakeFiles/omp.dir/kmp_ftn_cdecl.cpp.o, runtime/src/CMakeFiles/omp.dir/kmp_ftn_extra.cpp.o, runtime/src/CMakeFiles/omp.dir/kmp_version.cpp.o, runtime/src/CMakeFiles/omp.dir/z_Linux_asm.S.o, -lpthread, -lrt
