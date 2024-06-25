@@ -1,4 +1,4 @@
-#!/usr/tce/packages/python/python-3.9.12/bin/python
+#!/usr/tce/bin/python3
 
 """This script wraps the compiler, fuzzes the command line arguments, and executes the compiler with the fuzzed arguments."""
 
@@ -10,7 +10,7 @@ import os
 from datetime import datetime
 
 RECOGNIZED_SOURCE_FILE_EXTENSIONS = ['.c', '.cpp', '.cxx', '.cc', '.c++']
-log_file_path = '/p/lustre3/shan4/Fuzzlang/error_log_llvm2.json'
+log_file_path = '/p/lustre2/shan4/Fuzzlang/error_log_llvm.json'
 fuzz_modes = ['none']
 remove_level = 1
 command = []
@@ -26,10 +26,10 @@ command = []
 #  2 - medium: Remove 1 to 1/2 of the arguments
 #  3 - high: Remove 1/2 to all of the arguments
 def parse_fuzz_mode():
+    global remove_level, fuzz_modes
     # Get the FUZZ_MODE environment variable
     fuzz_mode = os.getenv('FUZZ_MODE', '')
     remove_level = os.getenv('REMOVE_LEVEL', '')
-
     # Print the original FUZZ_MODE value
     # print(f"Original FUZZ_MODE: {fuzz_mode}")
     
@@ -89,14 +89,18 @@ def recognize_source_file_extension(file_path):
     return False
 
 def fuzz_remove(command_line):
+    
+    # print(remove_level)
     # print("Removing")
+    global command
     args_to_fuzz = command_line['other_params']
-
+    if not args_to_fuzz:
+        return
     # Randomly determine the number of arguments to remove
     if remove_level == 1:
         num_to_remove = 1
     elif remove_level == 2:
-        num_to_remove = random.randint(1, int(len(args_to_fuzz)/2))
+        num_to_remove = random.randint(1, int(len(args_to_fuzz)/2+1))
     elif remove_level == 3:
         num_to_remove = random.randint(int(len(args_to_fuzz)/2), len(args_to_fuzz)-1)
     else:
@@ -111,27 +115,25 @@ def fuzz_remove(command_line):
     new_command_line.append(command_line['compiler'])
     if command_line['source_file']:
         new_command_line.extend(command_line['source_file'])
+    new_command_line.extend(final_args)
     if command_line['output_flag']:
         new_command_line.append(command_line['output_flag'])
         new_command_line.append(command_line['output_file'])
-    backup_command_line = new_command_line.copy()
-    backup_command_line.extend(args_to_fuzz)
-    new_command_line.extend(final_args)
-    
     # Execute the new command line
     try:
         result = subprocess.run(
             new_command_line, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        log_to_json("remove", fuzzed_args, backup_command_line, new_command_line, "SUCCESS", result.stdout.decode().strip())
+        log_to_json("remove", fuzzed_args, command, new_command_line, "SUCCESS", result.stdout.decode().strip())
+        subprocess.run(command, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     except subprocess.CalledProcessError as e:
         error_message = e.stderr.decode()
         # print(error_message.strip())
-        log_to_json("remove", fuzzed_args, backup_command_line, new_command_line, "ERROR", error_message)
+        log_to_json("remove", fuzzed_args, command, new_command_line, "ERROR", error_message)
         try:
             subprocess.run(command, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         except subprocess.CalledProcessError as e1:
             print('Wrong Command!')
-            print(command)
+            print(new_command_line)
             print(e1.stderr.decode().strip())
             
 
@@ -148,29 +150,26 @@ def fuzz_reordering(command_line):
     new_command_line.append(command_line['compiler'])
     if command_line['source_file']:
         new_command_line.extend(command_line['source_file'])
+    new_command_line.extend(args_to_fuzz)
     if command_line['output_flag']:
         new_command_line.append(command_line['output_flag'])
         new_command_line.append(command_line['output_file'])
-    backup_command_line = new_command_line.copy()
-    backup_command_line.extend(args_to_fuzz)
-    new_command_line.extend(args_to_fuzz)
-    
     # Execute the new command line
     try:
         result = subprocess.run(
             new_command_line, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         # print(result.stdout.decode().strip())
-        log_to_json("reorder", None, backup_command_line, new_command_line, "SUCCESS", result.stdout.decode().strip())
+        log_to_json("reorder", None, command, new_command_line, "SUCCESS", result.stdout.decode().strip())
     except subprocess.CalledProcessError as e:
         error_message = e.stderr.decode()
         # print(error_message.strip())
-        log_to_json("reorder", None, backup_command_line, new_command_line, "ERROR", error_message)
+        log_to_json("reorder", None, command, new_command_line, "ERROR", error_message)
         try:
             # print(command)
             subprocess.run(command, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         except subprocess.CalledProcessError as e1:
             print('Wrong Command!')
-            print(command)
+            print(new_command_line)
             print(e1.stderr.decode().strip())
 
 
