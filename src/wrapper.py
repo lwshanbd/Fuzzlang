@@ -10,10 +10,13 @@ import os
 from datetime import datetime
 
 RECOGNIZED_SOURCE_FILE_EXTENSIONS = ['.c', '.cpp', '.cxx', '.cc', '.c++']
-log_file_path = '/p/lustre2/shan4/Fuzzlang/error_log_llvm.json'
+Arg_With_Attached = ['-Xlinker', '-MF', '-MT', '-isystem', '-o', '-D']
+Arg_Not_Removed = ['-o', '-I']
+log_file_path = '/p/lustre2/shan4/Fuzzlang/log_llvm_remove3.json'
 fuzz_modes = ['none']
 remove_level = 1
 command = []
+original_command = []
 
 # Fuzz the command line arguments based on the FUZZ_MODE environment
 # Fuzz mode:
@@ -106,6 +109,7 @@ def fuzz_remove(command_line):
     else:
         num_to_remove = random.randint(1, len(args_to_fuzz)-1)    
     fuzzed_args = random.sample(args_to_fuzz, num_to_remove)
+    fuzzed_args = [arg for arg in fuzzed_args if (not arg.startswith('-o') and not arg.startswith('-I') and not arg.startswith('-L') and not arg.startswith('-c'))] # Remove -o and -I arguments
 
     # Create a new list of arguments excluding the randomly selected ones
     final_args = [arg for arg in args_to_fuzz if arg not in fuzzed_args]
@@ -116,27 +120,30 @@ def fuzz_remove(command_line):
     if command_line['source_file']:
         new_command_line.extend(command_line['source_file'])
     new_command_line.extend(final_args)
-    if command_line['output_flag']:
-        new_command_line.append(command_line['output_flag'])
-        new_command_line.append(command_line['output_file'])
+    command_to_run = []
+    for arg in new_command_line:
+        if ' ' in arg:
+            command_to_run.extend(arg.split())
+        else:
+            command_to_run.append(arg)
+        
     # Execute the new command line
     try:
         result = subprocess.run(
-            new_command_line, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        log_to_json("remove", fuzzed_args, command, new_command_line, "SUCCESS", result.stdout.decode().strip())
-        subprocess.run(command, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            command_to_run, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        log_to_json("remove", fuzzed_args, original_command, command_to_run, "SUCCESS", result.stdout.decode().strip())
+        subprocess.run(original_command, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     except subprocess.CalledProcessError as e:
         error_message = e.stderr.decode()
         # print(error_message.strip())
-        log_to_json("remove", fuzzed_args, command, new_command_line, "ERROR", error_message)
+        log_to_json("remove", fuzzed_args, original_command, command_to_run, "ERROR", error_message)
         try:
-            subprocess.run(command, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            subprocess.run(original_command, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         except subprocess.CalledProcessError as e1:
             print('Wrong Command!')
-            print(new_command_line)
+            print(command_to_run)
             print(e1.stderr.decode().strip())
             
-
 
 def fuzz_reordering(command_line):
     # print("Reordering")
@@ -151,25 +158,31 @@ def fuzz_reordering(command_line):
     if command_line['source_file']:
         new_command_line.extend(command_line['source_file'])
     new_command_line.extend(args_to_fuzz)
-    if command_line['output_flag']:
-        new_command_line.append(command_line['output_flag'])
-        new_command_line.append(command_line['output_file'])
+    command_to_run = []
+    for arg in new_command_line:
+        if ' ' in arg:
+            command_to_run.extend(arg.split())
+        else:
+            command_to_run.append(arg)
     # Execute the new command line
     try:
         result = subprocess.run(
-            new_command_line, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            command_to_run, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         # print(result.stdout.decode().strip())
-        log_to_json("reorder", None, command, new_command_line, "SUCCESS", result.stdout.decode().strip())
+        print("Wrapper is 1running")
+        log_to_json("reorder", None, original_command, command_to_run, "SUCCESS", result.stdout.decode().strip())
     except subprocess.CalledProcessError as e:
         error_message = e.stderr.decode()
         # print(error_message.strip())
-        log_to_json("reorder", None, command, new_command_line, "ERROR", error_message)
+        print("Wrapper is 1111re-running")
+        log_to_json("reorder", None, original_command, command_to_run, "ERROR", error_message)
         try:
             # print(command)
-            subprocess.run(command, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            subprocess.run(original_command, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         except subprocess.CalledProcessError as e1:
+            print("Wrapper is 2222re-running")
             print('Wrong Command!')
-            print(new_command_line)
+            print(command_to_run)
             print(e1.stderr.decode().strip())
 
 
@@ -181,8 +194,6 @@ def parse_clang_command(command_line):
     else:
         compiler = 'clang'
     source_file = []
-    output_flag = None
-    output_file = None
     other_params = []
 
     # Identify components
@@ -191,9 +202,11 @@ def parse_clang_command(command_line):
         arg = args[i]
         if recognize_source_file_extension(arg):
             source_file.append(arg)
-        elif arg == '-o' and i + 1 < len(args):
-            output_flag = arg
-            output_file = args[i + 1]
+        elif arg in Arg_With_Attached:
+            assert i + 1 < len(args), f"Missing argument for {arg}"
+            arg += ' ' + args[i + 1]
+            # args[i + 1] = ''  # Clear the next argument
+            other_params.append(arg)
             i += 1  # Increment to move to the next argument
         else:
             other_params.append(arg)
@@ -202,29 +215,28 @@ def parse_clang_command(command_line):
     return {
         'compiler': compiler,
         'source_file': source_file,
-        'output_flag': output_flag,
-        'output_file': output_file,
         'other_params': other_params
     }
 
 
 # Example usage
 if __name__ == "__main__":
+    
     command = sys.argv
+    original_command = command.copy()
     # print(command)
     if 'wrapper' not in command[0]:
         subprocess.run(command, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     if "++" in command[0]:
-        command[0] = 'clang++'
+        original_command[0] = 'clang++'
     else:
-        command[0] = 'clang'
+        original_command[0] = 'clang'
         
     parse_fuzz_mode()
 
     if fuzz_modes[0] == 'none' or not fuzz_modes:
-        subprocess.run(command, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        subprocess.run(original_command, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     parsed_command = parse_clang_command(command)
-    
     mode = random.choice(fuzz_modes)
     if mode == 'reorder':
         fuzz_reordering(parsed_command)
