@@ -29,7 +29,7 @@ public:
 
     // Get the number of columns
     size_t getCols() const {
-        return cols;
+        return (cols);
     }
 
     // Print the matrix
@@ -105,13 +105,13 @@ int main() {
     }
 
     // Wait for all threads to complete
-    for auto &t : threads {
+    for (auto &t : threads) {
         t.join();
     }
 
     // Print the result matrix
     std::cout << "Result Matrix:" << std::endl;
-    result.print();
+    result.print;
 
     return 0;
 }

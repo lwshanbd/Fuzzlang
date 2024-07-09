@@ -29,7 +29,7 @@ public:
 
     // Get the number of columns
     size_t getCols() const {
-        return cols;
+        return (cols);
     }
 
     // Print the matrix
@@ -54,7 +54,7 @@ void multiplyPart(const Matrix &a, const Matrix &b, size_t start_row, size_t end
         for (size_t j = 0; j < b.getCols(); ++j) {
             int sum = 0;
             for (size_t k = 0; k < a.getCols(); ++k) {
-                sum += a.get(i, k) * b.get(k, j);
+                sum += (a.get(i, k) * b.get(k, j));
             }
             std::lock_guard<std::mutex> lock(result_mutex);
             result.set(i, j, sum);

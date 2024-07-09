@@ -1,0 +1,2514 @@
+CursorKind.TRANSLATION_UNIT: tmp.c
+  CursorKind.TYPEDEF_DECL: __u_char
+  CursorKind.TYPEDEF_DECL: __u_short
+  CursorKind.TYPEDEF_DECL: __u_int
+  CursorKind.TYPEDEF_DECL: __u_long
+  CursorKind.TYPEDEF_DECL: __int8_t
+  CursorKind.TYPEDEF_DECL: __uint8_t
+  CursorKind.TYPEDEF_DECL: __int16_t
+  CursorKind.TYPEDEF_DECL: __uint16_t
+  CursorKind.TYPEDEF_DECL: __int32_t
+  CursorKind.TYPEDEF_DECL: __uint32_t
+  CursorKind.TYPEDEF_DECL: __int64_t
+  CursorKind.TYPEDEF_DECL: __uint64_t
+  CursorKind.TYPEDEF_DECL: __int_least8_t
+    CursorKind.TYPE_REF: __int8_t
+  CursorKind.TYPEDEF_DECL: __uint_least8_t
+    CursorKind.TYPE_REF: __uint8_t
+  CursorKind.TYPEDEF_DECL: __int_least16_t
+    CursorKind.TYPE_REF: __int16_t
+  CursorKind.TYPEDEF_DECL: __uint_least16_t
+    CursorKind.TYPE_REF: __uint16_t
+  CursorKind.TYPEDEF_DECL: __int_least32_t
+    CursorKind.TYPE_REF: __int32_t
+  CursorKind.TYPEDEF_DECL: __uint_least32_t
+    CursorKind.TYPE_REF: __uint32_t
+  CursorKind.TYPEDEF_DECL: __int_least64_t
+    CursorKind.TYPE_REF: __int64_t
+  CursorKind.TYPEDEF_DECL: __uint_least64_t
+    CursorKind.TYPE_REF: __uint64_t
+  CursorKind.TYPEDEF_DECL: __quad_t
+  CursorKind.TYPEDEF_DECL: __u_quad_t
+  CursorKind.TYPEDEF_DECL: __intmax_t
+  CursorKind.TYPEDEF_DECL: __uintmax_t
+  CursorKind.TYPEDEF_DECL: __dev_t
+  CursorKind.TYPEDEF_DECL: __uid_t
+  CursorKind.TYPEDEF_DECL: __gid_t
+  CursorKind.TYPEDEF_DECL: __ino_t
+  CursorKind.TYPEDEF_DECL: __ino64_t
+  CursorKind.TYPEDEF_DECL: __mode_t
+  CursorKind.TYPEDEF_DECL: __nlink_t
+  CursorKind.TYPEDEF_DECL: __off_t
+  CursorKind.TYPEDEF_DECL: __off64_t
+  CursorKind.TYPEDEF_DECL: __pid_t
+  CursorKind.STRUCT_DECL: __fsid_t
+    CursorKind.FIELD_DECL: __val
+      CursorKind.INTEGER_LITERAL: 
+  CursorKind.TYPEDEF_DECL: __fsid_t
+    CursorKind.STRUCT_DECL: __fsid_t
+      CursorKind.FIELD_DECL: __val
+        CursorKind.INTEGER_LITERAL: 
+  CursorKind.TYPEDEF_DECL: __clock_t
+  CursorKind.TYPEDEF_DECL: __rlim_t
+  CursorKind.TYPEDEF_DECL: __rlim64_t
+  CursorKind.TYPEDEF_DECL: __id_t
+  CursorKind.TYPEDEF_DECL: __time_t
+  CursorKind.TYPEDEF_DECL: __useconds_t
+  CursorKind.TYPEDEF_DECL: __suseconds_t
+  CursorKind.TYPEDEF_DECL: __daddr_t
+  CursorKind.TYPEDEF_DECL: __key_t
+  CursorKind.TYPEDEF_DECL: __clockid_t
+  CursorKind.TYPEDEF_DECL: __timer_t
+  CursorKind.TYPEDEF_DECL: __blksize_t
+  CursorKind.TYPEDEF_DECL: __blkcnt_t
+  CursorKind.TYPEDEF_DECL: __blkcnt64_t
+  CursorKind.TYPEDEF_DECL: __fsblkcnt_t
+  CursorKind.TYPEDEF_DECL: __fsblkcnt64_t
+  CursorKind.TYPEDEF_DECL: __fsfilcnt_t
+  CursorKind.TYPEDEF_DECL: __fsfilcnt64_t
+  CursorKind.TYPEDEF_DECL: __fsword_t
+  CursorKind.TYPEDEF_DECL: __ssize_t
+  CursorKind.TYPEDEF_DECL: __syscall_slong_t
+  CursorKind.TYPEDEF_DECL: __syscall_ulong_t
+  CursorKind.TYPEDEF_DECL: __loff_t
+    CursorKind.TYPE_REF: __off64_t
+  CursorKind.TYPEDEF_DECL: __caddr_t
+  CursorKind.TYPEDEF_DECL: __intptr_t
+  CursorKind.TYPEDEF_DECL: __socklen_t
+  CursorKind.TYPEDEF_DECL: __sig_atomic_t
+  CursorKind.STRUCT_DECL: __mbstate_t
+    CursorKind.FIELD_DECL: __count
+    CursorKind.UNION_DECL: union (unnamed at /usr/include/bits/types/__mbstate_t.h:16:3)
+      CursorKind.FIELD_DECL: __wch
+      CursorKind.FIELD_DECL: __wchb
+        CursorKind.INTEGER_LITERAL: 
+    CursorKind.FIELD_DECL: __value
+      CursorKind.UNION_DECL: union (unnamed at /usr/include/bits/types/__mbstate_t.h:16:3)
+        CursorKind.FIELD_DECL: __wch
+        CursorKind.FIELD_DECL: __wchb
+          CursorKind.INTEGER_LITERAL: 
+  CursorKind.TYPEDEF_DECL: __mbstate_t
+    CursorKind.STRUCT_DECL: __mbstate_t
+      CursorKind.FIELD_DECL: __count
+      CursorKind.UNION_DECL: union (unnamed at /usr/include/bits/types/__mbstate_t.h:16:3)
+        CursorKind.FIELD_DECL: __wch
+        CursorKind.FIELD_DECL: __wchb
+          CursorKind.INTEGER_LITERAL: 
+      CursorKind.FIELD_DECL: __value
+        CursorKind.UNION_DECL: union (unnamed at /usr/include/bits/types/__mbstate_t.h:16:3)
+          CursorKind.FIELD_DECL: __wch
+          CursorKind.FIELD_DECL: __wchb
+            CursorKind.INTEGER_LITERAL: 
+  CursorKind.STRUCT_DECL: _G_fpos_t
+    CursorKind.FIELD_DECL: __pos
+      CursorKind.TYPE_REF: __off_t
+    CursorKind.FIELD_DECL: __state
+      CursorKind.TYPE_REF: __mbstate_t
+  CursorKind.TYPEDEF_DECL: __fpos_t
+    CursorKind.STRUCT_DECL: _G_fpos_t
+      CursorKind.FIELD_DECL: __pos
+        CursorKind.TYPE_REF: __off_t
+      CursorKind.FIELD_DECL: __state
+        CursorKind.TYPE_REF: __mbstate_t
+  CursorKind.STRUCT_DECL: _G_fpos64_t
+    CursorKind.FIELD_DECL: __pos
+      CursorKind.TYPE_REF: __off64_t
+    CursorKind.FIELD_DECL: __state
+      CursorKind.TYPE_REF: __mbstate_t
+  CursorKind.TYPEDEF_DECL: __fpos64_t
+    CursorKind.STRUCT_DECL: _G_fpos64_t
+      CursorKind.FIELD_DECL: __pos
+        CursorKind.TYPE_REF: __off64_t
+      CursorKind.FIELD_DECL: __state
+        CursorKind.TYPE_REF: __mbstate_t
+  CursorKind.STRUCT_DECL: _IO_FILE
+  CursorKind.TYPEDEF_DECL: __FILE
+    CursorKind.TYPE_REF: struct _IO_FILE
+  CursorKind.STRUCT_DECL: _IO_FILE
+  CursorKind.TYPEDEF_DECL: FILE
+    CursorKind.TYPE_REF: struct _IO_FILE
+  CursorKind.STRUCT_DECL: _IO_FILE
+  CursorKind.STRUCT_DECL: _IO_marker
+  CursorKind.STRUCT_DECL: _IO_codecvt
+  CursorKind.STRUCT_DECL: _IO_wide_data
+  CursorKind.TYPEDEF_DECL: _IO_lock_t
+  CursorKind.STRUCT_DECL: _IO_FILE
+    CursorKind.FIELD_DECL: _flags
+    CursorKind.FIELD_DECL: _IO_read_ptr
+    CursorKind.FIELD_DECL: _IO_read_end
+    CursorKind.FIELD_DECL: _IO_read_base
+    CursorKind.FIELD_DECL: _IO_write_base
+    CursorKind.FIELD_DECL: _IO_write_ptr
+    CursorKind.FIELD_DECL: _IO_write_end
+    CursorKind.FIELD_DECL: _IO_buf_base
+    CursorKind.FIELD_DECL: _IO_buf_end
+    CursorKind.FIELD_DECL: _IO_save_base
+    CursorKind.FIELD_DECL: _IO_backup_base
+    CursorKind.FIELD_DECL: _IO_save_end
+    CursorKind.FIELD_DECL: _markers
+      CursorKind.TYPE_REF: struct _IO_marker
+    CursorKind.FIELD_DECL: _chain
+      CursorKind.TYPE_REF: struct _IO_FILE
+    CursorKind.FIELD_DECL: _fileno
+    CursorKind.FIELD_DECL: _flags2
+    CursorKind.FIELD_DECL: _old_offset
+      CursorKind.TYPE_REF: __off_t
+    CursorKind.FIELD_DECL: _cur_column
+    CursorKind.FIELD_DECL: _vtable_offset
+    CursorKind.FIELD_DECL: _shortbuf
+      CursorKind.INTEGER_LITERAL: 
+    CursorKind.FIELD_DECL: _lock
+      CursorKind.TYPE_REF: _IO_lock_t
+    CursorKind.FIELD_DECL: _offset
+      CursorKind.TYPE_REF: __off64_t
+    CursorKind.FIELD_DECL: _codecvt
+      CursorKind.TYPE_REF: struct _IO_codecvt
+    CursorKind.FIELD_DECL: _wide_data
+      CursorKind.TYPE_REF: struct _IO_wide_data
+    CursorKind.FIELD_DECL: _freeres_list
+      CursorKind.TYPE_REF: struct _IO_FILE
+    CursorKind.FIELD_DECL: _freeres_buf
+    CursorKind.FIELD_DECL: __pad5
+    CursorKind.FIELD_DECL: _mode
+    CursorKind.FIELD_DECL: _unused2
+  CursorKind.TYPEDEF_DECL: va_list
+  CursorKind.TYPEDEF_DECL: off_t
+    CursorKind.TYPE_REF: __off_t
+  CursorKind.TYPEDEF_DECL: ssize_t
+    CursorKind.TYPE_REF: __ssize_t
+  CursorKind.TYPEDEF_DECL: fpos_t
+    CursorKind.TYPE_REF: __fpos_t
+  CursorKind.VAR_DECL: stdin
+    CursorKind.TYPE_REF: FILE
+  CursorKind.VAR_DECL: stdout
+    CursorKind.TYPE_REF: FILE
+  CursorKind.VAR_DECL: stderr
+    CursorKind.TYPE_REF: FILE
+  CursorKind.FUNCTION_DECL: remove
+    CursorKind.UNEXPOSED_ATTR: 
+    CursorKind.PARM_DECL: __filename
+  CursorKind.FUNCTION_DECL: rename
+    CursorKind.UNEXPOSED_ATTR: 
+    CursorKind.PARM_DECL: __old
+    CursorKind.PARM_DECL: __new
+  CursorKind.FUNCTION_DECL: renameat
+    CursorKind.UNEXPOSED_ATTR: 
+    CursorKind.PARM_DECL: __oldfd
+    CursorKind.PARM_DECL: __old
+    CursorKind.PARM_DECL: __newfd
+    CursorKind.PARM_DECL: __new
+  CursorKind.FUNCTION_DECL: tmpfile
+    CursorKind.TYPE_REF: FILE
+  CursorKind.FUNCTION_DECL: tmpnam
+    CursorKind.UNEXPOSED_ATTR: 
+    CursorKind.PARM_DECL: __s
+  CursorKind.FUNCTION_DECL: tmpnam_r
+    CursorKind.UNEXPOSED_ATTR: 
+    CursorKind.PARM_DECL: __s
+  CursorKind.FUNCTION_DECL: tempnam
+    CursorKind.UNEXPOSED_ATTR: 
+    CursorKind.UNEXPOSED_ATTR: 
+    CursorKind.PARM_DECL: __dir
+    CursorKind.PARM_DECL: __pfx
+  CursorKind.FUNCTION_DECL: fclose
+    CursorKind.PARM_DECL: __stream
+      CursorKind.TYPE_REF: FILE
+  CursorKind.FUNCTION_DECL: fflush
+    CursorKind.PARM_DECL: __stream
+      CursorKind.TYPE_REF: FILE
+  CursorKind.FUNCTION_DECL: fflush_unlocked
+    CursorKind.PARM_DECL: __stream
+      CursorKind.TYPE_REF: FILE
+  CursorKind.FUNCTION_DECL: fopen
+    CursorKind.TYPE_REF: FILE
+    CursorKind.PARM_DECL: __filename
+    CursorKind.PARM_DECL: __modes
+  CursorKind.FUNCTION_DECL: freopen
+    CursorKind.TYPE_REF: FILE
+    CursorKind.PARM_DECL: __filename
+    CursorKind.PARM_DECL: __modes
+    CursorKind.PARM_DECL: __stream
+      CursorKind.TYPE_REF: FILE
+  CursorKind.FUNCTION_DECL: fdopen
+    CursorKind.UNEXPOSED_ATTR: 
+    CursorKind.TYPE_REF: FILE
+    CursorKind.PARM_DECL: __fd
+    CursorKind.PARM_DECL: __modes
+  CursorKind.FUNCTION_DECL: fmemopen
+    CursorKind.UNEXPOSED_ATTR: 
+    CursorKind.TYPE_REF: FILE
+    CursorKind.PARM_DECL: __s
+    CursorKind.PARM_DECL: __len
+    CursorKind.PARM_DECL: __modes
+  CursorKind.FUNCTION_DECL: open_memstream
+    CursorKind.UNEXPOSED_ATTR: 
+    CursorKind.TYPE_REF: FILE
+    CursorKind.PARM_DECL: __bufloc
+    CursorKind.PARM_DECL: __sizeloc
+  CursorKind.FUNCTION_DECL: setbuf
+    CursorKind.UNEXPOSED_ATTR: 
+    CursorKind.PARM_DECL: __stream
+      CursorKind.TYPE_REF: FILE
+    CursorKind.PARM_DECL: __buf
+  CursorKind.FUNCTION_DECL: setvbuf
+    CursorKind.UNEXPOSED_ATTR: 
+    CursorKind.PARM_DECL: __stream
+      CursorKind.TYPE_REF: FILE
+    CursorKind.PARM_DECL: __buf
+    CursorKind.PARM_DECL: __modes
+    CursorKind.PARM_DECL: __n
+  CursorKind.FUNCTION_DECL: setbuffer
+    CursorKind.UNEXPOSED_ATTR: 
+    CursorKind.PARM_DECL: __stream
+      CursorKind.TYPE_REF: FILE
+    CursorKind.PARM_DECL: __buf
+    CursorKind.PARM_DECL: __size
+  CursorKind.FUNCTION_DECL: setlinebuf
+    CursorKind.UNEXPOSED_ATTR: 
+    CursorKind.PARM_DECL: __stream
+      CursorKind.TYPE_REF: FILE
+  CursorKind.FUNCTION_DECL: fprintf
+    CursorKind.UNEXPOSED_ATTR: 
+    CursorKind.PARM_DECL: __stream
+      CursorKind.TYPE_REF: FILE
+    CursorKind.PARM_DECL: __format
+  CursorKind.FUNCTION_DECL: printf
+    CursorKind.UNEXPOSED_ATTR: 
+    CursorKind.PARM_DECL: __format
+  CursorKind.FUNCTION_DECL: sprintf
+    CursorKind.UNEXPOSED_ATTR: 
+    CursorKind.UNEXPOSED_ATTR: 
+    CursorKind.PARM_DECL: __s
+    CursorKind.PARM_DECL: __format
+  CursorKind.FUNCTION_DECL: vfprintf
+    CursorKind.PARM_DECL: __s
+      CursorKind.TYPE_REF: FILE
+    CursorKind.PARM_DECL: __format
+    CursorKind.PARM_DECL: __arg
+  CursorKind.FUNCTION_DECL: vprintf
+    CursorKind.PARM_DECL: __format
+    CursorKind.PARM_DECL: __arg
+  CursorKind.FUNCTION_DECL: vsprintf
+    CursorKind.UNEXPOSED_ATTR: 
+    CursorKind.PARM_DECL: __s
+    CursorKind.PARM_DECL: __format
+    CursorKind.PARM_DECL: __arg
+  CursorKind.FUNCTION_DECL: snprintf
+    CursorKind.UNEXPOSED_ATTR: 
+    CursorKind.UNEXPOSED_ATTR: 
+    CursorKind.PARM_DECL: __s
+    CursorKind.PARM_DECL: __maxlen
+    CursorKind.PARM_DECL: __format
+  CursorKind.FUNCTION_DECL: vsnprintf
+    CursorKind.UNEXPOSED_ATTR: 
+    CursorKind.UNEXPOSED_ATTR: 
+    CursorKind.PARM_DECL: __s
+    CursorKind.PARM_DECL: __maxlen
+    CursorKind.PARM_DECL: __format
+    CursorKind.PARM_DECL: __arg
+  CursorKind.FUNCTION_DECL: vdprintf
+    CursorKind.UNEXPOSED_ATTR: 
+    CursorKind.PARM_DECL: __fd
+    CursorKind.PARM_DECL: __fmt
+    CursorKind.PARM_DECL: __arg
+  CursorKind.FUNCTION_DECL: dprintf
+    CursorKind.UNEXPOSED_ATTR: 
+    CursorKind.PARM_DECL: __fd
+    CursorKind.PARM_DECL: __fmt
+  CursorKind.FUNCTION_DECL: fscanf
+    CursorKind.UNEXPOSED_ATTR: 
+    CursorKind.PARM_DECL: __stream
+      CursorKind.TYPE_REF: FILE
+    CursorKind.PARM_DECL: __format
+  CursorKind.FUNCTION_DECL: scanf
+    CursorKind.UNEXPOSED_ATTR: 
+    CursorKind.PARM_DECL: __format
+  CursorKind.FUNCTION_DECL: sscanf
+    CursorKind.UNEXPOSED_ATTR: 
+    CursorKind.UNEXPOSED_ATTR: 
+    CursorKind.PARM_DECL: __s
+    CursorKind.PARM_DECL: __format
+  CursorKind.FUNCTION_DECL: fscanf
+    CursorKind.UNEXPOSED_ATTR: 
+    CursorKind.ASM_LABEL_ATTR: __isoc99_fscanf
+    CursorKind.PARM_DECL: __stream
+      CursorKind.TYPE_REF: FILE
+    CursorKind.PARM_DECL: __format
+  CursorKind.FUNCTION_DECL: scanf
+    CursorKind.UNEXPOSED_ATTR: 
+    CursorKind.ASM_LABEL_ATTR: __isoc99_scanf
+    CursorKind.PARM_DECL: __format
+  CursorKind.FUNCTION_DECL: sscanf
+    CursorKind.UNEXPOSED_ATTR: 
+    CursorKind.ASM_LABEL_ATTR: __isoc99_sscanf
+    CursorKind.UNEXPOSED_ATTR: 
+    CursorKind.PARM_DECL: __s
+    CursorKind.PARM_DECL: __format
+  CursorKind.FUNCTION_DECL: vfscanf
+    CursorKind.UNEXPOSED_ATTR: 
+    CursorKind.PARM_DECL: __s
+      CursorKind.TYPE_REF: FILE
+    CursorKind.PARM_DECL: __format
+    CursorKind.PARM_DECL: __arg
+  CursorKind.FUNCTION_DECL: vscanf
+    CursorKind.UNEXPOSED_ATTR: 
+    CursorKind.PARM_DECL: __format
+    CursorKind.PARM_DECL: __arg
+  CursorKind.FUNCTION_DECL: vsscanf
+    CursorKind.UNEXPOSED_ATTR: 
+    CursorKind.UNEXPOSED_ATTR: 
+    CursorKind.PARM_DECL: __s
+    CursorKind.PARM_DECL: __format
+    CursorKind.PARM_DECL: __arg
+  CursorKind.FUNCTION_DECL: vfscanf
+    CursorKind.ASM_LABEL_ATTR: __isoc99_vfscanf
+    CursorKind.UNEXPOSED_ATTR: 
+    CursorKind.PARM_DECL: __s
+      CursorKind.TYPE_REF: FILE
+    CursorKind.PARM_DECL: __format
+    CursorKind.PARM_DECL: __arg
+  CursorKind.FUNCTION_DECL: vscanf
+    CursorKind.ASM_LABEL_ATTR: __isoc99_vscanf
+    CursorKind.UNEXPOSED_ATTR: 
+    CursorKind.PARM_DECL: __format
+    CursorKind.PARM_DECL: __arg
+  CursorKind.FUNCTION_DECL: vsscanf
+    CursorKind.ASM_LABEL_ATTR: __isoc99_vsscanf
+    CursorKind.UNEXPOSED_ATTR: 
+    CursorKind.UNEXPOSED_ATTR: 
+    CursorKind.PARM_DECL: __s
+    CursorKind.PARM_DECL: __format
+    CursorKind.PARM_DECL: __arg
+  CursorKind.FUNCTION_DECL: fgetc
+    CursorKind.PARM_DECL: __stream
+      CursorKind.TYPE_REF: FILE
+  CursorKind.FUNCTION_DECL: getc
+    CursorKind.PARM_DECL: __stream
+      CursorKind.TYPE_REF: FILE
+  CursorKind.FUNCTION_DECL: getchar
+  CursorKind.FUNCTION_DECL: getc_unlocked
+    CursorKind.PARM_DECL: __stream
+      CursorKind.TYPE_REF: FILE
+  CursorKind.FUNCTION_DECL: getchar_unlocked
+  CursorKind.FUNCTION_DECL: fgetc_unlocked
+    CursorKind.PARM_DECL: __stream
+      CursorKind.TYPE_REF: FILE
+  CursorKind.FUNCTION_DECL: fputc
+    CursorKind.PARM_DECL: __c
+    CursorKind.PARM_DECL: __stream
+      CursorKind.TYPE_REF: FILE
+  CursorKind.FUNCTION_DECL: putc
+    CursorKind.PARM_DECL: __c
+    CursorKind.PARM_DECL: __stream
+      CursorKind.TYPE_REF: FILE
+  CursorKind.FUNCTION_DECL: putchar
+    CursorKind.PARM_DECL: __c
+  CursorKind.FUNCTION_DECL: fputc_unlocked
+    CursorKind.PARM_DECL: __c
+    CursorKind.PARM_DECL: __stream
+      CursorKind.TYPE_REF: FILE
+  CursorKind.FUNCTION_DECL: putc_unlocked
+    CursorKind.PARM_DECL: __c
+    CursorKind.PARM_DECL: __stream
+      CursorKind.TYPE_REF: FILE
+  CursorKind.FUNCTION_DECL: putchar_unlocked
+    CursorKind.PARM_DECL: __c
+  CursorKind.FUNCTION_DECL: getw
+    CursorKind.PARM_DECL: __stream
+      CursorKind.TYPE_REF: FILE
+  CursorKind.FUNCTION_DECL: putw
+    CursorKind.PARM_DECL: __w
+    CursorKind.PARM_DECL: __stream
+      CursorKind.TYPE_REF: FILE
+  CursorKind.FUNCTION_DECL: fgets
+    CursorKind.PARM_DECL: __s
+    CursorKind.PARM_DECL: __n
+    CursorKind.PARM_DECL: __stream
+      CursorKind.TYPE_REF: FILE
+  CursorKind.FUNCTION_DECL: __getdelim
+    CursorKind.TYPE_REF: __ssize_t
+    CursorKind.PARM_DECL: __lineptr
+    CursorKind.PARM_DECL: __n
+    CursorKind.PARM_DECL: __delimiter
+    CursorKind.PARM_DECL: __stream
+      CursorKind.TYPE_REF: FILE
+  CursorKind.FUNCTION_DECL: getdelim
+    CursorKind.TYPE_REF: __ssize_t
+    CursorKind.PARM_DECL: __lineptr
+    CursorKind.PARM_DECL: __n
+    CursorKind.PARM_DECL: __delimiter
+    CursorKind.PARM_DECL: __stream
+      CursorKind.TYPE_REF: FILE
+  CursorKind.FUNCTION_DECL: getline
+    CursorKind.TYPE_REF: __ssize_t
+    CursorKind.PARM_DECL: __lineptr
+    CursorKind.PARM_DECL: __n
+    CursorKind.PARM_DECL: __stream
+      CursorKind.TYPE_REF: FILE
+  CursorKind.FUNCTION_DECL: fputs
+    CursorKind.PARM_DECL: __s
+    CursorKind.PARM_DECL: __stream
+      CursorKind.TYPE_REF: FILE
+  CursorKind.FUNCTION_DECL: puts
+    CursorKind.PARM_DECL: __s
+  CursorKind.FUNCTION_DECL: ungetc
+    CursorKind.PARM_DECL: __c
+    CursorKind.PARM_DECL: __stream
+      CursorKind.TYPE_REF: FILE
+  CursorKind.FUNCTION_DECL: fread
+    CursorKind.PARM_DECL: __ptr
+    CursorKind.PARM_DECL: __size
+    CursorKind.PARM_DECL: __n
+    CursorKind.PARM_DECL: __stream
+      CursorKind.TYPE_REF: FILE
+  CursorKind.FUNCTION_DECL: fwrite
+    CursorKind.PARM_DECL: __ptr
+    CursorKind.PARM_DECL: __size
+    CursorKind.PARM_DECL: __n
+    CursorKind.PARM_DECL: __s
+      CursorKind.TYPE_REF: FILE
+  CursorKind.FUNCTION_DECL: fread_unlocked
+    CursorKind.PARM_DECL: __ptr
+    CursorKind.PARM_DECL: __size
+    CursorKind.PARM_DECL: __n
+    CursorKind.PARM_DECL: __stream
+      CursorKind.TYPE_REF: FILE
+  CursorKind.FUNCTION_DECL: fwrite_unlocked
+    CursorKind.PARM_DECL: __ptr
+    CursorKind.PARM_DECL: __size
+    CursorKind.PARM_DECL: __n
+    CursorKind.PARM_DECL: __stream
+      CursorKind.TYPE_REF: FILE
+  CursorKind.FUNCTION_DECL: fseek
+    CursorKind.PARM_DECL: __stream
+      CursorKind.TYPE_REF: FILE
+    CursorKind.PARM_DECL: __off
+    CursorKind.PARM_DECL: __whence
+  CursorKind.FUNCTION_DECL: ftell
+    CursorKind.PARM_DECL: __stream
+      CursorKind.TYPE_REF: FILE
+  CursorKind.FUNCTION_DECL: rewind
+    CursorKind.PARM_DECL: __stream
+      CursorKind.TYPE_REF: FILE
+  CursorKind.FUNCTION_DECL: fseeko
+    CursorKind.PARM_DECL: __stream
+      CursorKind.TYPE_REF: FILE
+    CursorKind.PARM_DECL: __off
+      CursorKind.TYPE_REF: __off_t
+    CursorKind.PARM_DECL: __whence
+  CursorKind.FUNCTION_DECL: ftello
+    CursorKind.TYPE_REF: __off_t
+    CursorKind.PARM_DECL: __stream
+      CursorKind.TYPE_REF: FILE
+  CursorKind.FUNCTION_DECL: fgetpos
+    CursorKind.PARM_DECL: __stream
+      CursorKind.TYPE_REF: FILE
+    CursorKind.PARM_DECL: __pos
+      CursorKind.TYPE_REF: fpos_t
+  CursorKind.FUNCTION_DECL: fsetpos
+    CursorKind.PARM_DECL: __stream
+      CursorKind.TYPE_REF: FILE
+    CursorKind.PARM_DECL: __pos
+      CursorKind.TYPE_REF: fpos_t
+  CursorKind.FUNCTION_DECL: clearerr
+    CursorKind.UNEXPOSED_ATTR: 
+    CursorKind.PARM_DECL: __stream
+      CursorKind.TYPE_REF: FILE
+  CursorKind.FUNCTION_DECL: feof
+    CursorKind.UNEXPOSED_ATTR: 
+    CursorKind.PARM_DECL: __stream
+      CursorKind.TYPE_REF: FILE
+  CursorKind.FUNCTION_DECL: ferror
+    CursorKind.UNEXPOSED_ATTR: 
+    CursorKind.PARM_DECL: __stream
+      CursorKind.TYPE_REF: FILE
+  CursorKind.FUNCTION_DECL: clearerr_unlocked
+    CursorKind.UNEXPOSED_ATTR: 
+    CursorKind.PARM_DECL: __stream
+      CursorKind.TYPE_REF: FILE
+  CursorKind.FUNCTION_DECL: feof_unlocked
+    CursorKind.UNEXPOSED_ATTR: 
+    CursorKind.PARM_DECL: __stream
+      CursorKind.TYPE_REF: FILE
+  CursorKind.FUNCTION_DECL: ferror_unlocked
+    CursorKind.UNEXPOSED_ATTR: 
+    CursorKind.PARM_DECL: __stream
+      CursorKind.TYPE_REF: FILE
+  CursorKind.FUNCTION_DECL: perror
+    CursorKind.PARM_DECL: __s
+  CursorKind.VAR_DECL: sys_nerr
+  CursorKind.VAR_DECL: sys_errlist
+  CursorKind.FUNCTION_DECL: fileno
+    CursorKind.UNEXPOSED_ATTR: 
+    CursorKind.PARM_DECL: __stream
+      CursorKind.TYPE_REF: FILE
+  CursorKind.FUNCTION_DECL: fileno_unlocked
+    CursorKind.UNEXPOSED_ATTR: 
+    CursorKind.PARM_DECL: __stream
+      CursorKind.TYPE_REF: FILE
+  CursorKind.FUNCTION_DECL: popen
+    CursorKind.TYPE_REF: FILE
+    CursorKind.PARM_DECL: __command
+    CursorKind.PARM_DECL: __modes
+  CursorKind.FUNCTION_DECL: pclose
+    CursorKind.PARM_DECL: __stream
+      CursorKind.TYPE_REF: FILE
+  CursorKind.FUNCTION_DECL: ctermid
+    CursorKind.UNEXPOSED_ATTR: 
+    CursorKind.PARM_DECL: __s
+  CursorKind.FUNCTION_DECL: flockfile
+    CursorKind.UNEXPOSED_ATTR: 
+    CursorKind.PARM_DECL: __stream
+      CursorKind.TYPE_REF: FILE
+  CursorKind.FUNCTION_DECL: ftrylockfile
+    CursorKind.UNEXPOSED_ATTR: 
+    CursorKind.PARM_DECL: __stream
+      CursorKind.TYPE_REF: FILE
+  CursorKind.FUNCTION_DECL: funlockfile
+    CursorKind.UNEXPOSED_ATTR: 
+    CursorKind.PARM_DECL: __stream
+      CursorKind.TYPE_REF: FILE
+  CursorKind.FUNCTION_DECL: __uflow
+    CursorKind.PARM_DECL: 
+      CursorKind.TYPE_REF: FILE
+  CursorKind.FUNCTION_DECL: __overflow
+    CursorKind.PARM_DECL: 
+      CursorKind.TYPE_REF: FILE
+    CursorKind.PARM_DECL: 
+  CursorKind.FUNCTION_DECL: main
+    CursorKind.COMPOUND_STMT: 
+      CursorKind.FOR_STMT: 
+        CursorKind.DECL_STMT: 
+          CursorKind.VAR_DECL: i
+            CursorKind.INTEGER_LITERAL: 
+        CursorKind.BINARY_OPERATOR: 
+          CursorKind.UNEXPOSED_EXPR: i
+            CursorKind.DECL_REF_EXPR: i
+          CursorKind.PAREN_EXPR: 
+            CursorKind.BINARY_OPERATOR: 
+              CursorKind.INTEGER_LITERAL: 
+              CursorKind.INTEGER_LITERAL: 
+        CursorKind.UNARY_OPERATOR: 
+          CursorKind.DECL_REF_EXPR: i
+        CursorKind.COMPOUND_STMT: 
+          CursorKind.DECL_STMT: 
+            CursorKind.VAR_DECL: a
+              CursorKind.PAREN_EXPR: 
+                CursorKind.BINARY_OPERATOR: 
+                  CursorKind.INTEGER_LITERAL: 
+                  CursorKind.INTEGER_LITERAL: 
+      CursorKind.CALL_EXPR: printf
+        CursorKind.UNEXPOSED_EXPR: printf
+          CursorKind.DECL_REF_EXPR: printf
+        CursorKind.UNEXPOSED_EXPR: 
+          CursorKind.UNEXPOSED_EXPR: 
+            CursorKind.STRING_LITERAL: "Hello, World1!\n"
+      CursorKind.CALL_EXPR: printf
+        CursorKind.UNEXPOSED_EXPR: printf
+          CursorKind.DECL_REF_EXPR: printf
+        CursorKind.UNEXPOSED_EXPR: 
+          CursorKind.UNEXPOSED_EXPR: 
+            CursorKind.STRING_LITERAL: "Hello, World2!\n"
+
+Original line: int main()
+27
+Parenthesis node kind: CursorKind.FUNCTION_DECL
+Modified line: int main
+
+Original line: for(int i = 0; i < (10 + 5); i++)
+55
+Parenthesis node kind: CursorKind.STRUCT_DECL
+Modified line: for(int i = 0; i < 10 + 5; i++)
+
+Original line: int a = (5 + 10);
+92
+Parenthesis node kind: CursorKind.TYPE_REF
+Modified line: int a = 5 + 10;
+
+Original line: printf("Hello, World1!\n");
+118
+Parenthesis node kind: CursorKind.CALL_EXPR
+Modified line: printf"Hello, World1!\n";
+
+Original line: printf("Hello, World2!\n");
+150
+Parenthesis node kind: CursorKind.TYPEDEF_DECL
+Modified line: printf"Hello, World2!\n";
+
+CursorKind.TYPEDEF_DECL: __u_char
+
+CursorKind.TYPEDEF_DECL: __u_short
+
+CursorKind.TYPEDEF_DECL: __u_int
+
+CursorKind.TYPEDEF_DECL: __u_long
+
+CursorKind.TYPEDEF_DECL: __int8_t
+
+CursorKind.TYPEDEF_DECL: __uint8_t
+
+CursorKind.TYPEDEF_DECL: __int16_t
+
+CursorKind.TYPEDEF_DECL: __uint16_t
+
+CursorKind.TYPEDEF_DECL: __int32_t
+
+CursorKind.TYPEDEF_DECL: __uint32_t
+
+CursorKind.TYPEDEF_DECL: __int64_t
+
+CursorKind.TYPEDEF_DECL: __uint64_t
+
+CursorKind.TYPEDEF_DECL: __int_least8_t
+  CursorKind.TYPE_REF: __int8_t
+
+CursorKind.TYPE_REF: __int8_t
+
+CursorKind.TYPEDEF_DECL: __uint_least8_t
+  CursorKind.TYPE_REF: __uint8_t
+
+CursorKind.TYPE_REF: __uint8_t
+
+CursorKind.TYPEDEF_DECL: __int_least16_t
+  CursorKind.TYPE_REF: __int16_t
+
+CursorKind.TYPE_REF: __int16_t
+
+CursorKind.TYPEDEF_DECL: __uint_least16_t
+  CursorKind.TYPE_REF: __uint16_t
+
+CursorKind.TYPE_REF: __uint16_t
+
+CursorKind.TYPEDEF_DECL: __int_least32_t
+  CursorKind.TYPE_REF: __int32_t
+
+CursorKind.TYPE_REF: __int32_t
+
+CursorKind.TYPEDEF_DECL: __uint_least32_t
+  CursorKind.TYPE_REF: __uint32_t
+
+CursorKind.TYPE_REF: __uint32_t
+
+CursorKind.TYPEDEF_DECL: __int_least64_t
+  CursorKind.TYPE_REF: __int64_t
+
+CursorKind.TYPE_REF: __int64_t
+
+CursorKind.TYPEDEF_DECL: __uint_least64_t
+  CursorKind.TYPE_REF: __uint64_t
+
+CursorKind.TYPE_REF: __uint64_t
+
+CursorKind.TYPEDEF_DECL: __quad_t
+
+CursorKind.TYPEDEF_DECL: __u_quad_t
+
+CursorKind.TYPEDEF_DECL: __intmax_t
+
+CursorKind.TYPEDEF_DECL: __uintmax_t
+
+CursorKind.TYPEDEF_DECL: __dev_t
+
+CursorKind.TYPEDEF_DECL: __uid_t
+
+CursorKind.TYPEDEF_DECL: __gid_t
+
+CursorKind.TYPEDEF_DECL: __ino_t
+
+CursorKind.TYPEDEF_DECL: __ino64_t
+
+CursorKind.TYPEDEF_DECL: __mode_t
+
+CursorKind.TYPEDEF_DECL: __nlink_t
+
+CursorKind.TYPEDEF_DECL: __off_t
+
+CursorKind.TYPEDEF_DECL: __off64_t
+
+CursorKind.TYPEDEF_DECL: __pid_t
+
+CursorKind.STRUCT_DECL: __fsid_t
+  CursorKind.FIELD_DECL: __val
+    CursorKind.INTEGER_LITERAL: 
+
+CursorKind.FIELD_DECL: __val
+  CursorKind.INTEGER_LITERAL: 
+
+CursorKind.INTEGER_LITERAL: 
+
+CursorKind.TYPEDEF_DECL: __fsid_t
+  CursorKind.STRUCT_DECL: __fsid_t
+    CursorKind.FIELD_DECL: __val
+      CursorKind.INTEGER_LITERAL: 
+
+CursorKind.STRUCT_DECL: __fsid_t
+  CursorKind.FIELD_DECL: __val
+    CursorKind.INTEGER_LITERAL: 
+
+CursorKind.FIELD_DECL: __val
+  CursorKind.INTEGER_LITERAL: 
+
+CursorKind.INTEGER_LITERAL: 
+
+CursorKind.TYPEDEF_DECL: __clock_t
+
+CursorKind.TYPEDEF_DECL: __rlim_t
+
+CursorKind.TYPEDEF_DECL: __rlim64_t
+
+CursorKind.TYPEDEF_DECL: __id_t
+
+CursorKind.TYPEDEF_DECL: __time_t
+
+CursorKind.TYPEDEF_DECL: __useconds_t
+
+CursorKind.TYPEDEF_DECL: __suseconds_t
+
+CursorKind.TYPEDEF_DECL: __daddr_t
+
+CursorKind.TYPEDEF_DECL: __key_t
+
+CursorKind.TYPEDEF_DECL: __clockid_t
+
+CursorKind.TYPEDEF_DECL: __timer_t
+
+CursorKind.TYPEDEF_DECL: __blksize_t
+
+CursorKind.TYPEDEF_DECL: __blkcnt_t
+
+CursorKind.TYPEDEF_DECL: __blkcnt64_t
+
+CursorKind.TYPEDEF_DECL: __fsblkcnt_t
+
+CursorKind.TYPEDEF_DECL: __fsblkcnt64_t
+
+CursorKind.TYPEDEF_DECL: __fsfilcnt_t
+
+CursorKind.TYPEDEF_DECL: __fsfilcnt64_t
+
+CursorKind.TYPEDEF_DECL: __fsword_t
+
+CursorKind.TYPEDEF_DECL: __ssize_t
+
+CursorKind.TYPEDEF_DECL: __syscall_slong_t
+
+CursorKind.TYPEDEF_DECL: __syscall_ulong_t
+
+CursorKind.TYPEDEF_DECL: __loff_t
+  CursorKind.TYPE_REF: __off64_t
+
+CursorKind.TYPE_REF: __off64_t
+
+CursorKind.TYPEDEF_DECL: __caddr_t
+
+CursorKind.TYPEDEF_DECL: __intptr_t
+
+CursorKind.TYPEDEF_DECL: __socklen_t
+
+CursorKind.TYPEDEF_DECL: __sig_atomic_t
+
+CursorKind.STRUCT_DECL: __mbstate_t
+  CursorKind.FIELD_DECL: __count
+  CursorKind.UNION_DECL: union (unnamed at /usr/include/bits/types/__mbstate_t.h:16:3)
+    CursorKind.FIELD_DECL: __wch
+    CursorKind.FIELD_DECL: __wchb
+      CursorKind.INTEGER_LITERAL: 
+  CursorKind.FIELD_DECL: __value
+    CursorKind.UNION_DECL: union (unnamed at /usr/include/bits/types/__mbstate_t.h:16:3)
+      CursorKind.FIELD_DECL: __wch
+      CursorKind.FIELD_DECL: __wchb
+        CursorKind.INTEGER_LITERAL: 
+
+CursorKind.FIELD_DECL: __count
+
+CursorKind.UNION_DECL: union (unnamed at /usr/include/bits/types/__mbstate_t.h:16:3)
+  CursorKind.FIELD_DECL: __wch
+  CursorKind.FIELD_DECL: __wchb
+    CursorKind.INTEGER_LITERAL: 
+
+CursorKind.FIELD_DECL: __wch
+
+CursorKind.FIELD_DECL: __wchb
+  CursorKind.INTEGER_LITERAL: 
+
+CursorKind.INTEGER_LITERAL: 
+
+CursorKind.FIELD_DECL: __value
+  CursorKind.UNION_DECL: union (unnamed at /usr/include/bits/types/__mbstate_t.h:16:3)
+    CursorKind.FIELD_DECL: __wch
+    CursorKind.FIELD_DECL: __wchb
+      CursorKind.INTEGER_LITERAL: 
+
+CursorKind.UNION_DECL: union (unnamed at /usr/include/bits/types/__mbstate_t.h:16:3)
+  CursorKind.FIELD_DECL: __wch
+  CursorKind.FIELD_DECL: __wchb
+    CursorKind.INTEGER_LITERAL: 
+
+CursorKind.FIELD_DECL: __wch
+
+CursorKind.FIELD_DECL: __wchb
+  CursorKind.INTEGER_LITERAL: 
+
+CursorKind.INTEGER_LITERAL: 
+
+CursorKind.TYPEDEF_DECL: __mbstate_t
+  CursorKind.STRUCT_DECL: __mbstate_t
+    CursorKind.FIELD_DECL: __count
+    CursorKind.UNION_DECL: union (unnamed at /usr/include/bits/types/__mbstate_t.h:16:3)
+      CursorKind.FIELD_DECL: __wch
+      CursorKind.FIELD_DECL: __wchb
+        CursorKind.INTEGER_LITERAL: 
+    CursorKind.FIELD_DECL: __value
+      CursorKind.UNION_DECL: union (unnamed at /usr/include/bits/types/__mbstate_t.h:16:3)
+        CursorKind.FIELD_DECL: __wch
+        CursorKind.FIELD_DECL: __wchb
+          CursorKind.INTEGER_LITERAL: 
+
+CursorKind.STRUCT_DECL: __mbstate_t
+  CursorKind.FIELD_DECL: __count
+  CursorKind.UNION_DECL: union (unnamed at /usr/include/bits/types/__mbstate_t.h:16:3)
+    CursorKind.FIELD_DECL: __wch
+    CursorKind.FIELD_DECL: __wchb
+      CursorKind.INTEGER_LITERAL: 
+  CursorKind.FIELD_DECL: __value
+    CursorKind.UNION_DECL: union (unnamed at /usr/include/bits/types/__mbstate_t.h:16:3)
+      CursorKind.FIELD_DECL: __wch
+      CursorKind.FIELD_DECL: __wchb
+        CursorKind.INTEGER_LITERAL: 
+
+CursorKind.FIELD_DECL: __count
+
+CursorKind.UNION_DECL: union (unnamed at /usr/include/bits/types/__mbstate_t.h:16:3)
+  CursorKind.FIELD_DECL: __wch
+  CursorKind.FIELD_DECL: __wchb
+    CursorKind.INTEGER_LITERAL: 
+
+CursorKind.FIELD_DECL: __wch
+
+CursorKind.FIELD_DECL: __wchb
+  CursorKind.INTEGER_LITERAL: 
+
+CursorKind.INTEGER_LITERAL: 
+
+CursorKind.FIELD_DECL: __value
+  CursorKind.UNION_DECL: union (unnamed at /usr/include/bits/types/__mbstate_t.h:16:3)
+    CursorKind.FIELD_DECL: __wch
+    CursorKind.FIELD_DECL: __wchb
+      CursorKind.INTEGER_LITERAL: 
+
+CursorKind.UNION_DECL: union (unnamed at /usr/include/bits/types/__mbstate_t.h:16:3)
+  CursorKind.FIELD_DECL: __wch
+  CursorKind.FIELD_DECL: __wchb
+    CursorKind.INTEGER_LITERAL: 
+
+CursorKind.FIELD_DECL: __wch
+
+CursorKind.FIELD_DECL: __wchb
+  CursorKind.INTEGER_LITERAL: 
+
+CursorKind.INTEGER_LITERAL: 
+
+CursorKind.STRUCT_DECL: _G_fpos_t
+  CursorKind.FIELD_DECL: __pos
+    CursorKind.TYPE_REF: __off_t
+  CursorKind.FIELD_DECL: __state
+    CursorKind.TYPE_REF: __mbstate_t
+
+CursorKind.FIELD_DECL: __pos
+  CursorKind.TYPE_REF: __off_t
+
+CursorKind.TYPE_REF: __off_t
+
+CursorKind.FIELD_DECL: __state
+  CursorKind.TYPE_REF: __mbstate_t
+
+CursorKind.TYPE_REF: __mbstate_t
+
+CursorKind.TYPEDEF_DECL: __fpos_t
+  CursorKind.STRUCT_DECL: _G_fpos_t
+    CursorKind.FIELD_DECL: __pos
+      CursorKind.TYPE_REF: __off_t
+    CursorKind.FIELD_DECL: __state
+      CursorKind.TYPE_REF: __mbstate_t
+
+CursorKind.STRUCT_DECL: _G_fpos_t
+  CursorKind.FIELD_DECL: __pos
+    CursorKind.TYPE_REF: __off_t
+  CursorKind.FIELD_DECL: __state
+    CursorKind.TYPE_REF: __mbstate_t
+
+CursorKind.FIELD_DECL: __pos
+  CursorKind.TYPE_REF: __off_t
+
+CursorKind.TYPE_REF: __off_t
+
+CursorKind.FIELD_DECL: __state
+  CursorKind.TYPE_REF: __mbstate_t
+
+CursorKind.TYPE_REF: __mbstate_t
+
+CursorKind.STRUCT_DECL: _G_fpos64_t
+  CursorKind.FIELD_DECL: __pos
+    CursorKind.TYPE_REF: __off64_t
+  CursorKind.FIELD_DECL: __state
+    CursorKind.TYPE_REF: __mbstate_t
+
+CursorKind.FIELD_DECL: __pos
+  CursorKind.TYPE_REF: __off64_t
+
+CursorKind.TYPE_REF: __off64_t
+
+CursorKind.FIELD_DECL: __state
+  CursorKind.TYPE_REF: __mbstate_t
+
+CursorKind.TYPE_REF: __mbstate_t
+
+CursorKind.TYPEDEF_DECL: __fpos64_t
+  CursorKind.STRUCT_DECL: _G_fpos64_t
+    CursorKind.FIELD_DECL: __pos
+      CursorKind.TYPE_REF: __off64_t
+    CursorKind.FIELD_DECL: __state
+      CursorKind.TYPE_REF: __mbstate_t
+
+CursorKind.STRUCT_DECL: _G_fpos64_t
+  CursorKind.FIELD_DECL: __pos
+    CursorKind.TYPE_REF: __off64_t
+  CursorKind.FIELD_DECL: __state
+    CursorKind.TYPE_REF: __mbstate_t
+
+CursorKind.FIELD_DECL: __pos
+  CursorKind.TYPE_REF: __off64_t
+
+CursorKind.TYPE_REF: __off64_t
+
+CursorKind.FIELD_DECL: __state
+  CursorKind.TYPE_REF: __mbstate_t
+
+CursorKind.TYPE_REF: __mbstate_t
+
+CursorKind.STRUCT_DECL: _IO_FILE
+
+CursorKind.TYPEDEF_DECL: __FILE
+  CursorKind.TYPE_REF: struct _IO_FILE
+
+CursorKind.TYPE_REF: struct _IO_FILE
+
+CursorKind.STRUCT_DECL: _IO_FILE
+
+CursorKind.TYPEDEF_DECL: FILE
+  CursorKind.TYPE_REF: struct _IO_FILE
+
+CursorKind.TYPE_REF: struct _IO_FILE
+
+CursorKind.STRUCT_DECL: _IO_FILE
+
+CursorKind.STRUCT_DECL: _IO_marker
+
+CursorKind.STRUCT_DECL: _IO_codecvt
+
+CursorKind.STRUCT_DECL: _IO_wide_data
+
+CursorKind.TYPEDEF_DECL: _IO_lock_t
+
+CursorKind.STRUCT_DECL: _IO_FILE
+  CursorKind.FIELD_DECL: _flags
+  CursorKind.FIELD_DECL: _IO_read_ptr
+  CursorKind.FIELD_DECL: _IO_read_end
+  CursorKind.FIELD_DECL: _IO_read_base
+  CursorKind.FIELD_DECL: _IO_write_base
+  CursorKind.FIELD_DECL: _IO_write_ptr
+  CursorKind.FIELD_DECL: _IO_write_end
+  CursorKind.FIELD_DECL: _IO_buf_base
+  CursorKind.FIELD_DECL: _IO_buf_end
+  CursorKind.FIELD_DECL: _IO_save_base
+  CursorKind.FIELD_DECL: _IO_backup_base
+  CursorKind.FIELD_DECL: _IO_save_end
+  CursorKind.FIELD_DECL: _markers
+    CursorKind.TYPE_REF: struct _IO_marker
+  CursorKind.FIELD_DECL: _chain
+    CursorKind.TYPE_REF: struct _IO_FILE
+  CursorKind.FIELD_DECL: _fileno
+  CursorKind.FIELD_DECL: _flags2
+  CursorKind.FIELD_DECL: _old_offset
+    CursorKind.TYPE_REF: __off_t
+  CursorKind.FIELD_DECL: _cur_column
+  CursorKind.FIELD_DECL: _vtable_offset
+  CursorKind.FIELD_DECL: _shortbuf
+    CursorKind.INTEGER_LITERAL: 
+  CursorKind.FIELD_DECL: _lock
+    CursorKind.TYPE_REF: _IO_lock_t
+  CursorKind.FIELD_DECL: _offset
+    CursorKind.TYPE_REF: __off64_t
+  CursorKind.FIELD_DECL: _codecvt
+    CursorKind.TYPE_REF: struct _IO_codecvt
+  CursorKind.FIELD_DECL: _wide_data
+    CursorKind.TYPE_REF: struct _IO_wide_data
+  CursorKind.FIELD_DECL: _freeres_list
+    CursorKind.TYPE_REF: struct _IO_FILE
+  CursorKind.FIELD_DECL: _freeres_buf
+  CursorKind.FIELD_DECL: __pad5
+  CursorKind.FIELD_DECL: _mode
+  CursorKind.FIELD_DECL: _unused2
+
+CursorKind.FIELD_DECL: _flags
+
+CursorKind.FIELD_DECL: _IO_read_ptr
+
+CursorKind.FIELD_DECL: _IO_read_end
+
+CursorKind.FIELD_DECL: _IO_read_base
+
+CursorKind.FIELD_DECL: _IO_write_base
+
+CursorKind.FIELD_DECL: _IO_write_ptr
+
+CursorKind.FIELD_DECL: _IO_write_end
+
+CursorKind.FIELD_DECL: _IO_buf_base
+
+CursorKind.FIELD_DECL: _IO_buf_end
+
+CursorKind.FIELD_DECL: _IO_save_base
+
+CursorKind.FIELD_DECL: _IO_backup_base
+
+CursorKind.FIELD_DECL: _IO_save_end
+
+CursorKind.FIELD_DECL: _markers
+  CursorKind.TYPE_REF: struct _IO_marker
+
+CursorKind.TYPE_REF: struct _IO_marker
+
+CursorKind.FIELD_DECL: _chain
+  CursorKind.TYPE_REF: struct _IO_FILE
+
+CursorKind.TYPE_REF: struct _IO_FILE
+
+CursorKind.FIELD_DECL: _fileno
+
+CursorKind.FIELD_DECL: _flags2
+
+CursorKind.FIELD_DECL: _old_offset
+  CursorKind.TYPE_REF: __off_t
+
+CursorKind.TYPE_REF: __off_t
+
+CursorKind.FIELD_DECL: _cur_column
+
+CursorKind.FIELD_DECL: _vtable_offset
+
+CursorKind.FIELD_DECL: _shortbuf
+  CursorKind.INTEGER_LITERAL: 
+
+CursorKind.INTEGER_LITERAL: 
+
+CursorKind.FIELD_DECL: _lock
+  CursorKind.TYPE_REF: _IO_lock_t
+
+CursorKind.TYPE_REF: _IO_lock_t
+
+CursorKind.FIELD_DECL: _offset
+  CursorKind.TYPE_REF: __off64_t
+
+CursorKind.TYPE_REF: __off64_t
+
+CursorKind.FIELD_DECL: _codecvt
+  CursorKind.TYPE_REF: struct _IO_codecvt
+
+CursorKind.TYPE_REF: struct _IO_codecvt
+
+CursorKind.FIELD_DECL: _wide_data
+  CursorKind.TYPE_REF: struct _IO_wide_data
+
+CursorKind.TYPE_REF: struct _IO_wide_data
+
+CursorKind.FIELD_DECL: _freeres_list
+  CursorKind.TYPE_REF: struct _IO_FILE
+
+CursorKind.TYPE_REF: struct _IO_FILE
+
+CursorKind.FIELD_DECL: _freeres_buf
+
+CursorKind.FIELD_DECL: __pad5
+
+CursorKind.FIELD_DECL: _mode
+
+CursorKind.FIELD_DECL: _unused2
+
+CursorKind.TYPEDEF_DECL: va_list
+
+CursorKind.TYPEDEF_DECL: off_t
+  CursorKind.TYPE_REF: __off_t
+
+CursorKind.TYPE_REF: __off_t
+
+CursorKind.TYPEDEF_DECL: ssize_t
+  CursorKind.TYPE_REF: __ssize_t
+
+CursorKind.TYPE_REF: __ssize_t
+
+CursorKind.TYPEDEF_DECL: fpos_t
+  CursorKind.TYPE_REF: __fpos_t
+
+CursorKind.TYPE_REF: __fpos_t
+
+CursorKind.VAR_DECL: stdin
+  CursorKind.TYPE_REF: FILE
+
+CursorKind.TYPE_REF: FILE
+
+CursorKind.VAR_DECL: stdout
+  CursorKind.TYPE_REF: FILE
+
+CursorKind.TYPE_REF: FILE
+
+CursorKind.VAR_DECL: stderr
+  CursorKind.TYPE_REF: FILE
+
+CursorKind.TYPE_REF: FILE
+
+CursorKind.FUNCTION_DECL: remove
+  CursorKind.UNEXPOSED_ATTR: 
+  CursorKind.PARM_DECL: __filename
+
+CursorKind.UNEXPOSED_ATTR: 
+
+CursorKind.PARM_DECL: __filename
+
+CursorKind.FUNCTION_DECL: rename
+  CursorKind.UNEXPOSED_ATTR: 
+  CursorKind.PARM_DECL: __old
+  CursorKind.PARM_DECL: __new
+
+CursorKind.UNEXPOSED_ATTR: 
+
+CursorKind.PARM_DECL: __old
+
+CursorKind.PARM_DECL: __new
+
+CursorKind.FUNCTION_DECL: renameat
+  CursorKind.UNEXPOSED_ATTR: 
+  CursorKind.PARM_DECL: __oldfd
+  CursorKind.PARM_DECL: __old
+  CursorKind.PARM_DECL: __newfd
+  CursorKind.PARM_DECL: __new
+
+CursorKind.UNEXPOSED_ATTR: 
+
+CursorKind.PARM_DECL: __oldfd
+
+CursorKind.PARM_DECL: __old
+
+CursorKind.PARM_DECL: __newfd
+
+CursorKind.PARM_DECL: __new
+
+CursorKind.FUNCTION_DECL: tmpfile
+  CursorKind.TYPE_REF: FILE
+
+CursorKind.TYPE_REF: FILE
+
+CursorKind.FUNCTION_DECL: tmpnam
+  CursorKind.UNEXPOSED_ATTR: 
+  CursorKind.PARM_DECL: __s
+
+CursorKind.UNEXPOSED_ATTR: 
+
+CursorKind.PARM_DECL: __s
+
+CursorKind.FUNCTION_DECL: tmpnam_r
+  CursorKind.UNEXPOSED_ATTR: 
+  CursorKind.PARM_DECL: __s
+
+CursorKind.UNEXPOSED_ATTR: 
+
+CursorKind.PARM_DECL: __s
+
+CursorKind.FUNCTION_DECL: tempnam
+  CursorKind.UNEXPOSED_ATTR: 
+  CursorKind.UNEXPOSED_ATTR: 
+  CursorKind.PARM_DECL: __dir
+  CursorKind.PARM_DECL: __pfx
+
+CursorKind.UNEXPOSED_ATTR: 
+
+CursorKind.UNEXPOSED_ATTR: 
+
+CursorKind.PARM_DECL: __dir
+
+CursorKind.PARM_DECL: __pfx
+
+CursorKind.FUNCTION_DECL: fclose
+  CursorKind.PARM_DECL: __stream
+    CursorKind.TYPE_REF: FILE
+
+CursorKind.PARM_DECL: __stream
+  CursorKind.TYPE_REF: FILE
+
+CursorKind.TYPE_REF: FILE
+
+CursorKind.FUNCTION_DECL: fflush
+  CursorKind.PARM_DECL: __stream
+    CursorKind.TYPE_REF: FILE
+
+CursorKind.PARM_DECL: __stream
+  CursorKind.TYPE_REF: FILE
+
+CursorKind.TYPE_REF: FILE
+
+CursorKind.FUNCTION_DECL: fflush_unlocked
+  CursorKind.PARM_DECL: __stream
+    CursorKind.TYPE_REF: FILE
+
+CursorKind.PARM_DECL: __stream
+  CursorKind.TYPE_REF: FILE
+
+CursorKind.TYPE_REF: FILE
+
+CursorKind.FUNCTION_DECL: fopen
+  CursorKind.TYPE_REF: FILE
+  CursorKind.PARM_DECL: __filename
+  CursorKind.PARM_DECL: __modes
+
+CursorKind.TYPE_REF: FILE
+
+CursorKind.PARM_DECL: __filename
+
+CursorKind.PARM_DECL: __modes
+
+CursorKind.FUNCTION_DECL: freopen
+  CursorKind.TYPE_REF: FILE
+  CursorKind.PARM_DECL: __filename
+  CursorKind.PARM_DECL: __modes
+  CursorKind.PARM_DECL: __stream
+    CursorKind.TYPE_REF: FILE
+
+CursorKind.TYPE_REF: FILE
+
+CursorKind.PARM_DECL: __filename
+
+CursorKind.PARM_DECL: __modes
+
+CursorKind.PARM_DECL: __stream
+  CursorKind.TYPE_REF: FILE
+
+CursorKind.TYPE_REF: FILE
+
+CursorKind.FUNCTION_DECL: fdopen
+  CursorKind.UNEXPOSED_ATTR: 
+  CursorKind.TYPE_REF: FILE
+  CursorKind.PARM_DECL: __fd
+  CursorKind.PARM_DECL: __modes
+
+CursorKind.UNEXPOSED_ATTR: 
+
+CursorKind.TYPE_REF: FILE
+
+CursorKind.PARM_DECL: __fd
+
+CursorKind.PARM_DECL: __modes
+
+CursorKind.FUNCTION_DECL: fmemopen
+  CursorKind.UNEXPOSED_ATTR: 
+  CursorKind.TYPE_REF: FILE
+  CursorKind.PARM_DECL: __s
+  CursorKind.PARM_DECL: __len
+  CursorKind.PARM_DECL: __modes
+
+CursorKind.UNEXPOSED_ATTR: 
+
+CursorKind.TYPE_REF: FILE
+
+CursorKind.PARM_DECL: __s
+
+CursorKind.PARM_DECL: __len
+
+CursorKind.PARM_DECL: __modes
+
+CursorKind.FUNCTION_DECL: open_memstream
+  CursorKind.UNEXPOSED_ATTR: 
+  CursorKind.TYPE_REF: FILE
+  CursorKind.PARM_DECL: __bufloc
+  CursorKind.PARM_DECL: __sizeloc
+
+CursorKind.UNEXPOSED_ATTR: 
+
+CursorKind.TYPE_REF: FILE
+
+CursorKind.PARM_DECL: __bufloc
+
+CursorKind.PARM_DECL: __sizeloc
+
+CursorKind.FUNCTION_DECL: setbuf
+  CursorKind.UNEXPOSED_ATTR: 
+  CursorKind.PARM_DECL: __stream
+    CursorKind.TYPE_REF: FILE
+  CursorKind.PARM_DECL: __buf
+
+CursorKind.UNEXPOSED_ATTR: 
+
+CursorKind.PARM_DECL: __stream
+  CursorKind.TYPE_REF: FILE
+
+CursorKind.TYPE_REF: FILE
+
+CursorKind.PARM_DECL: __buf
+
+CursorKind.FUNCTION_DECL: setvbuf
+  CursorKind.UNEXPOSED_ATTR: 
+  CursorKind.PARM_DECL: __stream
+    CursorKind.TYPE_REF: FILE
+  CursorKind.PARM_DECL: __buf
+  CursorKind.PARM_DECL: __modes
+  CursorKind.PARM_DECL: __n
+
+CursorKind.UNEXPOSED_ATTR: 
+
+CursorKind.PARM_DECL: __stream
+  CursorKind.TYPE_REF: FILE
+
+CursorKind.TYPE_REF: FILE
+
+CursorKind.PARM_DECL: __buf
+
+CursorKind.PARM_DECL: __modes
+
+CursorKind.PARM_DECL: __n
+
+CursorKind.FUNCTION_DECL: setbuffer
+  CursorKind.UNEXPOSED_ATTR: 
+  CursorKind.PARM_DECL: __stream
+    CursorKind.TYPE_REF: FILE
+  CursorKind.PARM_DECL: __buf
+  CursorKind.PARM_DECL: __size
+
+CursorKind.UNEXPOSED_ATTR: 
+
+CursorKind.PARM_DECL: __stream
+  CursorKind.TYPE_REF: FILE
+
+CursorKind.TYPE_REF: FILE
+
+CursorKind.PARM_DECL: __buf
+
+CursorKind.PARM_DECL: __size
+
+CursorKind.FUNCTION_DECL: setlinebuf
+  CursorKind.UNEXPOSED_ATTR: 
+  CursorKind.PARM_DECL: __stream
+    CursorKind.TYPE_REF: FILE
+
+CursorKind.UNEXPOSED_ATTR: 
+
+CursorKind.PARM_DECL: __stream
+  CursorKind.TYPE_REF: FILE
+
+CursorKind.TYPE_REF: FILE
+
+CursorKind.FUNCTION_DECL: fprintf
+  CursorKind.UNEXPOSED_ATTR: 
+  CursorKind.PARM_DECL: __stream
+    CursorKind.TYPE_REF: FILE
+  CursorKind.PARM_DECL: __format
+
+CursorKind.UNEXPOSED_ATTR: 
+
+CursorKind.PARM_DECL: __stream
+  CursorKind.TYPE_REF: FILE
+
+CursorKind.TYPE_REF: FILE
+
+CursorKind.PARM_DECL: __format
+
+CursorKind.FUNCTION_DECL: printf
+  CursorKind.UNEXPOSED_ATTR: 
+  CursorKind.PARM_DECL: __format
+
+CursorKind.UNEXPOSED_ATTR: 
+
+CursorKind.PARM_DECL: __format
+
+CursorKind.FUNCTION_DECL: sprintf
+  CursorKind.UNEXPOSED_ATTR: 
+  CursorKind.UNEXPOSED_ATTR: 
+  CursorKind.PARM_DECL: __s
+  CursorKind.PARM_DECL: __format
+
+CursorKind.UNEXPOSED_ATTR: 
+
+CursorKind.UNEXPOSED_ATTR: 
+
+CursorKind.PARM_DECL: __s
+
+CursorKind.PARM_DECL: __format
+
+CursorKind.FUNCTION_DECL: vfprintf
+  CursorKind.PARM_DECL: __s
+    CursorKind.TYPE_REF: FILE
+  CursorKind.PARM_DECL: __format
+  CursorKind.PARM_DECL: __arg
+
+CursorKind.PARM_DECL: __s
+  CursorKind.TYPE_REF: FILE
+
+CursorKind.TYPE_REF: FILE
+
+CursorKind.PARM_DECL: __format
+
+CursorKind.PARM_DECL: __arg
+
+CursorKind.FUNCTION_DECL: vprintf
+  CursorKind.PARM_DECL: __format
+  CursorKind.PARM_DECL: __arg
+
+CursorKind.PARM_DECL: __format
+
+CursorKind.PARM_DECL: __arg
+
+CursorKind.FUNCTION_DECL: vsprintf
+  CursorKind.UNEXPOSED_ATTR: 
+  CursorKind.PARM_DECL: __s
+  CursorKind.PARM_DECL: __format
+  CursorKind.PARM_DECL: __arg
+
+CursorKind.UNEXPOSED_ATTR: 
+
+CursorKind.PARM_DECL: __s
+
+CursorKind.PARM_DECL: __format
+
+CursorKind.PARM_DECL: __arg
+
+CursorKind.FUNCTION_DECL: snprintf
+  CursorKind.UNEXPOSED_ATTR: 
+  CursorKind.UNEXPOSED_ATTR: 
+  CursorKind.PARM_DECL: __s
+  CursorKind.PARM_DECL: __maxlen
+  CursorKind.PARM_DECL: __format
+
+CursorKind.UNEXPOSED_ATTR: 
+
+CursorKind.UNEXPOSED_ATTR: 
+
+CursorKind.PARM_DECL: __s
+
+CursorKind.PARM_DECL: __maxlen
+
+CursorKind.PARM_DECL: __format
+
+CursorKind.FUNCTION_DECL: vsnprintf
+  CursorKind.UNEXPOSED_ATTR: 
+  CursorKind.UNEXPOSED_ATTR: 
+  CursorKind.PARM_DECL: __s
+  CursorKind.PARM_DECL: __maxlen
+  CursorKind.PARM_DECL: __format
+  CursorKind.PARM_DECL: __arg
+
+CursorKind.UNEXPOSED_ATTR: 
+
+CursorKind.UNEXPOSED_ATTR: 
+
+CursorKind.PARM_DECL: __s
+
+CursorKind.PARM_DECL: __maxlen
+
+CursorKind.PARM_DECL: __format
+
+CursorKind.PARM_DECL: __arg
+
+CursorKind.FUNCTION_DECL: vdprintf
+  CursorKind.UNEXPOSED_ATTR: 
+  CursorKind.PARM_DECL: __fd
+  CursorKind.PARM_DECL: __fmt
+  CursorKind.PARM_DECL: __arg
+
+CursorKind.UNEXPOSED_ATTR: 
+
+CursorKind.PARM_DECL: __fd
+
+CursorKind.PARM_DECL: __fmt
+
+CursorKind.PARM_DECL: __arg
+
+CursorKind.FUNCTION_DECL: dprintf
+  CursorKind.UNEXPOSED_ATTR: 
+  CursorKind.PARM_DECL: __fd
+  CursorKind.PARM_DECL: __fmt
+
+CursorKind.UNEXPOSED_ATTR: 
+
+CursorKind.PARM_DECL: __fd
+
+CursorKind.PARM_DECL: __fmt
+
+CursorKind.FUNCTION_DECL: fscanf
+  CursorKind.UNEXPOSED_ATTR: 
+  CursorKind.PARM_DECL: __stream
+    CursorKind.TYPE_REF: FILE
+  CursorKind.PARM_DECL: __format
+
+CursorKind.UNEXPOSED_ATTR: 
+
+CursorKind.PARM_DECL: __stream
+  CursorKind.TYPE_REF: FILE
+
+CursorKind.TYPE_REF: FILE
+
+CursorKind.PARM_DECL: __format
+
+CursorKind.FUNCTION_DECL: scanf
+  CursorKind.UNEXPOSED_ATTR: 
+  CursorKind.PARM_DECL: __format
+
+CursorKind.UNEXPOSED_ATTR: 
+
+CursorKind.PARM_DECL: __format
+
+CursorKind.FUNCTION_DECL: sscanf
+  CursorKind.UNEXPOSED_ATTR: 
+  CursorKind.UNEXPOSED_ATTR: 
+  CursorKind.PARM_DECL: __s
+  CursorKind.PARM_DECL: __format
+
+CursorKind.UNEXPOSED_ATTR: 
+
+CursorKind.UNEXPOSED_ATTR: 
+
+CursorKind.PARM_DECL: __s
+
+CursorKind.PARM_DECL: __format
+
+CursorKind.FUNCTION_DECL: fscanf
+  CursorKind.UNEXPOSED_ATTR: 
+  CursorKind.ASM_LABEL_ATTR: __isoc99_fscanf
+  CursorKind.PARM_DECL: __stream
+    CursorKind.TYPE_REF: FILE
+  CursorKind.PARM_DECL: __format
+
+CursorKind.UNEXPOSED_ATTR: 
+
+CursorKind.ASM_LABEL_ATTR: __isoc99_fscanf
+
+CursorKind.PARM_DECL: __stream
+  CursorKind.TYPE_REF: FILE
+
+CursorKind.TYPE_REF: FILE
+
+CursorKind.PARM_DECL: __format
+
+CursorKind.FUNCTION_DECL: scanf
+  CursorKind.UNEXPOSED_ATTR: 
+  CursorKind.ASM_LABEL_ATTR: __isoc99_scanf
+  CursorKind.PARM_DECL: __format
+
+CursorKind.UNEXPOSED_ATTR: 
+
+CursorKind.ASM_LABEL_ATTR: __isoc99_scanf
+
+CursorKind.PARM_DECL: __format
+
+CursorKind.FUNCTION_DECL: sscanf
+  CursorKind.UNEXPOSED_ATTR: 
+  CursorKind.ASM_LABEL_ATTR: __isoc99_sscanf
+  CursorKind.UNEXPOSED_ATTR: 
+  CursorKind.PARM_DECL: __s
+  CursorKind.PARM_DECL: __format
+
+CursorKind.UNEXPOSED_ATTR: 
+
+CursorKind.ASM_LABEL_ATTR: __isoc99_sscanf
+
+CursorKind.UNEXPOSED_ATTR: 
+
+CursorKind.PARM_DECL: __s
+
+CursorKind.PARM_DECL: __format
+
+CursorKind.FUNCTION_DECL: vfscanf
+  CursorKind.UNEXPOSED_ATTR: 
+  CursorKind.PARM_DECL: __s
+    CursorKind.TYPE_REF: FILE
+  CursorKind.PARM_DECL: __format
+  CursorKind.PARM_DECL: __arg
+
+CursorKind.UNEXPOSED_ATTR: 
+
+CursorKind.PARM_DECL: __s
+  CursorKind.TYPE_REF: FILE
+
+CursorKind.TYPE_REF: FILE
+
+CursorKind.PARM_DECL: __format
+
+CursorKind.PARM_DECL: __arg
+
+CursorKind.FUNCTION_DECL: vscanf
+  CursorKind.UNEXPOSED_ATTR: 
+  CursorKind.PARM_DECL: __format
+  CursorKind.PARM_DECL: __arg
+
+CursorKind.UNEXPOSED_ATTR: 
+
+CursorKind.PARM_DECL: __format
+
+CursorKind.PARM_DECL: __arg
+
+CursorKind.FUNCTION_DECL: vsscanf
+  CursorKind.UNEXPOSED_ATTR: 
+  CursorKind.UNEXPOSED_ATTR: 
+  CursorKind.PARM_DECL: __s
+  CursorKind.PARM_DECL: __format
+  CursorKind.PARM_DECL: __arg
+
+CursorKind.UNEXPOSED_ATTR: 
+
+CursorKind.UNEXPOSED_ATTR: 
+
+CursorKind.PARM_DECL: __s
+
+CursorKind.PARM_DECL: __format
+
+CursorKind.PARM_DECL: __arg
+
+CursorKind.FUNCTION_DECL: vfscanf
+  CursorKind.ASM_LABEL_ATTR: __isoc99_vfscanf
+  CursorKind.UNEXPOSED_ATTR: 
+  CursorKind.PARM_DECL: __s
+    CursorKind.TYPE_REF: FILE
+  CursorKind.PARM_DECL: __format
+  CursorKind.PARM_DECL: __arg
+
+CursorKind.ASM_LABEL_ATTR: __isoc99_vfscanf
+
+CursorKind.UNEXPOSED_ATTR: 
+
+CursorKind.PARM_DECL: __s
+  CursorKind.TYPE_REF: FILE
+
+CursorKind.TYPE_REF: FILE
+
+CursorKind.PARM_DECL: __format
+
+CursorKind.PARM_DECL: __arg
+
+CursorKind.FUNCTION_DECL: vscanf
+  CursorKind.ASM_LABEL_ATTR: __isoc99_vscanf
+  CursorKind.UNEXPOSED_ATTR: 
+  CursorKind.PARM_DECL: __format
+  CursorKind.PARM_DECL: __arg
+
+CursorKind.ASM_LABEL_ATTR: __isoc99_vscanf
+
+CursorKind.UNEXPOSED_ATTR: 
+
+CursorKind.PARM_DECL: __format
+
+CursorKind.PARM_DECL: __arg
+
+CursorKind.FUNCTION_DECL: vsscanf
+  CursorKind.ASM_LABEL_ATTR: __isoc99_vsscanf
+  CursorKind.UNEXPOSED_ATTR: 
+  CursorKind.UNEXPOSED_ATTR: 
+  CursorKind.PARM_DECL: __s
+  CursorKind.PARM_DECL: __format
+  CursorKind.PARM_DECL: __arg
+
+CursorKind.ASM_LABEL_ATTR: __isoc99_vsscanf
+
+CursorKind.UNEXPOSED_ATTR: 
+
+CursorKind.UNEXPOSED_ATTR: 
+
+CursorKind.PARM_DECL: __s
+
+CursorKind.PARM_DECL: __format
+
+CursorKind.PARM_DECL: __arg
+
+CursorKind.FUNCTION_DECL: fgetc
+  CursorKind.PARM_DECL: __stream
+    CursorKind.TYPE_REF: FILE
+
+CursorKind.PARM_DECL: __stream
+  CursorKind.TYPE_REF: FILE
+
+CursorKind.TYPE_REF: FILE
+
+CursorKind.FUNCTION_DECL: getc
+  CursorKind.PARM_DECL: __stream
+    CursorKind.TYPE_REF: FILE
+
+CursorKind.PARM_DECL: __stream
+  CursorKind.TYPE_REF: FILE
+
+CursorKind.TYPE_REF: FILE
+
+CursorKind.FUNCTION_DECL: getchar
+
+CursorKind.FUNCTION_DECL: getc_unlocked
+  CursorKind.PARM_DECL: __stream
+    CursorKind.TYPE_REF: FILE
+
+CursorKind.PARM_DECL: __stream
+  CursorKind.TYPE_REF: FILE
+
+CursorKind.TYPE_REF: FILE
+
+CursorKind.FUNCTION_DECL: getchar_unlocked
+
+CursorKind.FUNCTION_DECL: fgetc_unlocked
+  CursorKind.PARM_DECL: __stream
+    CursorKind.TYPE_REF: FILE
+
+CursorKind.PARM_DECL: __stream
+  CursorKind.TYPE_REF: FILE
+
+CursorKind.TYPE_REF: FILE
+
+CursorKind.FUNCTION_DECL: fputc
+  CursorKind.PARM_DECL: __c
+  CursorKind.PARM_DECL: __stream
+    CursorKind.TYPE_REF: FILE
+
+CursorKind.PARM_DECL: __c
+
+CursorKind.PARM_DECL: __stream
+  CursorKind.TYPE_REF: FILE
+
+CursorKind.TYPE_REF: FILE
+
+CursorKind.FUNCTION_DECL: putc
+  CursorKind.PARM_DECL: __c
+  CursorKind.PARM_DECL: __stream
+    CursorKind.TYPE_REF: FILE
+
+CursorKind.PARM_DECL: __c
+
+CursorKind.PARM_DECL: __stream
+  CursorKind.TYPE_REF: FILE
+
+CursorKind.TYPE_REF: FILE
+
+CursorKind.FUNCTION_DECL: putchar
+  CursorKind.PARM_DECL: __c
+
+CursorKind.PARM_DECL: __c
+
+CursorKind.FUNCTION_DECL: fputc_unlocked
+  CursorKind.PARM_DECL: __c
+  CursorKind.PARM_DECL: __stream
+    CursorKind.TYPE_REF: FILE
+
+CursorKind.PARM_DECL: __c
+
+CursorKind.PARM_DECL: __stream
+  CursorKind.TYPE_REF: FILE
+
+CursorKind.TYPE_REF: FILE
+
+CursorKind.FUNCTION_DECL: putc_unlocked
+  CursorKind.PARM_DECL: __c
+  CursorKind.PARM_DECL: __stream
+    CursorKind.TYPE_REF: FILE
+
+CursorKind.PARM_DECL: __c
+
+CursorKind.PARM_DECL: __stream
+  CursorKind.TYPE_REF: FILE
+
+CursorKind.TYPE_REF: FILE
+
+CursorKind.FUNCTION_DECL: putchar_unlocked
+  CursorKind.PARM_DECL: __c
+
+CursorKind.PARM_DECL: __c
+
+CursorKind.FUNCTION_DECL: getw
+  CursorKind.PARM_DECL: __stream
+    CursorKind.TYPE_REF: FILE
+
+CursorKind.PARM_DECL: __stream
+  CursorKind.TYPE_REF: FILE
+
+CursorKind.TYPE_REF: FILE
+
+CursorKind.FUNCTION_DECL: putw
+  CursorKind.PARM_DECL: __w
+  CursorKind.PARM_DECL: __stream
+    CursorKind.TYPE_REF: FILE
+
+CursorKind.PARM_DECL: __w
+
+CursorKind.PARM_DECL: __stream
+  CursorKind.TYPE_REF: FILE
+
+CursorKind.TYPE_REF: FILE
+
+CursorKind.FUNCTION_DECL: fgets
+  CursorKind.PARM_DECL: __s
+  CursorKind.PARM_DECL: __n
+  CursorKind.PARM_DECL: __stream
+    CursorKind.TYPE_REF: FILE
+
+CursorKind.PARM_DECL: __s
+
+CursorKind.PARM_DECL: __n
+
+CursorKind.PARM_DECL: __stream
+  CursorKind.TYPE_REF: FILE
+
+CursorKind.TYPE_REF: FILE
+
+CursorKind.FUNCTION_DECL: __getdelim
+  CursorKind.TYPE_REF: __ssize_t
+  CursorKind.PARM_DECL: __lineptr
+  CursorKind.PARM_DECL: __n
+  CursorKind.PARM_DECL: __delimiter
+  CursorKind.PARM_DECL: __stream
+    CursorKind.TYPE_REF: FILE
+
+CursorKind.TYPE_REF: __ssize_t
+
+CursorKind.PARM_DECL: __lineptr
+
+CursorKind.PARM_DECL: __n
+
+CursorKind.PARM_DECL: __delimiter
+
+CursorKind.PARM_DECL: __stream
+  CursorKind.TYPE_REF: FILE
+
+CursorKind.TYPE_REF: FILE
+
+CursorKind.FUNCTION_DECL: getdelim
+  CursorKind.TYPE_REF: __ssize_t
+  CursorKind.PARM_DECL: __lineptr
+  CursorKind.PARM_DECL: __n
+  CursorKind.PARM_DECL: __delimiter
+  CursorKind.PARM_DECL: __stream
+    CursorKind.TYPE_REF: FILE
+
+CursorKind.TYPE_REF: __ssize_t
+
+CursorKind.PARM_DECL: __lineptr
+
+CursorKind.PARM_DECL: __n
+
+CursorKind.PARM_DECL: __delimiter
+
+CursorKind.PARM_DECL: __stream
+  CursorKind.TYPE_REF: FILE
+
+CursorKind.TYPE_REF: FILE
+
+CursorKind.FUNCTION_DECL: getline
+  CursorKind.TYPE_REF: __ssize_t
+  CursorKind.PARM_DECL: __lineptr
+  CursorKind.PARM_DECL: __n
+  CursorKind.PARM_DECL: __stream
+    CursorKind.TYPE_REF: FILE
+
+CursorKind.TYPE_REF: __ssize_t
+
+CursorKind.PARM_DECL: __lineptr
+
+CursorKind.PARM_DECL: __n
+
+CursorKind.PARM_DECL: __stream
+  CursorKind.TYPE_REF: FILE
+
+CursorKind.TYPE_REF: FILE
+
+CursorKind.FUNCTION_DECL: fputs
+  CursorKind.PARM_DECL: __s
+  CursorKind.PARM_DECL: __stream
+    CursorKind.TYPE_REF: FILE
+
+CursorKind.PARM_DECL: __s
+
+CursorKind.PARM_DECL: __stream
+  CursorKind.TYPE_REF: FILE
+
+CursorKind.TYPE_REF: FILE
+
+CursorKind.FUNCTION_DECL: puts
+  CursorKind.PARM_DECL: __s
+
+CursorKind.PARM_DECL: __s
+
+CursorKind.FUNCTION_DECL: ungetc
+  CursorKind.PARM_DECL: __c
+  CursorKind.PARM_DECL: __stream
+    CursorKind.TYPE_REF: FILE
+
+CursorKind.PARM_DECL: __c
+
+CursorKind.PARM_DECL: __stream
+  CursorKind.TYPE_REF: FILE
+
+CursorKind.TYPE_REF: FILE
+
+CursorKind.FUNCTION_DECL: fread
+  CursorKind.PARM_DECL: __ptr
+  CursorKind.PARM_DECL: __size
+  CursorKind.PARM_DECL: __n
+  CursorKind.PARM_DECL: __stream
+    CursorKind.TYPE_REF: FILE
+
+CursorKind.PARM_DECL: __ptr
+
+CursorKind.PARM_DECL: __size
+
+CursorKind.PARM_DECL: __n
+
+CursorKind.PARM_DECL: __stream
+  CursorKind.TYPE_REF: FILE
+
+CursorKind.TYPE_REF: FILE
+
+CursorKind.FUNCTION_DECL: fwrite
+  CursorKind.PARM_DECL: __ptr
+  CursorKind.PARM_DECL: __size
+  CursorKind.PARM_DECL: __n
+  CursorKind.PARM_DECL: __s
+    CursorKind.TYPE_REF: FILE
+
+CursorKind.PARM_DECL: __ptr
+
+CursorKind.PARM_DECL: __size
+
+CursorKind.PARM_DECL: __n
+
+CursorKind.PARM_DECL: __s
+  CursorKind.TYPE_REF: FILE
+
+CursorKind.TYPE_REF: FILE
+
+CursorKind.FUNCTION_DECL: fread_unlocked
+  CursorKind.PARM_DECL: __ptr
+  CursorKind.PARM_DECL: __size
+  CursorKind.PARM_DECL: __n
+  CursorKind.PARM_DECL: __stream
+    CursorKind.TYPE_REF: FILE
+
+CursorKind.PARM_DECL: __ptr
+
+CursorKind.PARM_DECL: __size
+
+CursorKind.PARM_DECL: __n
+
+CursorKind.PARM_DECL: __stream
+  CursorKind.TYPE_REF: FILE
+
+CursorKind.TYPE_REF: FILE
+
+CursorKind.FUNCTION_DECL: fwrite_unlocked
+  CursorKind.PARM_DECL: __ptr
+  CursorKind.PARM_DECL: __size
+  CursorKind.PARM_DECL: __n
+  CursorKind.PARM_DECL: __stream
+    CursorKind.TYPE_REF: FILE
+
+CursorKind.PARM_DECL: __ptr
+
+CursorKind.PARM_DECL: __size
+
+CursorKind.PARM_DECL: __n
+
+CursorKind.PARM_DECL: __stream
+  CursorKind.TYPE_REF: FILE
+
+CursorKind.TYPE_REF: FILE
+
+CursorKind.FUNCTION_DECL: fseek
+  CursorKind.PARM_DECL: __stream
+    CursorKind.TYPE_REF: FILE
+  CursorKind.PARM_DECL: __off
+  CursorKind.PARM_DECL: __whence
+
+CursorKind.PARM_DECL: __stream
+  CursorKind.TYPE_REF: FILE
+
+CursorKind.TYPE_REF: FILE
+
+CursorKind.PARM_DECL: __off
+
+CursorKind.PARM_DECL: __whence
+
+CursorKind.FUNCTION_DECL: ftell
+  CursorKind.PARM_DECL: __stream
+    CursorKind.TYPE_REF: FILE
+
+CursorKind.PARM_DECL: __stream
+  CursorKind.TYPE_REF: FILE
+
+CursorKind.TYPE_REF: FILE
+
+CursorKind.FUNCTION_DECL: rewind
+  CursorKind.PARM_DECL: __stream
+    CursorKind.TYPE_REF: FILE
+
+CursorKind.PARM_DECL: __stream
+  CursorKind.TYPE_REF: FILE
+
+CursorKind.TYPE_REF: FILE
+
+CursorKind.FUNCTION_DECL: fseeko
+  CursorKind.PARM_DECL: __stream
+    CursorKind.TYPE_REF: FILE
+  CursorKind.PARM_DECL: __off
+    CursorKind.TYPE_REF: __off_t
+  CursorKind.PARM_DECL: __whence
+
+CursorKind.PARM_DECL: __stream
+  CursorKind.TYPE_REF: FILE
+
+CursorKind.TYPE_REF: FILE
+
+CursorKind.PARM_DECL: __off
+  CursorKind.TYPE_REF: __off_t
+
+CursorKind.TYPE_REF: __off_t
+
+CursorKind.PARM_DECL: __whence
+
+CursorKind.FUNCTION_DECL: ftello
+  CursorKind.TYPE_REF: __off_t
+  CursorKind.PARM_DECL: __stream
+    CursorKind.TYPE_REF: FILE
+
+CursorKind.TYPE_REF: __off_t
+
+CursorKind.PARM_DECL: __stream
+  CursorKind.TYPE_REF: FILE
+
+CursorKind.TYPE_REF: FILE
+
+CursorKind.FUNCTION_DECL: fgetpos
+  CursorKind.PARM_DECL: __stream
+    CursorKind.TYPE_REF: FILE
+  CursorKind.PARM_DECL: __pos
+    CursorKind.TYPE_REF: fpos_t
+
+CursorKind.PARM_DECL: __stream
+  CursorKind.TYPE_REF: FILE
+
+CursorKind.TYPE_REF: FILE
+
+CursorKind.PARM_DECL: __pos
+  CursorKind.TYPE_REF: fpos_t
+
+CursorKind.TYPE_REF: fpos_t
+
+CursorKind.FUNCTION_DECL: fsetpos
+  CursorKind.PARM_DECL: __stream
+    CursorKind.TYPE_REF: FILE
+  CursorKind.PARM_DECL: __pos
+    CursorKind.TYPE_REF: fpos_t
+
+CursorKind.PARM_DECL: __stream
+  CursorKind.TYPE_REF: FILE
+
+CursorKind.TYPE_REF: FILE
+
+CursorKind.PARM_DECL: __pos
+  CursorKind.TYPE_REF: fpos_t
+
+CursorKind.TYPE_REF: fpos_t
+
+CursorKind.FUNCTION_DECL: clearerr
+  CursorKind.UNEXPOSED_ATTR: 
+  CursorKind.PARM_DECL: __stream
+    CursorKind.TYPE_REF: FILE
+
+CursorKind.UNEXPOSED_ATTR: 
+
+CursorKind.PARM_DECL: __stream
+  CursorKind.TYPE_REF: FILE
+
+CursorKind.TYPE_REF: FILE
+
+CursorKind.FUNCTION_DECL: feof
+  CursorKind.UNEXPOSED_ATTR: 
+  CursorKind.PARM_DECL: __stream
+    CursorKind.TYPE_REF: FILE
+
+CursorKind.UNEXPOSED_ATTR: 
+
+CursorKind.PARM_DECL: __stream
+  CursorKind.TYPE_REF: FILE
+
+CursorKind.TYPE_REF: FILE
+
+CursorKind.FUNCTION_DECL: ferror
+  CursorKind.UNEXPOSED_ATTR: 
+  CursorKind.PARM_DECL: __stream
+    CursorKind.TYPE_REF: FILE
+
+CursorKind.UNEXPOSED_ATTR: 
+
+CursorKind.PARM_DECL: __stream
+  CursorKind.TYPE_REF: FILE
+
+CursorKind.TYPE_REF: FILE
+
+CursorKind.FUNCTION_DECL: clearerr_unlocked
+  CursorKind.UNEXPOSED_ATTR: 
+  CursorKind.PARM_DECL: __stream
+    CursorKind.TYPE_REF: FILE
+
+CursorKind.UNEXPOSED_ATTR: 
+
+CursorKind.PARM_DECL: __stream
+  CursorKind.TYPE_REF: FILE
+
+CursorKind.TYPE_REF: FILE
+
+CursorKind.FUNCTION_DECL: feof_unlocked
+  CursorKind.UNEXPOSED_ATTR: 
+  CursorKind.PARM_DECL: __stream
+    CursorKind.TYPE_REF: FILE
+
+CursorKind.UNEXPOSED_ATTR: 
+
+CursorKind.PARM_DECL: __stream
+  CursorKind.TYPE_REF: FILE
+
+CursorKind.TYPE_REF: FILE
+
+CursorKind.FUNCTION_DECL: ferror_unlocked
+  CursorKind.UNEXPOSED_ATTR: 
+  CursorKind.PARM_DECL: __stream
+    CursorKind.TYPE_REF: FILE
+
+CursorKind.UNEXPOSED_ATTR: 
+
+CursorKind.PARM_DECL: __stream
+  CursorKind.TYPE_REF: FILE
+
+CursorKind.TYPE_REF: FILE
+
+CursorKind.FUNCTION_DECL: perror
+  CursorKind.PARM_DECL: __s
+
+CursorKind.PARM_DECL: __s
+
+CursorKind.VAR_DECL: sys_nerr
+
+CursorKind.VAR_DECL: sys_errlist
+
+CursorKind.FUNCTION_DECL: fileno
+  CursorKind.UNEXPOSED_ATTR: 
+  CursorKind.PARM_DECL: __stream
+    CursorKind.TYPE_REF: FILE
+
+CursorKind.UNEXPOSED_ATTR: 
+
+CursorKind.PARM_DECL: __stream
+  CursorKind.TYPE_REF: FILE
+
+CursorKind.TYPE_REF: FILE
+
+CursorKind.FUNCTION_DECL: fileno_unlocked
+  CursorKind.UNEXPOSED_ATTR: 
+  CursorKind.PARM_DECL: __stream
+    CursorKind.TYPE_REF: FILE
+
+CursorKind.UNEXPOSED_ATTR: 
+
+CursorKind.PARM_DECL: __stream
+  CursorKind.TYPE_REF: FILE
+
+CursorKind.TYPE_REF: FILE
+
+CursorKind.FUNCTION_DECL: popen
+  CursorKind.TYPE_REF: FILE
+  CursorKind.PARM_DECL: __command
+  CursorKind.PARM_DECL: __modes
+
+CursorKind.TYPE_REF: FILE
+
+CursorKind.PARM_DECL: __command
+
+CursorKind.PARM_DECL: __modes
+
+CursorKind.FUNCTION_DECL: pclose
+  CursorKind.PARM_DECL: __stream
+    CursorKind.TYPE_REF: FILE
+
+CursorKind.PARM_DECL: __stream
+  CursorKind.TYPE_REF: FILE
+
+CursorKind.TYPE_REF: FILE
+
+CursorKind.FUNCTION_DECL: ctermid
+  CursorKind.UNEXPOSED_ATTR: 
+  CursorKind.PARM_DECL: __s
+
+CursorKind.UNEXPOSED_ATTR: 
+
+CursorKind.PARM_DECL: __s
+
+CursorKind.FUNCTION_DECL: flockfile
+  CursorKind.UNEXPOSED_ATTR: 
+  CursorKind.PARM_DECL: __stream
+    CursorKind.TYPE_REF: FILE
+
+CursorKind.UNEXPOSED_ATTR: 
+
+CursorKind.PARM_DECL: __stream
+  CursorKind.TYPE_REF: FILE
+
+CursorKind.TYPE_REF: FILE
+
+CursorKind.FUNCTION_DECL: ftrylockfile
+  CursorKind.UNEXPOSED_ATTR: 
+  CursorKind.PARM_DECL: __stream
+    CursorKind.TYPE_REF: FILE
+
+CursorKind.UNEXPOSED_ATTR: 
+
+CursorKind.PARM_DECL: __stream
+  CursorKind.TYPE_REF: FILE
+
+CursorKind.TYPE_REF: FILE
+
+CursorKind.FUNCTION_DECL: funlockfile
+  CursorKind.UNEXPOSED_ATTR: 
+  CursorKind.PARM_DECL: __stream
+    CursorKind.TYPE_REF: FILE
+
+CursorKind.UNEXPOSED_ATTR: 
+
+CursorKind.PARM_DECL: __stream
+  CursorKind.TYPE_REF: FILE
+
+CursorKind.TYPE_REF: FILE
+
+CursorKind.FUNCTION_DECL: __uflow
+  CursorKind.PARM_DECL: 
+    CursorKind.TYPE_REF: FILE
+
+CursorKind.PARM_DECL: 
+  CursorKind.TYPE_REF: FILE
+
+CursorKind.TYPE_REF: FILE
+
+CursorKind.FUNCTION_DECL: __overflow
+  CursorKind.PARM_DECL: 
+    CursorKind.TYPE_REF: FILE
+  CursorKind.PARM_DECL: 
+
+CursorKind.PARM_DECL: 
+  CursorKind.TYPE_REF: FILE
+
+CursorKind.TYPE_REF: FILE
+
+CursorKind.PARM_DECL: 
+
+CursorKind.FUNCTION_DECL: main
+  CursorKind.COMPOUND_STMT: 
+    CursorKind.FOR_STMT: 
+      CursorKind.DECL_STMT: 
+        CursorKind.VAR_DECL: i
+          CursorKind.INTEGER_LITERAL: 
+      CursorKind.BINARY_OPERATOR: 
+        CursorKind.UNEXPOSED_EXPR: i
+          CursorKind.DECL_REF_EXPR: i
+        CursorKind.PAREN_EXPR: 
+          CursorKind.BINARY_OPERATOR: 
+            CursorKind.INTEGER_LITERAL: 
+            CursorKind.INTEGER_LITERAL: 
+      CursorKind.UNARY_OPERATOR: 
+        CursorKind.DECL_REF_EXPR: i
+      CursorKind.COMPOUND_STMT: 
+        CursorKind.DECL_STMT: 
+          CursorKind.VAR_DECL: a
+            CursorKind.PAREN_EXPR: 
+              CursorKind.BINARY_OPERATOR: 
+                CursorKind.INTEGER_LITERAL: 
+                CursorKind.INTEGER_LITERAL: 
+    CursorKind.CALL_EXPR: printf
+      CursorKind.UNEXPOSED_EXPR: printf
+        CursorKind.DECL_REF_EXPR: printf
+      CursorKind.UNEXPOSED_EXPR: 
+        CursorKind.UNEXPOSED_EXPR: 
+          CursorKind.STRING_LITERAL: "Hello, World1!\n"
+    CursorKind.CALL_EXPR: printf
+      CursorKind.UNEXPOSED_EXPR: printf
+        CursorKind.DECL_REF_EXPR: printf
+      CursorKind.UNEXPOSED_EXPR: 
+        CursorKind.UNEXPOSED_EXPR: 
+          CursorKind.STRING_LITERAL: "Hello, World2!\n"
+
+CursorKind.COMPOUND_STMT: 
+  CursorKind.FOR_STMT: 
+    CursorKind.DECL_STMT: 
+      CursorKind.VAR_DECL: i
+        CursorKind.INTEGER_LITERAL: 
+    CursorKind.BINARY_OPERATOR: 
+      CursorKind.UNEXPOSED_EXPR: i
+        CursorKind.DECL_REF_EXPR: i
+      CursorKind.PAREN_EXPR: 
+        CursorKind.BINARY_OPERATOR: 
+          CursorKind.INTEGER_LITERAL: 
+          CursorKind.INTEGER_LITERAL: 
+    CursorKind.UNARY_OPERATOR: 
+      CursorKind.DECL_REF_EXPR: i
+    CursorKind.COMPOUND_STMT: 
+      CursorKind.DECL_STMT: 
+        CursorKind.VAR_DECL: a
+          CursorKind.PAREN_EXPR: 
+            CursorKind.BINARY_OPERATOR: 
+              CursorKind.INTEGER_LITERAL: 
+              CursorKind.INTEGER_LITERAL: 
+  CursorKind.CALL_EXPR: printf
+    CursorKind.UNEXPOSED_EXPR: printf
+      CursorKind.DECL_REF_EXPR: printf
+    CursorKind.UNEXPOSED_EXPR: 
+      CursorKind.UNEXPOSED_EXPR: 
+        CursorKind.STRING_LITERAL: "Hello, World1!\n"
+  CursorKind.CALL_EXPR: printf
+    CursorKind.UNEXPOSED_EXPR: printf
+      CursorKind.DECL_REF_EXPR: printf
+    CursorKind.UNEXPOSED_EXPR: 
+      CursorKind.UNEXPOSED_EXPR: 
+        CursorKind.STRING_LITERAL: "Hello, World2!\n"
+
+CursorKind.FOR_STMT: 
+  CursorKind.DECL_STMT: 
+    CursorKind.VAR_DECL: i
+      CursorKind.INTEGER_LITERAL: 
+  CursorKind.BINARY_OPERATOR: 
+    CursorKind.UNEXPOSED_EXPR: i
+      CursorKind.DECL_REF_EXPR: i
+    CursorKind.PAREN_EXPR: 
+      CursorKind.BINARY_OPERATOR: 
+        CursorKind.INTEGER_LITERAL: 
+        CursorKind.INTEGER_LITERAL: 
+  CursorKind.UNARY_OPERATOR: 
+    CursorKind.DECL_REF_EXPR: i
+  CursorKind.COMPOUND_STMT: 
+    CursorKind.DECL_STMT: 
+      CursorKind.VAR_DECL: a
+        CursorKind.PAREN_EXPR: 
+          CursorKind.BINARY_OPERATOR: 
+            CursorKind.INTEGER_LITERAL: 
+            CursorKind.INTEGER_LITERAL: 
+
+CursorKind.DECL_STMT: 
+  CursorKind.VAR_DECL: i
+    CursorKind.INTEGER_LITERAL: 
+
+CursorKind.VAR_DECL: i
+  CursorKind.INTEGER_LITERAL: 
+
+CursorKind.INTEGER_LITERAL: 
+
+CursorKind.BINARY_OPERATOR: 
+  CursorKind.UNEXPOSED_EXPR: i
+    CursorKind.DECL_REF_EXPR: i
+  CursorKind.PAREN_EXPR: 
+    CursorKind.BINARY_OPERATOR: 
+      CursorKind.INTEGER_LITERAL: 
+      CursorKind.INTEGER_LITERAL: 
+
+CursorKind.UNEXPOSED_EXPR: i
+  CursorKind.DECL_REF_EXPR: i
+
+CursorKind.DECL_REF_EXPR: i
+
+CursorKind.PAREN_EXPR: 
+  CursorKind.BINARY_OPERATOR: 
+    CursorKind.INTEGER_LITERAL: 
+    CursorKind.INTEGER_LITERAL: 
+
+CursorKind.BINARY_OPERATOR: 
+  CursorKind.INTEGER_LITERAL: 
+  CursorKind.INTEGER_LITERAL: 
+
+CursorKind.INTEGER_LITERAL: 
+
+CursorKind.INTEGER_LITERAL: 
+
+CursorKind.UNARY_OPERATOR: 
+  CursorKind.DECL_REF_EXPR: i
+
+CursorKind.DECL_REF_EXPR: i
+
+CursorKind.COMPOUND_STMT: 
+  CursorKind.DECL_STMT: 
+    CursorKind.VAR_DECL: a
+      CursorKind.PAREN_EXPR: 
+        CursorKind.BINARY_OPERATOR: 
+          CursorKind.INTEGER_LITERAL: 
+          CursorKind.INTEGER_LITERAL: 
+
+CursorKind.DECL_STMT: 
+  CursorKind.VAR_DECL: a
+    CursorKind.PAREN_EXPR: 
+      CursorKind.BINARY_OPERATOR: 
+        CursorKind.INTEGER_LITERAL: 
+        CursorKind.INTEGER_LITERAL: 
+
+CursorKind.VAR_DECL: a
+  CursorKind.PAREN_EXPR: 
+    CursorKind.BINARY_OPERATOR: 
+      CursorKind.INTEGER_LITERAL: 
+      CursorKind.INTEGER_LITERAL: 
+
+CursorKind.PAREN_EXPR: 
+  CursorKind.BINARY_OPERATOR: 
+    CursorKind.INTEGER_LITERAL: 
+    CursorKind.INTEGER_LITERAL: 
+
+CursorKind.BINARY_OPERATOR: 
+  CursorKind.INTEGER_LITERAL: 
+  CursorKind.INTEGER_LITERAL: 
+
+CursorKind.INTEGER_LITERAL: 
+
+CursorKind.INTEGER_LITERAL: 
+
+CursorKind.CALL_EXPR: printf
+  CursorKind.UNEXPOSED_EXPR: printf
+    CursorKind.DECL_REF_EXPR: printf
+  CursorKind.UNEXPOSED_EXPR: 
+    CursorKind.UNEXPOSED_EXPR: 
+      CursorKind.STRING_LITERAL: "Hello, World1!\n"
+
+CursorKind.UNEXPOSED_EXPR: printf
+  CursorKind.DECL_REF_EXPR: printf
+
+CursorKind.DECL_REF_EXPR: printf
+
+CursorKind.UNEXPOSED_EXPR: 
+  CursorKind.UNEXPOSED_EXPR: 
+    CursorKind.STRING_LITERAL: "Hello, World1!\n"
+
+CursorKind.UNEXPOSED_EXPR: 
+  CursorKind.STRING_LITERAL: "Hello, World1!\n"
+
+CursorKind.STRING_LITERAL: "Hello, World1!\n"
+
+CursorKind.CALL_EXPR: printf
+  CursorKind.UNEXPOSED_EXPR: printf
+    CursorKind.DECL_REF_EXPR: printf
+  CursorKind.UNEXPOSED_EXPR: 
+    CursorKind.UNEXPOSED_EXPR: 
+      CursorKind.STRING_LITERAL: "Hello, World2!\n"
+
+CursorKind.UNEXPOSED_EXPR: printf
+  CursorKind.DECL_REF_EXPR: printf
+
+CursorKind.DECL_REF_EXPR: printf
+
+CursorKind.UNEXPOSED_EXPR: 
+  CursorKind.UNEXPOSED_EXPR: 
+    CursorKind.STRING_LITERAL: "Hello, World2!\n"
+
+CursorKind.UNEXPOSED_EXPR: 
+  CursorKind.STRING_LITERAL: "Hello, World2!\n"
+
+CursorKind.STRING_LITERAL: "Hello, World2!\n"
+
