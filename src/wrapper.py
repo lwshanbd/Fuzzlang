@@ -5,18 +5,18 @@
 import subprocess
 import sys
 import random
-import json
 import os
-from datetime import datetime
+from utils import log_to_json
+
 import clang.cindex
-import parentheses
+import code_modification.parentheses as parentheses
 from collections import defaultdict
 
 
 RECOGNIZED_SOURCE_FILE_EXTENSIONS = ['.c', '.cpp', '.cxx', '.cc', '.c++']
 Arg_With_Attached = ['-Xlinker', '-MF', '-MT', '-isystem', '-o', '-D']
 Arg_Not_Removed = ['-o', '-I']
-log_file_path = '/p/lustre2/shan4/Fuzzlang/log_llvm_removept.json'
+log_file_path = '/p/lustre2/shan4/Fuzzlang/log_llvm_removept1.json'
 fuzz_modes = ['none']
 remove_level = 1
 command = []
@@ -32,6 +32,7 @@ index = clang.cindex.Index.create()
 #  2 - remove: Randomly remove a subset of the arguments
 #  3 - replace: Randomly replace a subset of the arguments
 #  4 - insert: Randomly insert a subset of the arguments
+#  5 - remove_parentheses: Remove parentheses from the source code
 # Remove level:
 #  1 - low: Remove 1 of the arguments
 #  2 - medium: Remove 1 to 1/2 of the arguments
@@ -78,37 +79,6 @@ def parse_fuzz_mode():
         except ValueError:
             print(f"Invalid remove level: {remove_level}")
             print("Remove level must be an integer value between 1 and 3")
-
-
-def log_to_json(fuzz_mode, fuzzed_args, original_command, new_command_line, status, message):
-    log_entry = {
-        "timestamp": datetime.now().isoformat(),
-        "fuzz_mode": fuzz_mode,
-        "fuzzed_args": fuzzed_args,
-        "original_command": original_command,  # Convert list to string for logging
-        "fuzzed_command": new_command_line,
-        "status": status,
-        "message": message
-    }
-
-    with open(log_file_path, 'a') as log_file:
-        json.dump(log_entry, log_file)
-        log_file.write('\n')  # Add newline for readability
-
-
-def log_to_json(fuzz_mode, original_line, modified_line, node_kind, status, message):
-    log_entry = {
-        "timestamp": datetime.now().isoformat(),
-        "fuzz_mode": fuzz_mode,
-        "original_line": original_line,
-        "modified_line": modified_line,
-        "node_kind": str(node_kind),
-        "status": status,
-        "message": message
-    }
-    with open(log_file_path, 'a') as log_file:
-        json.dump(log_entry, log_file)
-        log_file.write('\n')  # Add newline for readability
 
 
 def recognize_source_file_extension(file_path):
@@ -162,14 +132,14 @@ def fuzz_remove(command_line):
         result = subprocess.run(
             command_to_run, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         log_to_json("remove", fuzzed_args, original_command,
-                    command_to_run, "SUCCESS", result.stdout.decode().strip())
+                    command_to_run, "SUCCESS", result.stdout.decode().strip(), log_file_path)
         subprocess.run(original_command, check=True,
                        stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     except subprocess.CalledProcessError as e:
         error_message = e.stderr.decode()
         # print(error_message.strip())
         log_to_json("remove", fuzzed_args, original_command,
-                    command_to_run, "ERROR", error_message)
+                    command_to_run, "ERROR", error_message, log_file_path)
         try:
             subprocess.run(original_command, check=True,
                            stdout=subprocess.PIPE, stderr=subprocess.PIPE)
@@ -205,13 +175,13 @@ def fuzz_reordering(command_line):
         # print(result.stdout.decode().strip())
         print("Wrapper is 1running")
         log_to_json("reorder", None, original_command, command_to_run,
-                    "SUCCESS", result.stdout.decode().strip())
+                    "SUCCESS", result.stdout.decode().strip(), log_file_path)
     except subprocess.CalledProcessError as e:
         error_message = e.stderr.decode()
         # print(error_message.strip())
         print("Wrapper is 1111re-running")
         log_to_json("reorder", None, original_command,
-                    command_to_run, "ERROR", error_message)
+                    command_to_run, "ERROR", error_message, log_file_path)
         try:
             # print(command)
             subprocess.run(original_command, check=True,
@@ -223,107 +193,11 @@ def fuzz_reordering(command_line):
             print(e1.stderr.decode().strip())
 
 
-# original_line, modified_line, error, node_kind = remove_parentheses(source_files, original_command, command_line)
-
-def remove_parentheses(filename, original_command, command_line):
-    index = clang.cindex.Index.create()
-    tu = index.parse(filename)
-
-    with open(filename, 'r') as file:
-        content = file.read()
-
-    processed_offsets = set()
-
-    for node in tu.cursor.walk_preorder():
-        # print(parentheses.get_ast_string(node))
-        # in [clang.cindex.CursorKind.FOR_STMT, clang.cindex.CursorKind.WHILE_STMT, clang.cindex.CursorKind.IF_STMT]:
-        if node.kind:
-            start = node.extent.start.offset
-            end = node.extent.end.offset
-            node_content = content[start:end]
-
-            # Find all parentheses pairs
-            paren_pairs = []
-            stack = []
-            for i, char in enumerate(node_content):
-                if char == '(':
-                    stack.append(i)
-                elif char == ')':
-                    if stack:
-                        paren_start = stack.pop()
-                        paren_pairs.append((paren_start, i))
-
-            # Sort parentheses pairs by their starting position
-            paren_pairs.sort(key=lambda x: x[0])
-            for open_paren, close_paren in paren_pairs:
-                # print(f"Open Parenthesis: {open_paren}, Close Parenthesis: {close_paren}")
-                # Skip if this pair has already been processed
-                if (start + open_paren) in processed_offsets or (start + close_paren) in processed_offsets:
-                    continue
-                if parentheses.find_node_at_offset(node, start + open_paren).kind == clang.cindex.CursorKind.FOR_STMT:
-                    continue
-                original_line = parentheses.get_line_at_offset(
-                    content, start + open_paren)
-                print(f"Original line: {original_line.strip()}")
-
-                # Find the specific AST node for the opening parenthesis
-                print(start + open_paren)
-                open_paren_node = parentheses.find_node_at_offset(
-                    node, start + open_paren)
-                node_kind = open_paren_node.kind
-
-                print(f"Parenthesis node kind: {open_paren_node.kind}")
-
-                modified_content = content[:start + open_paren] + content[start +
-                                                                          open_paren + 1:start + close_paren] + content[start + close_paren + 1:]
-                modified_line = parentheses.get_line_at_offset(
-                    modified_content, start + open_paren)
-                print(f"Modified line: {modified_line.strip()}")
-                print()
-                modified_filename = os.path.splitext(
-                    filename)[0] + '_modified' + os.path.splitext(filename)[1]
-                with open(modified_filename, 'w') as file:
-                    file.write(modified_content)
-
-                command_to_run = original_command.copy()
-                for idx, element in enumerate(command_to_run):
-                    if element == filename:
-                        command_to_run[idx] = modified_filename
-                        break
-
-                try:
-                    result = subprocess.run(
-                        command_to_run, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-                    log_to_json('remove_parentheses', original_line, modified_line,
-                                node_kind, "SUCCESS", result.stdout.decode().strip())
-                    subprocess.run(original_command, check=True,
-                                   stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-                except subprocess.CalledProcessError as e:
-                    error_message = e.stderr.decode()
-                    log_to_json('remove_parentheses', original_line,
-                                modified_line, node_kind, "ERROR", error_message)
-                    try:
-                        subprocess.run(
-                            original_command, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-                    except subprocess.CalledProcessError as e1:
-                        print('Wrong Command!')
-                        print(original_command)
-                        print(e1.stderr.decode().strip())
-
-                # Mark these parentheses as processed
-                processed_offsets.add(start + open_paren)
-                processed_offsets.add(start + close_paren)
-
-    # print(f"Error: No suitable parentheses pairs found.")
-    return None, None
-
-
 def fuzz_remove_parentheses(command_line):
-
     source_files = command_line['source_file']
     for source_file in source_files:
-        # print("11111")
-        remove_parentheses(source_file, original_command, command_line)
+        parentheses.remove_parentheses(
+            source_file, original_command, command_line, log_file_path)
 
 
 def parse_clang_command(command_line):
