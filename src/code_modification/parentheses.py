@@ -3,7 +3,7 @@ import random
 import subprocess
 import os
 
-from utils import log_to_json
+from utils import log_to_json, get_line_at_offset
 
 def get_ast_string(node, depth=0):
     result = '  ' * depth + f"{node.kind}: {node.spelling}\n"
@@ -93,10 +93,10 @@ def remove_parentheses(filename, original_command, command_line, log_file_path):
                     continue
                 if find_node_at_offset(node, start + open_paren).kind == clang.cindex.CursorKind.FOR_STMT:
                     continue
-                if random.random() > 0.1:
-                    processed_offsets.add(start + open_paren)
-                    processed_offsets.add(start + close_paren)
-                    continue
+                # if random.random() > 0.1:
+                #     processed_offsets.add(start + open_paren)
+                #     processed_offsets.add(start + close_paren)
+                #     continue
                 original_line = get_line_at_offset(
                     content, start + open_paren)
                 # if start + open_paren not in [118,150,182]:

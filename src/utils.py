@@ -1,6 +1,21 @@
 import json
 from datetime import datetime
 
+def get_line_at_offset(content, offset):
+    start = content.rfind('\n', 0, offset) + 1
+    end = content.find('\n', offset)
+    if end == -1:
+        end = len(content)
+    
+    # Check for line continuation
+    while content[end-1] == '\\':
+        next_end = content.find('\n', end + 1)
+        if next_end == -1:
+            end = len(content)
+            break
+        end = next_end
+    
+    return content[start:end]
 
 def log_to_json(fuzz_mode, fuzzed_args, original_command, new_command_line, status, message, log_file_path):
     log_entry = {
