@@ -10,13 +10,16 @@ from utils import log_to_json
 
 import clang.cindex
 import code_modification.parentheses as parentheses
+import code_modification.symbol as symbol
+import code_modification.asterisk as asterisk
 from collections import defaultdict
 
 
 RECOGNIZED_SOURCE_FILE_EXTENSIONS = ['.c', '.cpp', '.cxx', '.cc', '.c++']
 Arg_With_Attached = ['-Xlinker', '-MF', '-MT', '-isystem', '-o', '-D']
+mode_list = ['reorder', 'remove', 'replace', 'insert', 'remove_parentheses', 'replace_colon_with_semicolon', 'add_asterisk_to_variables']
 Arg_Not_Removed = ['-o', '-I']
-log_file_path = '/p/lustre2/shan4/Fuzzlang/log_llvm_removept1.json'
+log_file_path = '/p/lustre2/shan4/Fuzzlang/log_llvm_removept2.json'
 fuzz_modes = ['none']
 remove_level = 1
 command = []
@@ -27,22 +30,28 @@ if not clang.cindex.Config.library_file:
 index = clang.cindex.Index.create()
 
 # Fuzz the command line arguments based on the FUZZ_MODE environment
-# Fuzz mode:
+# Fuzz mode for args:
 #  1 - reorder: Randomly reorder the arguments
 #  2 - remove: Randomly remove a subset of the arguments
 #  3 - replace: Randomly replace a subset of the arguments
 #  4 - insert: Randomly insert a subset of the arguments
-#  5 - remove_parentheses: Remove parentheses from the source code
 # Remove level:
 #  1 - low: Remove 1 of the arguments
 #  2 - medium: Remove 1 to 1/2 of the arguments
 #  3 - high: Remove 1/2 to all of the arguments
 
+# Fuzz mode for source code:
+#  1 - remove_parentheses: Remove parentheses from the source code
+#  2 - replace_colon_with_semicolon: Replace colon with semicolon in the source code
+#  3 - add_asterisk_to_variables: Add asterisk to variables in the source code
 
 def parse_fuzz_mode():
     global remove_level, fuzz_modes
     # Get the FUZZ_MODE environment variable
     fuzz_mode = os.getenv('FUZZ_MODE', '')
+    if fuzz_mode == '' or fuzz_mode == 'none':
+        fuzz_modes = ['none']
+        return
     remove_level = os.getenv('REMOVE_LEVEL', '')
     # Print the original FUZZ_MODE value
     # print(f"Original FUZZ_MODE: {fuzz_mode}")
@@ -59,18 +68,8 @@ def parse_fuzz_mode():
     if modes:
         fuzz_modes.clear()
     for mode in modes:
-        if mode == 'reorder':
-            fuzz_modes.append('reorder')
-        elif mode == 'remove':
-            fuzz_modes.append('remove')
-        elif mode == 'replace':
-            fuzz_modes.append('replace')
-        elif mode == 'insert':
-            fuzz_modes.append('insert')
-        elif mode == 'remove_parentheses':
-            fuzz_modes.append('remove_parentheses')
-        elif mode == 'none':
-            fuzz_modes.append('none')
+        if mode in mode_list:
+            fuzz_modes.append(mode)
         else:
             print(f"Invalid fuzz mode: {mode}")
     if remove_level:
@@ -178,8 +177,6 @@ def fuzz_reordering(command_line):
                     "SUCCESS", result.stdout.decode().strip(), log_file_path)
     except subprocess.CalledProcessError as e:
         error_message = e.stderr.decode()
-        # print(error_message.strip())
-        print("Wrapper is 1111re-running")
         log_to_json("reorder", None, original_command,
                     command_to_run, "ERROR", error_message, log_file_path)
         try:
@@ -187,7 +184,6 @@ def fuzz_reordering(command_line):
             subprocess.run(original_command, check=True,
                            stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         except subprocess.CalledProcessError as e1:
-            print("Wrapper is 2222re-running")
             print('Wrong Command!')
             print(command_to_run)
             print(e1.stderr.decode().strip())
@@ -199,6 +195,17 @@ def fuzz_remove_parentheses(command_line):
         parentheses.remove_parentheses(
             source_file, original_command, command_line, log_file_path)
 
+def fuzz_replace_colon_with_semicolon(command_line):
+    source_files = command_line['source_file']
+    for source_file in source_files:
+        symbol.replace_colon_with_semicolon(
+            source_file, original_command, command_line, log_file_path)
+        
+def fuzz_add_asterisk_to_variables(command_line):
+    source_files = command_line['source_file']
+    for source_file in source_files:
+        asterisk.add_asterisk_to_variables(
+            source_file, original_command, command_line, log_file_path)
 
 def parse_clang_command(command_line):
     args = command_line
@@ -260,3 +267,7 @@ if __name__ == "__main__":
         fuzz_remove(parsed_command)
     elif mode == 'remove_parentheses':
         fuzz_remove_parentheses(parsed_command)
+    elif mode == 'replace_colon_with_semicolon':
+        fuzz_replace_colon_with_semicolon(parsed_command)
+    elif mode == 'add_asterisk_to_variables':
+        fuzz_add_asterisk_to_variables(parsed_command)
