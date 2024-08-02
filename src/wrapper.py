@@ -19,7 +19,7 @@ RECOGNIZED_SOURCE_FILE_EXTENSIONS = ['.c', '.cpp', '.cxx', '.cc', '.c++']
 Arg_With_Attached = ['-Xlinker', '-MF', '-MT', '-isystem', '-o', '-D']
 mode_list = ['reorder', 'remove', 'replace', 'insert', 'remove_parentheses', 'replace_colon_with_semicolon', 'add_asterisk_to_variables']
 Arg_Not_Removed = ['-o', '-I']
-log_file_path = '/p/lustre2/shan4/Fuzzlang/log_llvm_removept2.json'
+log_file_path = '/p/lustre2/shan4/Fuzzlang/log_llvm_removept4.json'
 fuzz_modes = ['none']
 remove_level = 1
 command = []
@@ -259,6 +259,7 @@ if __name__ == "__main__":
     if fuzz_modes[0] == 'none' or not fuzz_modes:
         subprocess.run(original_command, check=True,
                        stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        sys.exit(0)
     parsed_command = parse_clang_command(command)
     mode = random.choice(fuzz_modes)
     if mode == 'reorder':

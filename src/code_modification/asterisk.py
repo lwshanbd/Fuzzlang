@@ -40,12 +40,9 @@ def add_asterisk_to_variables(filename, original_command, command_line, log_file
             end = node.extent.end.offset
             
             referenced = node.referenced
-            # print(f"Referenced: {referenced.spelling}")
-            # print(f"Referenced: {referenced.kind}")
             # For declarations, find the position of the variable name
             if node.kind in [clang.cindex.CursorKind.VAR_DECL, clang.cindex.CursorKind.PARM_DECL, clang.cindex.CursorKind.FIELD_DECL]:
-                identifier_token = find_identifier_token(
-                    node)
+                identifier_token = find_identifier_token(node)
                 if identifier_token is not None:
                     print(f"Identifier token: {identifier_token.spelling}")
                     start = identifier_token.extent.start.offset
@@ -53,15 +50,14 @@ def add_asterisk_to_variables(filename, original_command, command_line, log_file
                     if child.kind == clang.cindex.CursorKind.TYPE_REF:
                         start = child.extent.end.offset
                         break
-
+            if start in processed_offsets:
+                continue            
             # Skip if this position has already been processed
             if referenced is not None:
                 if referenced.kind == clang.cindex.CursorKind.OVERLOADED_DECL_REF:
                     continue
                 print(f"Referenced: {referenced.spelling}")
                 print(f"Referenced: {referenced.kind}")
-            if start in processed_offsets:
-                continue
             
 
             original_line = get_line_at_offset(content, start)

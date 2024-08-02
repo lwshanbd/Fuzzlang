@@ -17,6 +17,22 @@ def get_line_at_offset(content, offset):
     
     return content[start:end]
 
+def get_ast_string(node, depth=0):
+    result = '  ' * depth + f"{node.kind}: {node.spelling}\n"
+    for child in node.get_children():
+        result += get_ast_string(child, depth + 1)
+    return result
+
+
+def find_node_at_offset(node, target_offset):
+    if node.extent.start.offset <= target_offset < node.extent.end.offset:
+        for child in node.get_children():
+            result = find_node_at_offset(child, target_offset)
+            if result:
+                return result
+        return node
+    return None
+
 def log_to_json(fuzz_mode, fuzzed_args, original_command, new_command_line, status, message, log_file_path):
     log_entry = {
         "timestamp": datetime.now().isoformat(),

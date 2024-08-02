@@ -8,8 +8,6 @@ import json
 from utils import log_to_json, get_line_at_offset
 
 
-import clang.cindex
-
 
 from typing import List, Dict, Any
 
@@ -155,7 +153,7 @@ def replace_symbol(filename, original_command, command_line, log_file_path, orig
         modified_line = modified_content.splitlines(
         )[modified_content[:position].count('\n')]
 
-        modified_filename = f"{filename}_modified.c"
+        modified_filename = f"modified_{filename}"
         with open(modified_filename, 'w') as file:
             file.write(modified_content)
 
