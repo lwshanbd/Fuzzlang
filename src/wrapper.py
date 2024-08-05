@@ -12,14 +12,16 @@ import clang.cindex
 import code_modification.parentheses as parentheses
 import code_modification.symbol as symbol
 import code_modification.asterisk as asterisk
+import code_modification.replace as symbol_replace
+import code_modification.remove_single as remove_single
 from collections import defaultdict
 
 
 RECOGNIZED_SOURCE_FILE_EXTENSIONS = ['.c', '.cpp', '.cxx', '.cc', '.c++']
 Arg_With_Attached = ['-Xlinker', '-MF', '-MT', '-isystem', '-o', '-D']
-mode_list = ['reorder', 'remove', 'replace', 'insert', 'remove_parentheses', 'replace_colon_with_semicolon', 'add_asterisk_to_variables']
+mode_list = ['reorder', 'remove', 'replace', 'insert', 'replace_all', 'remove_single', 'remove_parentheses', 'replace_colon_with_semicolon', 'add_asterisk_to_variables']
 Arg_Not_Removed = ['-o', '-I']
-log_file_path = '/p/lustre2/shan4/Fuzzlang/log_llvm_removept4.json'
+log_file_path = '/p/lustre2/shan4/Fuzzlang/log_llvm_removept5.json'
 fuzz_modes = ['none']
 remove_level = 1
 command = []
@@ -206,7 +208,17 @@ def fuzz_add_asterisk_to_variables(command_line):
     for source_file in source_files:
         asterisk.add_asterisk_to_variables(
             source_file, original_command, command_line, log_file_path)
-
+        
+def fuzz_replace(command_line):
+    source_files = command_line['source_file']
+    for source_file in source_files:
+        symbol_replace.all_running(source_file, original_command, log_file_path)
+        
+def fuzz_remove_single(command_line):
+    source_files = command_line['source_file']
+    for source_file in source_files:
+        remove_single.all_running(source_file, original_command, log_file_path)
+        
 def parse_clang_command(command_line):
     args = command_line
     # Initialize components
@@ -272,3 +284,7 @@ if __name__ == "__main__":
         fuzz_replace_colon_with_semicolon(parsed_command)
     elif mode == 'add_asterisk_to_variables':
         fuzz_add_asterisk_to_variables(parsed_command)
+    elif mode == 'replace_all':
+        fuzz_replace(parsed_command)
+    elif mode == 'remove_single':
+        fuzz_remove_single(parsed_command)
