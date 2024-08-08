@@ -1,0 +1,7 @@
+'noreturn' attribute only applies to functions
+'noreturn' attribute only applies to functions
+'noreturn' attribute only applies to functions
+'preferred_type' attribute only applies to bit-field data members
+'preferred_type' attribute only applies to bit-field data members
+declaration requires a global constructor [-Werror,-Wglobal-constructors]
+unrecognized command-line flag: %s\n", argv[0],

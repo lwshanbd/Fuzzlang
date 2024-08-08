@@ -6,13 +6,7 @@ import subprocess
 import difflib
 import json
 from utils import log_to_json, get_line_at_offset
-
-import clang.cindex
-import random
-import subprocess
-import os
-
-from utils import log_to_json, get_line_at_offset
+import tempfile
 
 
 def get_ast_string(node, depth=0):
@@ -95,51 +89,53 @@ def remove_paired_symbol(filename, symbol, original_command, log_file_path, remo
             elif char == paired_symbol:
                 if stack:
                     paren_start = stack.pop()
-                    symbol_pairs.append((paren_start, i))
+                    symbol_pairs.append(((paren_start, i),node))
 
         # Sort parentheses pairs by their starting position
-        symbol_pairs.sort(key=lambda x: x[0])
+    symbol_pairs.sort(key=lambda x: x[0][0])
 
-        if remove_mode != 'all':
-            remove_number = int(remove_mode)
-            if remove_number > len(symbol_pairs):
-                remove_number = len(symbol_pairs)
-            symbol_pairs = random.sample(symbol_pairs, remove_number)
+    if remove_mode != 'all':
+        remove_number = int(remove_mode)
+        if remove_number > len(symbol_pairs):
+            remove_number = len(symbol_pairs)
+        symbol_pairs = random.sample(symbol_pairs, remove_number)
 
-        for left_symbol, right_symbol in symbol_pairs:
-            
-            # Skip if this pair has already been processed
-            if (start + left_symbol) in processed_offsets or (start + right_symbol) in processed_offsets:
-                continue
-            
-            original_line = get_line_at_offset(
-                content, start + left_symbol)
-            print(f"Original line: {original_line.strip()}")
+    for symbol_pair, node in symbol_pairs:
+        left_symbol, right_symbol = symbol_pair
+        start = node.extent.start.offset
+        end = node.extent.end.offset
+        node_content = content[start:end]
+        # Skip if this pair has already been processed
+        if (start + left_symbol) in processed_offsets or (start + right_symbol) in processed_offsets:
+            continue
+        
+        original_line = get_line_at_offset(
+            content, start + left_symbol)
+        print(f"Original line: {original_line.strip()}")
 
-            # Find the specific AST node for the opening parenthesis
-            print(start + left_symbol)
+        # Find the specific AST node for the opening parenthesis
+        print(start + left_symbol)
 
-            left_symbol_node = find_node_at_offset(
-                node, start + left_symbol)
-            node_kind = left_symbol_node.kind
+        left_symbol_node = find_node_at_offset(
+            node, start + left_symbol)
+        node_kind = left_symbol_node.kind
 
-            print(f"Node kind: {left_symbol_node.kind}")
+        print(f"Node kind: {left_symbol_node.kind}")
 
-            modified_content = content[:start + left_symbol] + content[start +
-                                                                       left_symbol + 1:start + right_symbol] + content[start + right_symbol + 1:]
-            modified_line = get_line_at_offset(
-                modified_content, start + left_symbol)
-            print(f"Modified line: {modified_line.strip()}\n")
-
-            modified_filename = os.path.splitext(
-                filename)[0] + '_modified' + os.path.splitext(filename)[1]
-            with open(modified_filename, 'w') as file:
-                file.write(modified_content)
+        modified_content = content[:start + left_symbol] + content[start +
+                                                                    left_symbol + 1:start + right_symbol] + content[start + right_symbol + 1:]
+        modified_line = get_line_at_offset(
+            modified_content, start + left_symbol)
+        print(f"Modified line: {modified_line.strip()}\n")
+        with tempfile.NamedTemporaryFile(mode='w+', suffix='.cpp') as temp_file:
+            # Write the modified content to the temporary file
+            temp_file.write(modified_content)
+            temp_file.flush()
 
             command_to_run = original_command.copy()
             for idx, element in enumerate(command_to_run):
                 if element == filename:
-                    command_to_run[idx] = modified_filename
+                    command_to_run[idx] = temp_file.name
                     break
 
             try:
@@ -155,12 +151,6 @@ def remove_paired_symbol(filename, symbol, original_command, log_file_path, remo
             # Mark these symbol pairs as processed
             processed_offsets.add(start + left_symbol)
             processed_offsets.add(start + right_symbol)
-    try:
-        subprocess.run(original_command, check=True,
-                       stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    except subprocess.CalledProcessError as e1:
-        print('Wrong Command!')
-        print(original_command)
-        print(e1.stderr.decode().strip())
+
 
     return None, None

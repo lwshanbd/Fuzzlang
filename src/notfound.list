@@ -1,1 +1,17 @@
-Activation of OMPT is not supported on this platform.
+declaration requires a global destructor [-Werror,-Wglobal-constructors]
+declaration requires a global constructor [-Werror,-Wglobal-constructors]
+declaration requires a global destructor [-Werror,-Wglobal-constructors]
+constructor for 'BinaryStreamError' creates a delegation cycle [-Wdelegating-ctor-cycles]
+declaration requires a global constructor [-Werror,-Wglobal-constructors]
+declaration requires a global destructor [-Werror,-Wglobal-constructors]
+declaration requires a global destructor [-Werror,-Wglobal-constructors]
+"Missing macro definition of HANDLE_DW*"
+"WASM_RELOC must be defined"
+binding reference of type 'set<...>' to value of type 'const set<...>' drops 'const' qualifier
+"Missing macro definition of HANDLE_DW*"
+Define the OPTION macro to handle floating point language options
+binding reference of type 'WasmRelocation' to value of type 'const wasm::WasmRelocation' drops 'const' qualifier
+");
+");
+");
+");

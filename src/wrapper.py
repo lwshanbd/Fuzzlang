@@ -21,7 +21,7 @@ RECOGNIZED_SOURCE_FILE_EXTENSIONS = ['.c', '.cpp', '.cxx', '.cc', '.c++']
 Arg_With_Attached = ['-Xlinker', '-MF', '-MT', '-isystem', '-o', '-D']
 mode_list = ['reorder', 'remove', 'replace', 'insert', 'replace_all', 'remove_single', 'remove_parentheses', 'replace_colon_with_semicolon', 'add_asterisk_to_variables']
 Arg_Not_Removed = ['-o', '-I']
-log_file_path = '/p/lustre2/shan4/Fuzzlang/log_llvm_removept5.json'
+log_file_path = '/p/lustre2/shan4/Fuzzlang/log_llvm_remove.json'
 fuzz_modes = ['none']
 remove_level = 1
 command = []
@@ -288,3 +288,10 @@ if __name__ == "__main__":
         fuzz_replace(parsed_command)
     elif mode == 'remove_single':
         fuzz_remove_single(parsed_command)
+    try:
+        subprocess.run(original_command, check=True,
+                       stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    except subprocess.CalledProcessError as e1:
+        print('Wrong Command!')
+        print(original_command)
+        print(e1.stderr.decode().strip())
