@@ -2,6 +2,7 @@ import multiprocessing
 import json
 import re
 import glob
+import os
 
 
 errs = []
@@ -291,28 +292,54 @@ def extract_errors(text):
 
     return errors
 
-
-def main():
-    all_errors = {}
-    file_name = "../log_llvm_removept4.json"
+def process_json(file_name):
+    errs = []
     with open(file_name, 'r') as file:
         for line in file:
             data = json.loads(line)
             errs.append(data)
+    return errs
 
+def main():
+    all_errors = {}
     for td_file in glob.glob('../tdfile/*.td'):
         all_errors.update(extract_errors_from_td(td_file))
+        
     errors = []
-    for i in errs:
+    
+    err_messages = []
+    
+    # def get_json_files(folder_path):
+    #     return [os.path.join(folder_path, file) for file in os.listdir(folder_path) if file.endswith('.json')]
+    # jsonfiles = get_json_files('../.json')
+    # for file_name in jsonfiles:
+    #     print(file_name)
+    #     err_messages.extend(process_json(file_name))
+    file_name = "..//error_cpacks.json"
+    err_messages.extend(process_json(file_name))
+    # file_name = "../.json/error_log_llvm1.json"
+    # err_messages.extend(process_json(file_name))
+    # file_name = "../.json/error_log_llvm6.json"
+    # err_messages.extend(process_json(file_name))
+    # file_name = "../.json/error_log_llvm5.json"
+    # err_messages.extend(process_json(file_name))
+    for i in err_messages:
         str_tmp = i['message']
         str_tmp = remove_ansi_escape_sequences(str_tmp)
         errors.extend(extract_errors(str_tmp))
     results, notfound = match_error_messages_parallel(all_errors, errors)
-    with open('notfound.list', 'w') as file:
+    
+    
+    
+    with open('notfound4.list', 'w') as file:
         for element in notfound:
             file.write(f"{element}\n")
     print(len(results))
-    print(results)
+    #print(results)
+    filename = 'cpacks_errortype.json'
+
+    with open(filename, 'w') as json_file:
+        json.dump(results, json_file, indent=4)
 
 
 if __name__ == "__main__":

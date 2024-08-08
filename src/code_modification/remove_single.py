@@ -27,7 +27,7 @@ fuzz_modes = {
         '|': 'remove_pipe',
         '~': 'remove_tilde',
         '?': 'remove_question',
-        '#': 'remove_hash'
+        #'#': 'remove_hash'
 }
 
 def create_modified_file(filename, content):
@@ -59,37 +59,16 @@ def remove_single_symbol(filename, symbol, original_command, log_file_path, remo
     
     symbols = []
 
-    symbol_positions = [i for i, char in enumerate(content) if char == symbol]
-    
-    # Step 2: Find the corresponding nodes for each symbol position
-    for position in symbol_positions:
-        for node in tu.cursor.walk_preorder():
-            if str(node.location.file) != filename:
-                continue
-            start = node.extent.start.offset
-            end = node.extent.end.offset
-            if start <= position < end:
-                # Check if the symbol is within a comment token
-                is_comment = False
-                for token in tu.get_tokens(extent=node.extent):
-                    if token.kind == clang.cindex.TokenKind.COMMENT:
-                        if token.extent.start.offset <= position < token.extent.end.offset:
-                            is_comment = True
-                            break
-                if not is_comment:
-                    symbols.append((position - start, node))
-                break
-            
-    # for node in tu.cursor.walk_preorder():
-    #     start = node.extent.start.offset
-    #     end = node.extent.end.offset
-    #     node_content = content[start:end]
+    for node in tu.cursor.walk_preorder():
+        start = node.extent.start.offset
+        end = node.extent.end.offset
+        node_content = content[start:end]
 
-    #     # Find all symbols
+        # Find all symbols
         
-    #     for i, char in enumerate(node_content):
-    #         if char == symbol:
-    #             symbols.append((i, node))
+        for i, char in enumerate(node_content):
+            if char == symbol:
+                symbols.append((i, node))
 
     # Sort parentheses pairs by their starting position
     symbols.sort(key=lambda x: x[0])
@@ -153,12 +132,5 @@ def remove_single_symbol(filename, symbol, original_command, log_file_path, remo
 
         # Mark this symbol as processed
         processed_offsets.add(start + symbol)
-    try:
-        subprocess.run(original_command, check=True,
-                       stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    except subprocess.CalledProcessError as e1:
-        print('Wrong Command!')
-        print(original_command)
-        print(e1.stderr.decode().strip())
 
     return None, None

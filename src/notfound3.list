@@ -1,0 +1,75 @@
+declaration requires a global destructor [-Werror,-Wglobal-constructors]
+declaration requires a global destructor [-Werror,-Wglobal-constructors]
+declaration requires a global destructor [-Werror,-Wglobal-constructors]
+declaration requires a global destructor [-Werror,-Wglobal-constructors]
+declaration requires a global destructor [-Werror,-Wglobal-constructors]
+declaration requires a global destructor [-Werror,-Wglobal-constructors]
+declaration requires a global constructor [-Werror,-Wglobal-constructors]
+declaration requires a global destructor [-Werror,-Wglobal-constructors]
+declaration requires a global destructor [-Werror,-Wglobal-constructors]
+declaration requires a global destructor [-Werror,-Wglobal-constructors]
+declaration requires a global destructor [-Werror,-Wglobal-constructors]
+declaration requires a global constructor [-Werror,-Wglobal-constructors]
+declaration requires a global constructor [-Werror,-Wglobal-constructors]
+declaration requires a global constructor [-Werror,-Wglobal-constructors]
+declaration requires a global constructor [-Werror,-Wglobal-constructors]
+declaration requires a global constructor [-Werror,-Wglobal-constructors]
+declaration requires a global destructor [-Werror,-Wglobal-constructors]
+declaration requires a global destructor [-Werror,-Wglobal-constructors]
+declaration requires a global constructor [-Werror,-Wglobal-constructors]
+declaration requires a global constructor [-Werror,-Wglobal-constructors]
+declaration requires a global destructor [-Werror,-Wglobal-constructors]
+declaration requires a global destructor [-Werror,-Wglobal-constructors]
+member 'demangleBackrefCallable' declared as a template
+declaration requires a global constructor [-Werror,-Wglobal-constructors]
+declaration requires a global destructor [-Werror,-Wglobal-constructors]
+declaration requires a global destructor [-Werror,-Wglobal-constructors]
+declaration requires a global destructor [-Werror,-Wglobal-constructors]
+declaration requires a global destructor [-Werror,-Wglobal-constructors]
+declaration requires a global destructor [-Werror,-Wglobal-constructors]
+declaration requires a global destructor [-Werror,-Wglobal-constructors]
+declaration requires a global constructor [-Werror,-Wglobal-constructors]
+declaration requires a global destructor [-Werror,-Wglobal-constructors]
+using declaration 'sizeofval' instantiates to an empty pack
+using declaration 'sizeofval' instantiates to an empty pack
+using declaration 'sizeofval' instantiates to an empty pack
+using declaration 'sizeofval' instantiates to an empty pack
+using declaration 'sizeofval' instantiates to an empty pack
+declaration requires a global destructor [-Werror,-Wglobal-constructors]
+declaration requires a global destructor [-Werror,-Wglobal-constructors]
+declaration requires a global destructor [-Werror,-Wglobal-constructors]
+declaration requires a global destructor [-Werror,-Wglobal-constructors]
+declaration requires a global destructor [-Werror,-Wglobal-constructors]
+declaration requires a global constructor [-Werror,-Wglobal-constructors]
+declaration requires a global destructor [-Werror,-Wglobal-constructors]
+declaration requires a global destructor [-Werror,-Wglobal-constructors]
+declaration requires a global destructor [-Werror,-Wglobal-constructors]
+declaration requires a global constructor [-Werror,-Wglobal-constructors]
+member 'Ms' declared as a template
+declaration requires a global destructor [-Werror,-Wglobal-constructors]
+declaration requires a global constructor [-Werror,-Wglobal-constructors]
+'noreturn' attribute only applies to functions
+declaration requires a global destructor [-Werror,-Wglobal-constructors]
+declaration requires a global destructor [-Werror,-Wglobal-constructors]
+declaration requires a global constructor [-Werror,-Wglobal-constructors]
+"Unimplemented!"
+declaration requires a global constructor [-Werror,-Wglobal-constructors]
+declaration requires a global constructor [-Werror,-Wglobal-constructors]
+declaration requires a global destructor [-Werror,-Wglobal-constructors]
+declaration requires a global constructor [-Werror,-Wglobal-constructors]
+declaration requires a global constructor [-Werror,-Wglobal-constructors]
+declaration requires a global constructor [-Werror,-Wglobal-constructors]
+declaration requires a global constructor [-Werror,-Wglobal-constructors]
+declaration requires a global constructor [-Werror,-Wglobal-constructors]
+declaration requires a global constructor [-Werror,-Wglobal-constructors]
+declaration requires a global destructor [-Werror,-Wglobal-constructors]
+declaration requires a global destructor [-Werror,-Wglobal-constructors]
+member 'makeNodeArgs' declared as a template
+declaration requires a global destructor [-Werror,-Wglobal-constructors]
+declaration requires a global destructor [-Werror,-Wglobal-constructors]
+declaration requires a global destructor [-Werror,-Wglobal-constructors]
+binding reference of type 'CCValAssign' to value of type 'const CCValAssign' drops 'const' qualifier
+ARCHITECTURE=x86_64
+"must provide <Target>PassRegistry.def"
+binding reference of type 'SLocEntry' to value of type 'const SrcMgr::SLocEntry' drops 'const' qualifier
+binding reference of type 'SrcMgr::FileInfo' to value of type 'const FileInfo' drops 'const' qualifier

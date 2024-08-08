@@ -1,0 +1,23 @@
+binding reference of type 'raw_ostream' to value of type 'const raw_ostream' drops 'const' qualifier
+raw string missing terminating delimiter )c++"
+"HANDLE_LIBCALL must be defined"
+"LLVM_FIXED_MD_KIND(EnumID, Name, Value) is not defined."
+"Missing macro definition of HANDLE_DIE_HASH_ATTR"
+"Missing macro definition of HANDLE_DW*"
+binding reference of type '(anonymous namespace)::GuardWideningImpl::RangeCheck' to value of type 'const typename SmallVector<RangeCheck, 3>::value_type' (aka 'const (anonymous namespace)::GuardWideningImpl::RangeCheck') drops 'const' qualifier
+"Must define exactly one of TLI_DEFINE_ENUM, TLI_DEFINE_STRING, or TLI_DEFINE_SIG for TLI .def."
+"Missing macro definition of HANDLE_DW*"
+Define the OPTION macro to handle floating point language options
+"LANGSTANDARD must be defined before including this file"
+Define the OPTION macro to handle floating point language options
+Define the OPTION macro to handle floating point language options
+binding reference of type 'float' to value of type 'const float' drops 'const' qualifier
+module index out of range; bitcode file "
+module index out of range; bitcode file "
+module index out of range; bitcode file "
+");
+");
+");
+");
+");
+invalid operand for instruction

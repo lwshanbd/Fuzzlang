@@ -49,36 +49,31 @@ def replace_single_symbol(filename, symbol_source, symbol_target, original_comma
 
     processed_offsets = set()
     symbols = []
-    if "double" in fuzz_mode:
-        symbol_positions = [m.start() for m in re.finditer(re.escape(symbol_source), content)]
-    else:
-        symbol_positions = [i for i, char in enumerate(content) if char == symbol_source]
-    
-    # Step 2: Find the corresponding nodes for each symbol position
-    for position in symbol_positions:
-        for node in tu.cursor.walk_preorder():
-            if str(node.location.file) != filename:
-                continue
-            start = node.extent.start.offset
-            end = node.extent.end.offset
-            if start <= position < end:
-                # Check if the symbol is within a comment token
-                is_comment = False
-                for token in tu.get_tokens(extent=node.extent):
-                    if token.kind == clang.cindex.TokenKind.COMMENT:
-                        if token.extent.start.offset <= position < token.extent.end.offset:
-                            is_comment = True
-                            break
-                if not is_comment:
-                    symbols.append((position - start, node))
-                break
+    for node in tu.cursor.walk_preorder():
+        if str(node.location.file) != filename:
+            continue
+        start = node.extent.start.offset
+        end = node.extent.end.offset
+        node_content = content[start:end]
+
+        # Find all symbols
+        if 'replace_double' in fuzz_mode:
+            for i, char in enumerate(node_content):
+                if char == symbol_source[0]:
+                    if i < len(node_content) - 1 and node_content[i+1] == symbol_source[1]:
+                        symbols.append((i,node))
+            continue
+        for i, char in enumerate(node_content):
+            if char == symbol_source:
+                symbols.append((i,node))
+        
     symbols.sort(key=lambda x: x[0])
     if replace_mode != 'all':
         replace_number = int(replace_mode)
         if replace_number > len(symbols):
             replace_number = len(symbols)
         symbols = random.sample(symbols, replace_number)
-
+        
     for symbol_t in symbols:
         symbol = symbol_t[0]
         node = symbol_t[1]
@@ -96,17 +91,15 @@ def replace_single_symbol(filename, symbol_source, symbol_target, original_comma
         symbol_node = find_node_at_offset(node, start + symbol)
         node_kind = symbol_node.kind
         print(f"Node kind: {symbol_node.kind}")
-
-        modified_content = content[:start + symbol] + \
-            symbol_target + content[start + symbol + 1:]
+        if 'replace_double' in fuzz_mode:
+            modified_content = content[:start + symbol] + \
+                symbol_target + content[start + symbol + 2:]
+        else:
+            modified_content = content[:start + symbol] + \
+                symbol_target + content[start + symbol + 1:]
         modified_line = get_line_at_offset(
             modified_content, start + symbol)
         print(f"Modified line: {modified_line.strip()}\n")
-
-        # modified_filename = os.path.splitext(
-        #     filename)[0] + '_modified' + os.path.splitext(filename)[1]
-        # with open(modified_filename, 'w') as file:
-        #     file.write(modified_content)
         
         with tempfile.NamedTemporaryFile(mode='w+', suffix='.cpp') as temp_file:
             # Write the modified content to the temporary file
@@ -132,12 +125,5 @@ def replace_single_symbol(filename, symbol_source, symbol_target, original_comma
         # Mark this symbol as processed
         processed_offsets.add(start + symbol)
 
-    try:
-        subprocess.run(original_command, check=True,
-                       stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    except subprocess.CalledProcessError as e1:
-        print('Wrong Command!')
-        print(original_command)
-        print(e1.stderr.decode().strip())
 
     return None, None
