@@ -1,29 +1,9 @@
 #include <iostream>
-class tmp{
-    public:
-        tmp(){std::cout << "tmp constructor" << std::endl;}
-        ~tmp(){
-            std::cout << "tmp destructor" << std::endl;
-            int a = 5;
-        }
-};
-// cnm = + ; ; f 21 
-int ttt = 15;
-void func(){
-    int ttt = 11;
-    ttt = 12;
-    ttt = 13;
-    return;
-}
-
 int main() {
-    tmp t;
-    int a = ttt;
-    if( a == 15){
-        a = 9;
-    }
-    // x == 9
-    std::cout 
-    << a;
-    func();
+    int x = 10;
+    int y = 5;
+    int z = x + y;
+    auto func = [x, z](int y) { return x + y; };
+    std::cout << func(5) << std::endl;
+    return 0;
 }
