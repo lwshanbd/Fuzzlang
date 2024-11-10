@@ -8,7 +8,6 @@ import tempfile
 from utils import log_to_json, get_line_at_offset, get_ast_string, find_node_at_offset
 
 def all_running(filename, original_command, log_file_path):
-    print("all_running")
     for mode in ['1', '2', '3', '4', '5', '6', '7', '8']:
         modify_lambda_captures(filename, original_command, log_file_path, mode)
 
