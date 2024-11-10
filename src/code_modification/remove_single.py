@@ -1,11 +1,9 @@
 import clang.cindex
 import random
 import subprocess
-import os
-import subprocess
-import difflib
-import json
 import tempfile
+import logging
+
 from utils import log_to_json, get_line_at_offset, get_ast_string, find_node_at_offset
 
 fuzz_modes = {
@@ -29,14 +27,6 @@ fuzz_modes = {
         '?': 'remove_question',
         #'#': 'remove_hash'
 }
-
-def create_modified_file(filename, content):
-    modified_filename = os.path.splitext(
-        filename)[0] + '_modified' + os.path.splitext(filename)[1]
-    with open(modified_filename, 'w') as file:
-        file.write(content)
-    return modified_filename
-
 
 def get_fuzz_mode(symbol):
     return fuzz_modes.get(symbol, 'unknown_symbol')
@@ -90,24 +80,18 @@ def remove_single_symbol(filename, symbol, original_command, log_file_path, remo
 
         original_line = get_line_at_offset(
             content, start + symbol)
-        print(f"Original line: {original_line.strip()}")
-
-        print(start + symbol)
-
+        logging.info(f"Original line: {original_line.strip()}")
+        
         symbol_node = find_node_at_offset(node, start + symbol)
         node_kind = symbol_node.kind
 
-        print(f"Node kind: {symbol_node.kind}")
+        logging.info(f"Node kind: {symbol_node.kind}")
 
         modified_content = content[:start + symbol] + content[start + symbol + 1:]
         modified_line = get_line_at_offset(
             modified_content, start + symbol)
-        print(f"Modified line: {modified_line.strip()}\n")
-
-        # modified_filename = os.path.splitext(
-        #     filename)[0] + '_modified' + os.path.splitext(filename)[1]
-        # with open(modified_filename, 'w') as file:
-        #     file.write(modified_content)
+        
+        logging.info(f"Modified line: {modified_line.strip()}")
         
         with tempfile.NamedTemporaryFile(mode='w+', suffix='.cpp') as temp_file:
             # Write the modified content to the temporary file
