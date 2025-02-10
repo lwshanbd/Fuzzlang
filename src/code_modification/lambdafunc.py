@@ -42,6 +42,8 @@ def modify_lambda_captures(filename, original_command, log_file_path, lambda_mod
     
     capture_start = lambda_code.find('[')
     capture_end = lambda_code.find(']')
+    modified_content = ""
+    modified_line = ""
     if capture_start != -1 and capture_end != -1:
         if lambda_mode == '1':
             new_capture = '[]'

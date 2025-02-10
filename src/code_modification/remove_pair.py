@@ -3,6 +3,7 @@ import random
 import subprocess
 import os
 import subprocess
+import logging
 import difflib
 import json
 from utils import log_to_json, get_line_at_offset
@@ -50,6 +51,10 @@ def create_modified_file(filename, content):
         file.write(content)
     return modified_filename
 
+def all_running(filename, original_command, log_file_path, replace_mode='1'):
+    fuzz_modes = ['(', '[', '{', '<']
+    for mode in fuzz_modes:
+        remove_paired_symbol(filename, mode, original_command, log_file_path, replace_mode)
 
 def remove_paired_symbol(filename, symbol, original_command, log_file_path, remove_mode='1'):
     if symbol == '(':
@@ -111,22 +116,22 @@ def remove_paired_symbol(filename, symbol, original_command, log_file_path, remo
         
         original_line = get_line_at_offset(
             content, start + left_symbol)
-        print(f"Original line: {original_line.strip()}")
+        logging.info(f"Original line: {original_line.strip()}")
 
         # Find the specific AST node for the opening parenthesis
-        print(start + left_symbol)
+        logging.info(f"Start: {start}, left_symbol: {left_symbol}")
 
         left_symbol_node = find_node_at_offset(
             node, start + left_symbol)
         node_kind = left_symbol_node.kind
 
-        print(f"Node kind: {left_symbol_node.kind}")
+        logging.info(f"Node kind: {left_symbol_node.kind}")
 
         modified_content = content[:start + left_symbol] + content[start +
                                                                     left_symbol + 1:start + right_symbol] + content[start + right_symbol + 1:]
         modified_line = get_line_at_offset(
             modified_content, start + left_symbol)
-        print(f"Modified line: {modified_line.strip()}\n")
+        logging.info(f"Modified line: {modified_line.strip()}")
         with tempfile.NamedTemporaryFile(mode='w+', suffix='.cpp') as temp_file:
             # Write the modified content to the temporary file
             temp_file.write(modified_content)

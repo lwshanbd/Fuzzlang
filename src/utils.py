@@ -1,4 +1,7 @@
 import json
+import re
+import subprocess
+import os
 from datetime import datetime
 
 def get_line_at_offset(content, offset):
@@ -62,3 +65,56 @@ def log_to_json(fuzz_mode, original_line, modified_line, node_kind, status, mess
     with open(log_file_path, 'a') as log_file:
         json.dump(log_entry, log_file)
         log_file.write('\n')  # Add newline for readability
+        
+def log_to_json_1(file_name, fuzz_mode, status, message, log_file_path):
+    log_entry = {
+        "timestamp": datetime.now().isoformat(),
+        "file": file_name,
+        "fuzz_mode": fuzz_mode,
+        "status": status,
+        "message": message
+    }
+    with open(log_file_path, 'a') as log_file:
+        json.dump(log_entry, log_file)
+        log_file.write('\n')  # Add newline for readability
+        
+# def log_to_json(file_name, fuzz_mode, status, message, log_file_path, diff):
+#     log_entry = {
+#         "timestamp": datetime.now().isoformat(),
+#         "file": file_name,
+#         "fuzz_mode": fuzz_mode,
+#         "status": status,
+#         "message": message,
+#         "diff": diff
+#     }
+#     with open(log_file_path, 'a') as log_file:
+#         json.dump(log_entry, log_file)
+#         log_file.write('\n')  # Add newline for readability
+        
+def get_error_name(diagID):
+    try:
+        diag_command = ["diagtool", "find-diagnostic-id", diagID]
+        process = subprocess.run(
+            diag_command, capture_output=True, text=True, check=True)
+        error_name = process.stdout.split('\n')[0]
+        return error_name
+    except:
+        print("Failed to run diagtool")
+        return False
+
+def code_deformat(code):
+    return code.replace("```python", "").replace("```cpp", "")\
+        .replace("```c++", "").replace("```c", "").replace("```", "")
+
+
+def extract_error_names(error_message):
+    diag_ids = re.findall(r"DiagID:\s*(\d+)", error_message)
+    return [get_error_name(diag_id) for diag_id in diag_ids]
+
+
+def get_all_files(directory):
+    file_paths = []
+    for root, _, files in os.walk(directory):
+        for file in files:
+            file_paths.append(os.path.join(root, file))
+    return file_paths
