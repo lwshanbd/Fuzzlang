@@ -1,0 +1,81 @@
+2024-11-17 18:06:46,133 - INFO - Compile Command: ['clang', '-cc1', '-fopenmp', '-fno-openmp-extensions', '-fopenmp-version=50', '-ferror-limit', '300', 'tmp.cpp', '-Wno-openmp-target', '-Wuninitialized', '-Wno-vla']
+2024-11-17 18:06:46,133 - INFO - Error Message: DiagID: 1703
+tmp.cpp:3:13: error: unexpected OpenMP directive '#pragma omp target'
+    3 | #pragma omp target map(close bf: a)   // expected-error {{missing ',' after map type modifier}} expected-error {{incorrect map type, expected one of 'to', 'from', 'tofrom', 'alloc', 'release', or 'delete'}}
+      |             ^
+DiagID: 1553
+tmp.cpp:4:1: error: expected unqualified-id
+    4 | {}
+      | ^
+2 errors generated.
+
+2024-11-17 18:06:46,133 - INFO - Extract Diag Info:
+2024-11-17 18:06:46,133 - INFO - Diag ID: 4533, file_name: /shared/data1/Users/l1065028/llvm-project/clang/test/OpenMP/target_map_messages.cpp, line number: 279
+2024-11-17 18:06:51,518 - INFO - Compile Command: ['clang', '-cc1', '-fopenmp', '-fno-openmp-extensions', '-fopenmp-version=50', '-ferror-limit', '300', 'tmp.cpp', '-Wno-openmp-target', '-Wuninitialized', '-Wno-vla']
+2024-11-17 18:06:51,518 - INFO - Error Message: DiagID: 1703
+tmp.cpp:4:13: error: unexpected OpenMP directive '#pragma omp target'
+    4 | #pragma omp target map(close bf: a) // ge52-error {{missing ',' after map type modifier}} expected-error {{incorrect map type, expected one of 'to', 'from', 'tofrom', 'alloc', 'release', or 'delete'}}
+      |             ^
+DiagID: 1553
+tmp.cpp:5:1: error: expected unqualified-id
+    5 | {}
+      | ^
+2 errors generated.
+
+2024-11-17 18:06:51,518 - INFO - Extract Diag Info:
+2024-11-17 18:06:51,518 - INFO - Diag ID: 1519, file_name: /shared/data1/Users/l1065028/llvm-project/clang/test/OpenMP/target_map_messages.cpp, line number: 288
+2024-11-17 18:07:01,508 - INFO - Compile Command: ['clang', '-cc1', '-fopenmp', '-fno-openmp-extensions', '-fopenmp-version=50', '-ferror-limit', '300', 'tmp.cpp', '-Wno-openmp-target', '-Wuninitialized', '-Wno-vla']
+2024-11-17 18:07:01,509 - INFO - Error Message: DiagID: 1703
+tmp.cpp:12:13: error: unexpected OpenMP directive '#pragma omp target'
+   12 | #pragma omp target map(r.ArrS[:1].B)   // expected-error {{OpenMP array section is not allowed here}}
+      |             ^
+DiagID: 1553
+tmp.cpp:13:1: error: expected unqualified-id
+   13 | {}
+      | ^
+2 errors generated.
+
+2024-11-17 18:07:01,509 - INFO - Extract Diag Info:
+2024-11-17 18:07:01,509 - INFO - Diag ID: 2792, file_name: /shared/data1/Users/l1065028/llvm-project/clang/test/OpenMP/target_map_messages.cpp, line number: 437
+2024-11-17 18:07:14,313 - INFO - Compile Command: ['clang', '-cc1', '-fopenmp', '-fno-openmp-extensions', '-fopenmp-version=50', '-ferror-limit', '300', 'tmp.cpp', '-Wno-openmp-target', '-Wuninitialized', '-Wno-vla']
+2024-11-17 18:07:14,313 - INFO - Error Message: DiagID: 1703
+tmp.cpp:10:13: error: unexpected OpenMP directive '#pragma omp target'
+   10 | #pragma omp target map(r.ArrS[0].Error) // expected-error {{no member named 'Error' in 'SB'}}
+      |             ^
+DiagID: 1553
+tmp.cpp:11:1: error: expected unqualified-id
+   11 | {}
+      | ^
+2 errors generated.
+
+2024-11-17 18:07:14,313 - INFO - Extract Diag Info:
+2024-11-17 18:07:14,313 - INFO - Diag ID: 4204, file_name: /shared/data1/Users/l1065028/llvm-project/clang/test/OpenMP/target_map_messages.cpp, line number: 467
+2024-11-17 18:07:36,510 - INFO - Compile Command: ['clang', '-cc1', '-fopenmp', '-fno-openmp-extensions', '-fopenmp-version=50', '-ferror-limit', '300', 'tmp.cpp', '-Wno-openmp-target', '-Wuninitialized', '-Wno-vla']
+2024-11-17 18:07:36,510 - INFO - Error Message: DiagID: 4964
+tmp.cpp:3:28: error: use of undeclared identifier 'to'
+    3 |     #pragma omp target map(to argc // expected-error {{expected ')'}} expected-note {{to match this '('}} expected-error {{expected ',' or ')' in 'map' clause}}
+      |                            ^
+DiagID: 15
+tmp.cpp:3:161: error: expected ')'
+    3 |     #pragma omp target map(to argc // expected-error {{expected ')'}} expected-note {{to match this '('}} expected-error {{expected ',' or ')' in 'map' clause}}
+      |                                                                                                                                                                 ^
+tmp.cpp:3:27: note: to match this '('
+    3 |     #pragma omp target map(to argc // expected-error {{expected ')'}} expected-note {{to match this '('}} expected-error {{expected ',' or ')' in 'map' clause}}
+      |                           ^
+2 errors generated.
+
+2024-11-17 18:07:36,510 - INFO - Extract Diag Info:
+2024-11-17 18:07:36,510 - INFO - Diag ID: 1684, file_name: /shared/data1/Users/l1065028/llvm-project/clang/test/OpenMP/target_map_messages.cpp, line number: 648
+2024-11-17 18:07:41,974 - INFO - Compile Command: ['clang', '-cc1', '-fopenmp', '-fno-openmp-extensions', '-fopenmp-version=50', '-ferror-limit', '300', 'tmp.cpp', '-Wno-openmp-target', '-Wuninitialized', '-Wno-vla']
+2024-11-17 18:07:41,974 - INFO - Error Message: DiagID: 1707
+tmp.cpp:6:28: error: incorrect map type, expected one of 'to', 'from', 'tofrom', 'alloc', 'release', or 'delete'
+    6 |     #pragma omp target map(T: a) // expected-error {{incorrect map type, expected one of 'to', 'from', 'tofrom', 'alloc', 'release', or 'delete'}} expected-error {{incomplete type 'S1' where a complete type is required}}
+      |                            ^
+1 error generated.
+
+2024-11-17 18:07:41,974 - INFO - Extract Diag Info:
+2024-11-17 18:07:41,974 - INFO - Diag ID: 3624, file_name: /shared/data1/Users/l1065028/llvm-project/clang/test/OpenMP/target_map_messages.cpp, line number: 660
+2024-11-17 18:07:46,957 - INFO - Compile Command: ['clang', '-cc1', '-fopenmp', '-fno-openmp-extensions', '-fopenmp-version=50', '-ferror-limit', '300', 'tmp.cpp', '-Wno-openmp-target', '-Wuninitialized', '-Wno-vla']
+2024-11-17 18:07:46,957 - INFO - Error Message: False
+2024-11-17 18:07:46,957 - INFO - Extract Diag Info:
+2024-11-17 18:07:46,957 - INFO - Diag ID: 4548, file_name: /shared/data1/Users/l1065028/llvm-project/clang/test/OpenMP/target_map_messages.cpp, line number: 662

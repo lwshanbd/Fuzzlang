@@ -1,0 +1,1030 @@
+2024-12-03 14:52:39,219 - INFO - Compile Command: ['clang', '-cc1', 'tmp.c', '-pedantic', '-fsyntax-only', '-Wno-unused-value', '-triple', 'spir-unknown-unknown']
+2024-12-03 14:52:39,220 - INFO - Error Message: error: invalid value 'clc++3.0' in '-cl-std=clc++3.0'
+
+2024-12-03 14:52:39,220 - INFO - IDs: [3687]
+2024-12-03 14:52:39,220 - INFO - Extract Diag Info:
+2024-12-03 14:52:39,220 - INFO - Diag ID: 4332, file_name: /shared/data1/Users/l1065028/llvm-project/clang/test/SemaOpenCL/half.cl, line number: 11, error_name: err_opencl_half_load_store
+2024-12-03 14:53:20,964 - INFO - Compile Command: ['clang', '-cc1', 'tmp.c', '-cl-std=CL2.0', '-triple', 'spir64-unknown-unknown', '-pedantic', '-fsyntax-only', '-Wconversion', '-DWCONV', '-DQUALS="const volatile"']
+2024-12-03 14:53:20,965 - INFO - Error Message: error: invalid value 'clc++3.0' in '-cl-std=clc++3.0'
+
+2024-12-03 14:53:20,965 - INFO - IDs: [3036, 4964]
+2024-12-03 14:53:20,965 - INFO - Extract Diag Info:
+2024-12-03 14:53:20,965 - INFO - Diag ID: 4312, file_name: /shared/data1/Users/l1065028/llvm-project/clang/test/SemaOpenCL/cl20-device-side-enqueue.cl, line number: 28, error_name: err_opencl_builtin_expected_type
+2024-12-03 14:53:36,565 - INFO - Compile Command: ['clang', '-cc1', 'tmp.c', '-cl-std=CL2.0', '-triple', 'spir64-unknown-unknown', '-pedantic', '-fsyntax-only', '-Wconversion', '-DWCONV', '-DQUALS=const volatile']
+2024-12-03 14:53:36,565 - INFO - Error Message: error: invalid value 'clc++3.0' in '-cl-std=clc++3.0'
+
+2024-12-03 14:53:36,565 - INFO - IDs: [4538, 4538, 3036, 4336, 3036, 4407]
+2024-12-03 14:53:36,565 - INFO - Extract Diag Info:
+2024-12-03 14:53:36,565 - INFO - Diag ID: 4312, file_name: /shared/data1/Users/l1065028/llvm-project/clang/test/SemaOpenCL/cl20-device-side-enqueue.cl, line number: 32, error_name: err_opencl_builtin_expected_type
+2024-12-03 14:53:47,234 - INFO - Compile Command: ['clang', '-cc1', 'tmp.c', '-cl-std=CL2.0', '-triple', 'spir-unknown-unknown', '-pedantic', '-fsyntax-only', '-DB32', '-DQUALS=']
+2024-12-03 14:53:47,234 - INFO - Error Message: error: invalid value 'clc++3.0' in '-cl-std=clc++3.0'
+
+2024-12-03 14:53:47,234 - INFO - IDs: [3036, 4964]
+2024-12-03 14:53:47,234 - INFO - Extract Diag Info:
+2024-12-03 14:53:47,234 - INFO - Diag ID: 4312, file_name: /shared/data1/Users/l1065028/llvm-project/clang/test/SemaOpenCL/cl20-device-side-enqueue.cl, line number: 36, error_name: err_opencl_builtin_expected_type
+2024-12-03 14:54:01,633 - INFO - Compile Command: ['clang', '-cc1', 'tmp.c', '-cl-std=CL2.0', '-triple', 'spir-unknown-unknown', '-pedantic', '-fsyntax-only', '-DB32', '-DQUALS=']
+2024-12-03 14:54:01,633 - INFO - Error Message: error: invalid value 'clc++3.0' in '-cl-std=clc++3.0'
+
+2024-12-03 14:54:01,633 - INFO - IDs: [4538, 4538, 4964]
+2024-12-03 14:54:01,633 - INFO - Extract Diag Info:
+2024-12-03 14:54:01,633 - INFO - Diag ID: 4312, file_name: /shared/data1/Users/l1065028/llvm-project/clang/test/SemaOpenCL/cl20-device-side-enqueue.cl, line number: 40, error_name: err_opencl_builtin_expected_type
+2024-12-03 14:54:14,005 - INFO - Compile Command: ['clang', '-cc1', 'tmp.c', '-cl-std=CL2.0', '-triple', 'spir64-unknown-unknown', '-pedantic', '-fsyntax-only', '-Wconversion', '-DWCONV', '-DQUALS="const volatile"']
+2024-12-03 14:54:14,005 - INFO - Error Message: error: invalid value 'clc++3.0' in '-cl-std=clc++3.0'
+
+2024-12-03 14:54:14,005 - INFO - IDs: [4538, 4538, 3036, 4964]
+2024-12-03 14:54:14,005 - INFO - Extract Diag Info:
+2024-12-03 14:54:14,005 - INFO - Diag ID: 4312, file_name: /shared/data1/Users/l1065028/llvm-project/clang/test/SemaOpenCL/cl20-device-side-enqueue.cl, line number: 55, error_name: err_opencl_builtin_expected_type
+2024-12-03 14:54:27,044 - INFO - Compile Command: ['clang', '-cc1', 'tmp.c', '-cl-std=CL2.0', '-triple', 'spir64-unknown-unknown', '-pedantic', '-fsyntax-only', '-Wconversion', '-DWCONV', '-DQUALS=']
+2024-12-03 14:54:27,044 - INFO - Error Message: error: invalid value 'clc++3.0' in '-cl-std=clc++3.0'
+
+2024-12-03 14:54:27,044 - INFO - IDs: [3036, 4336, 4342, 3036]
+2024-12-03 14:54:27,044 - INFO - Extract Diag Info:
+2024-12-03 14:54:27,044 - INFO - Diag ID: 4312, file_name: /shared/data1/Users/l1065028/llvm-project/clang/test/SemaOpenCL/cl20-device-side-enqueue.cl, line number: 59, error_name: err_opencl_builtin_expected_type
+2024-12-03 14:54:42,124 - INFO - Compile Command: ['clang', '-cc1', 'tmp.c', '-cl-std=CL2.0', '-triple', 'spir-unknown-unknown', '-pedantic', '-fsyntax-only', '-DB32', '-DQUALS=']
+2024-12-03 14:54:42,124 - INFO - Error Message: error: invalid value 'clc++3.0' in '-cl-std=clc++3.0'
+
+2024-12-03 14:54:42,124 - INFO - IDs: [4538, 4538, 4964, 4964, 3036, 4964]
+2024-12-03 14:54:42,124 - INFO - Extract Diag Info:
+2024-12-03 14:54:42,124 - INFO - Diag ID: 4312, file_name: /shared/data1/Users/l1065028/llvm-project/clang/test/SemaOpenCL/cl20-device-side-enqueue.cl, line number: 64, error_name: err_opencl_builtin_expected_type
+2024-12-03 14:54:55,690 - INFO - Compile Command: ['clang', '-cc1', 'tmp.c', '-cl-std=CL2.0', '-triple', 'spir-unknown-unknown', '-pedantic', '-fsyntax-only', '-DB32', '-DQUALS=']
+2024-12-03 14:54:55,691 - INFO - Error Message: error: invalid value 'clc++3.0' in '-cl-std=clc++3.0'
+
+2024-12-03 14:54:55,691 - INFO - IDs: [4538, 4538, 4964]
+2024-12-03 14:54:55,691 - INFO - Extract Diag Info:
+2024-12-03 14:54:55,691 - INFO - Diag ID: 4312, file_name: /shared/data1/Users/l1065028/llvm-project/clang/test/SemaOpenCL/cl20-device-side-enqueue.cl, line number: 69, error_name: err_opencl_builtin_expected_type
+2024-12-03 14:55:13,616 - INFO - Compile Command: ['clang', '-cc1', 'tmp.c', '-cl-std=CL2.0', '-triple', 'spir-unknown-unknown', '-pedantic', '-fsyntax-only', '-DB32', '-DQUALS=']
+2024-12-03 14:55:13,616 - INFO - Error Message: error: invalid value 'clc++3.0' in '-cl-std=clc++3.0'
+
+2024-12-03 14:55:13,616 - INFO - IDs: [4342, 4964]
+2024-12-03 14:55:13,616 - INFO - Extract Diag Info:
+2024-12-03 14:55:13,616 - INFO - Diag ID: 4312, file_name: /shared/data1/Users/l1065028/llvm-project/clang/test/SemaOpenCL/cl20-device-side-enqueue.cl, line number: 200, error_name: err_opencl_builtin_expected_type
+2024-12-03 14:55:23,771 - INFO - Compile Command: ['clang', '-cc1', 'tmp.c', '-cl-std=CL2.0', '-triple', 'spir-unknown-unknown', '-pedantic', '-fsyntax-only', '-DB32', '-DQUALS=']
+2024-12-03 14:55:23,771 - INFO - Error Message: error: invalid value 'clc++3.0' in '-cl-std=clc++3.0'
+
+2024-12-03 14:55:23,771 - INFO - IDs: [4964]
+2024-12-03 14:55:23,771 - INFO - Extract Diag Info:
+2024-12-03 14:55:23,771 - INFO - Diag ID: 4312, file_name: /shared/data1/Users/l1065028/llvm-project/clang/test/SemaOpenCL/cl20-device-side-enqueue.cl, line number: 217, error_name: err_opencl_builtin_expected_type
+2024-12-03 14:55:36,753 - INFO - Compile Command: ['clang', '-cc1', 'tmp.c', '-cl-std=CL2.0', '-triple', 'spir-unknown-unknown', '-pedantic', '-fsyntax-only', '-DB32', '-DQUALS=']
+2024-12-03 14:55:36,753 - INFO - Error Message: error: invalid value 'clc++3.0' in '-cl-std=clc++3.0'
+
+2024-12-03 14:55:36,753 - INFO - IDs: [3036, 4964]
+2024-12-03 14:55:36,753 - INFO - Extract Diag Info:
+2024-12-03 14:55:36,753 - INFO - Diag ID: 4312, file_name: /shared/data1/Users/l1065028/llvm-project/clang/test/SemaOpenCL/cl20-device-side-enqueue.cl, line number: 227, error_name: err_opencl_builtin_expected_type
+2024-12-03 14:55:47,218 - INFO - Compile Command: ['clang', '-cc1', 'tmp.c', '-cl-std=CL2.0', '-triple', 'spir-unknown-unknown', '-pedantic', '-fsyntax-only', '-DB32', '-DQUALS=']
+2024-12-03 14:55:47,218 - INFO - Error Message: error: invalid value 'clc++3.0' in '-cl-std=clc++3.0'
+
+2024-12-03 14:55:47,218 - INFO - IDs: [4964]
+2024-12-03 14:55:47,218 - INFO - Extract Diag Info:
+2024-12-03 14:55:47,218 - INFO - Diag ID: 4312, file_name: /shared/data1/Users/l1065028/llvm-project/clang/test/SemaOpenCL/cl20-device-side-enqueue.cl, line number: 228, error_name: err_opencl_builtin_expected_type
+2024-12-03 14:55:58,284 - INFO - Compile Command: ['clang', '-cc1', 'tmp.c', '-cl-std=CL2.0', '-triple', 'spir64-unknown-unknown', '-pedantic', '-fsyntax-only', '-Wconversion', '-DWCONV', '-DQUALS=const volatile']
+2024-12-03 14:55:58,284 - INFO - Error Message: error: invalid value 'clc++3.0' in '-cl-std=clc++3.0'
+
+2024-12-03 14:55:58,284 - INFO - IDs: [3036, 4336, 3036]
+2024-12-03 14:55:58,284 - INFO - Extract Diag Info:
+2024-12-03 14:55:58,284 - INFO - Diag ID: 4312, file_name: /shared/data1/Users/l1065028/llvm-project/clang/test/SemaOpenCL/cl20-device-side-enqueue.cl, line number: 235, error_name: err_opencl_builtin_expected_type
+2024-12-03 14:56:08,121 - INFO - Compile Command: ['clang', '-cc1', 'tmp.c', '-cl-std=CL2.0', '-triple', 'spir64-unknown-unknown', '-pedantic', '-fsyntax-only', '-Wconversion', '-DWCONV', '-DQUALS=const volatile']
+2024-12-03 14:56:08,121 - INFO - Error Message: error: invalid value 'clc++3.0' in '-cl-std=clc++3.0'
+
+2024-12-03 14:56:08,121 - INFO - IDs: [4964]
+2024-12-03 14:56:08,121 - INFO - Extract Diag Info:
+2024-12-03 14:56:08,121 - INFO - Diag ID: 4312, file_name: /shared/data1/Users/l1065028/llvm-project/clang/test/SemaOpenCL/cl20-device-side-enqueue.cl, line number: 236, error_name: err_opencl_builtin_expected_type
+2024-12-03 14:56:18,584 - INFO - Compile Command: ['clang', '-cc1', 'tmp.c', '-cl-std=CL2.0', '-triple', 'spir-unknown-unknown', '-pedantic', '-fsyntax-only', '-DB32', '-DQUALS=']
+2024-12-03 14:56:18,585 - INFO - Error Message: error: invalid value 'clc++3.0' in '-cl-std=clc++3.0'
+
+2024-12-03 14:56:18,585 - INFO - IDs: [3036, 4964]
+2024-12-03 14:56:18,585 - INFO - Extract Diag Info:
+2024-12-03 14:56:18,585 - INFO - Diag ID: 4312, file_name: /shared/data1/Users/l1065028/llvm-project/clang/test/SemaOpenCL/cl20-device-side-enqueue.cl, line number: 28, error_name: err_opencl_builtin_expected_type
+2024-12-03 14:56:41,515 - INFO - Compile Command: ['clang', '-cc1', 'tmp.c', '-triple', 'spir-unknown-unknown', '-fsyntax-only', '-cl-std=CL1.2', '-DFP64']
+2024-12-03 14:56:41,515 - INFO - Error Message: error: invalid value 'clc++3.0' in '-cl-std=clc++3.0'
+
+2024-12-03 14:56:41,515 - INFO - IDs: []
+2024-12-03 14:56:41,515 - INFO - Extract Diag Info:
+2024-12-03 14:56:41,515 - INFO - Diag ID: 4346, file_name: /shared/data1/Users/l1065028/llvm-project/clang/test/SemaOpenCL/fp64-fp16-options.cl, line number: 61, error_name: err_opencl_requires_extension
+2024-12-03 14:56:51,617 - INFO - Compile Command: ['clang', '-cc1', 'tmp.c', '-triple', 'spir-unknown-unknown', '-fsyntax-only', '-cl-std=CL1.2', '-DFP64']
+2024-12-03 14:56:51,617 - INFO - Error Message: error: invalid value 'clc++3.0' in '-cl-std=clc++3.0'
+
+2024-12-03 14:56:51,617 - INFO - IDs: []
+2024-12-03 14:56:51,617 - INFO - Extract Diag Info:
+2024-12-03 14:56:51,617 - INFO - Diag ID: 4346, file_name: /shared/data1/Users/l1065028/llvm-project/clang/test/SemaOpenCL/fp64-fp16-options.cl, line number: 67, error_name: err_opencl_requires_extension
+2024-12-03 14:57:05,184 - INFO - Compile Command: ['clang', '-cc1', 'tmp.c', '-triple', 'spir-unknown-unknown', '-fsyntax-only', '-cl-std=CL1.2', '-DFP64']
+2024-12-03 14:57:05,184 - INFO - Error Message: error: invalid value 'clc++3.0' in '-cl-std=clc++3.0'
+
+2024-12-03 14:57:05,184 - INFO - IDs: []
+2024-12-03 14:57:05,184 - INFO - Extract Diag Info:
+2024-12-03 14:57:05,184 - INFO - Diag ID: 4346, file_name: /shared/data1/Users/l1065028/llvm-project/clang/test/SemaOpenCL/fp64-fp16-options.cl, line number: 100, error_name: err_opencl_requires_extension
+2024-12-03 14:57:17,360 - INFO - Compile Command: ['clang', '-cc1', 'tmp.c', '-triple', 'spir-unknown-unknown', '-fsyntax-only', '-cl-std=CL1.2', '-DFP64']
+2024-12-03 14:57:17,360 - INFO - Error Message: error: invalid value 'clc++3.0' in '-cl-std=clc++3.0'
+
+2024-12-03 14:57:17,360 - INFO - IDs: []
+2024-12-03 14:57:17,360 - INFO - Extract Diag Info:
+2024-12-03 14:57:17,360 - INFO - Diag ID: 4346, file_name: /shared/data1/Users/l1065028/llvm-project/clang/test/SemaOpenCL/fp64-fp16-options.cl, line number: 109, error_name: err_opencl_requires_extension
+2024-12-03 14:57:30,096 - INFO - Compile Command: ['clang', '-cc1', 'tmp.c', '-triple', 'spir-unknown-unknown', '-fsyntax-only', '-cl-std=CL1.2', '-DFP64']
+2024-12-03 14:57:30,096 - INFO - Error Message: error: invalid value 'clc++3.0' in '-cl-std=clc++3.0'
+
+2024-12-03 14:57:30,096 - INFO - IDs: []
+2024-12-03 14:57:30,096 - INFO - Extract Diag Info:
+2024-12-03 14:57:30,096 - INFO - Diag ID: 4346, file_name: /shared/data1/Users/l1065028/llvm-project/clang/test/SemaOpenCL/fp64-fp16-options.cl, line number: 136, error_name: err_opencl_requires_extension
+2024-12-03 14:57:39,993 - INFO - Compile Command: ['clang', '-cc1', 'tmp.c', '-triple', 'spir-unknown-unknown', '-fsyntax-only', '-cl-std=CL1.2', '-DFP64']
+2024-12-03 14:57:39,994 - INFO - Error Message: error: invalid value 'clc++3.0' in '-cl-std=clc++3.0'
+
+2024-12-03 14:57:39,994 - INFO - IDs: []
+2024-12-03 14:57:39,994 - INFO - Extract Diag Info:
+2024-12-03 14:57:39,994 - INFO - Diag ID: 4346, file_name: /shared/data1/Users/l1065028/llvm-project/clang/test/SemaOpenCL/fp64-fp16-options.cl, line number: 100, error_name: err_opencl_requires_extension
+2024-12-03 14:57:50,371 - INFO - Compile Command: ['clang', '-cc1', 'tmp.c', '-triple', 'spir-unknown-unknown', '-fsyntax-only', '-cl-std=CL1.2', '-DFP64']
+2024-12-03 14:57:50,372 - INFO - Error Message: error: invalid value 'clc++3.0' in '-cl-std=clc++3.0'
+
+2024-12-03 14:57:50,372 - INFO - IDs: []
+2024-12-03 14:57:50,372 - INFO - Extract Diag Info:
+2024-12-03 14:57:50,372 - INFO - Diag ID: 4346, file_name: /shared/data1/Users/l1065028/llvm-project/clang/test/SemaOpenCL/fp64-fp16-options.cl, line number: 109, error_name: err_opencl_requires_extension
+2024-12-03 14:57:58,119 - INFO - failed running
+2024-12-03 14:57:58,120 - INFO - 'tuple' object does not support item assignment
+2024-12-03 14:57:58,122 - INFO - Traceback (most recent call last):
+  File "/shared/data1/Users/l1065028/Fuzzlang/src/llvm_test_agent/agent.py", line 294, in main
+    res = agent_openmp.generate_code_omp(diag, lines, code_type,
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/shared/data1/Users/l1065028/Fuzzlang/src/llvm_test_agent/agent_openmp.py", line 92, in generate_code_omp
+    command = process_command(command)
+              ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/shared/data1/Users/l1065028/Fuzzlang/src/llvm_test_agent/agent_openmp.py", line 16, in process_command
+    command[i] = 'clang'
+    ~~~~~~~^^^
+TypeError: 'tuple' object does not support item assignment
+
+2024-12-03 14:58:30,802 - INFO - Compile Command: ['clang', '-cc1', '-DBITFIELDS_EXT', '-triple', 'spir', 'tmp.c']
+2024-12-03 14:58:30,802 - INFO - Error Message: error: invalid value 'clc++3.0' in '-cl-std=clc++3.0'
+
+2024-12-03 14:58:30,802 - INFO - IDs: []
+2024-12-03 14:58:30,802 - INFO - Extract Diag Info:
+2024-12-03 14:58:30,802 - INFO - Diag ID: 4309, file_name: /shared/data1/Users/l1065028/llvm-project/clang/test/SemaOpenCL/unsupported.cl, line number: 9, error_name: err_opencl_bitfields
+2024-12-03 14:58:43,872 - INFO - Compile Command: ['clang', '-cc1', 'tmp.c', '-cl-std=CL2.0', '-triple', 'spir-unknown-unknown', '-pedantic', '-fsyntax-only', '-DB32', '-DQUALS=']
+2024-12-03 14:58:43,872 - INFO - Error Message: error: invalid value 'clc++3.0' in '-cl-std=clc++3.0'
+
+2024-12-03 14:58:43,872 - INFO - IDs: [4538, 4538, 3036, 4964, 3036, 4354, 4336]
+2024-12-03 14:58:43,872 - INFO - Extract Diag Info:
+2024-12-03 14:58:43,872 - INFO - Diag ID: 4324, file_name: /shared/data1/Users/l1065028/llvm-project/clang/test/SemaOpenCL/cl20-device-side-enqueue.cl, line number: 136, error_name: err_opencl_enqueue_kernel_invalid_local_size_type
+2024-12-03 14:58:56,552 - INFO - Compile Command: ['clang', '-cc1', 'tmp.c', '-cl-std=CL2.0', '-triple', 'spir-unknown-unknown', '-pedantic', '-fsyntax-only', '-DB32', '-DQUALS=']
+2024-12-03 14:58:56,552 - INFO - Error Message: error: invalid value 'clc++3.0' in '-cl-std=clc++3.0'
+
+2024-12-03 14:58:56,552 - INFO - IDs: [4538, 4538, 3036, 4964]
+2024-12-03 14:58:56,552 - INFO - Extract Diag Info:
+2024-12-03 14:58:56,552 - INFO - Diag ID: 4324, file_name: /shared/data1/Users/l1065028/llvm-project/clang/test/SemaOpenCL/cl20-device-side-enqueue.cl, line number: 136, error_name: err_opencl_enqueue_kernel_invalid_local_size_type
+2024-12-03 14:59:12,141 - INFO - Compile Command: ['clang', '-cc1', 'tmp.c', '-cl-std=CL2.0', '-triple', 'spir-unknown-unknown', '-pedantic', '-fsyntax-only', '-DB32', '-DQUALS=']
+2024-12-03 14:59:12,141 - INFO - Error Message: error: invalid value 'clc++3.0' in '-cl-std=clc++3.0'
+
+2024-12-03 14:59:12,141 - INFO - IDs: [3036, 4336, 3036, 3036, 4407]
+2024-12-03 14:59:12,141 - INFO - Extract Diag Info:
+2024-12-03 14:59:12,141 - INFO - Diag ID: 4324, file_name: /shared/data1/Users/l1065028/llvm-project/clang/test/SemaOpenCL/cl20-device-side-enqueue.cl, line number: 142, error_name: err_opencl_enqueue_kernel_invalid_local_size_type
+2024-12-03 14:59:27,541 - INFO - Compile Command: ['clang', '-cc1', 'tmp.c', '-cl-std=CL2.0', '-triple', 'spir-unknown-unknown', '-pedantic', '-fsyntax-only', '-DB32', '-DQUALS=']
+2024-12-03 14:59:27,541 - INFO - Error Message: error: invalid value 'clc++3.0' in '-cl-std=clc++3.0'
+
+2024-12-03 14:59:27,541 - INFO - IDs: [4538, 4538, 3036, 4990, 4990, 4336, 3036]
+2024-12-03 14:59:27,541 - INFO - Extract Diag Info:
+2024-12-03 14:59:27,541 - INFO - Diag ID: 4324, file_name: /shared/data1/Users/l1065028/llvm-project/clang/test/SemaOpenCL/cl20-device-side-enqueue.cl, line number: 136, error_name: err_opencl_enqueue_kernel_invalid_local_size_type
+2024-12-03 14:59:43,375 - INFO - Compile Command: ['clang', '-cc1', 'tmp.c', '-cl-std=CL2.0', '-triple', 'spir-unknown-unknown', '-pedantic', '-fsyntax-only', '-DB32', '-DQUALS=']
+2024-12-03 14:59:43,376 - INFO - Error Message: error: invalid value 'clc++3.0' in '-cl-std=clc++3.0'
+
+2024-12-03 14:59:43,376 - INFO - IDs: [4538, 4538, 3036, 4354, 4336, 3036, 4407]
+2024-12-03 14:59:43,376 - INFO - Extract Diag Info:
+2024-12-03 14:59:43,376 - INFO - Diag ID: 4324, file_name: /shared/data1/Users/l1065028/llvm-project/clang/test/SemaOpenCL/cl20-device-side-enqueue.cl, line number: 136, error_name: err_opencl_enqueue_kernel_invalid_local_size_type
+2024-12-03 14:59:57,294 - INFO - Compile Command: ['clang', '-cc1', 'tmp.c', '-cl-std=CL2.0', '-triple', 'spir-unknown-unknown', '-pedantic', '-fsyntax-only', '-DB32', '-DQUALS=']
+2024-12-03 14:59:57,295 - INFO - Error Message: error: invalid value 'clc++3.0' in '-cl-std=clc++3.0'
+
+2024-12-03 14:59:57,295 - INFO - IDs: [3036, 4964]
+2024-12-03 14:59:57,295 - INFO - Extract Diag Info:
+2024-12-03 14:59:57,295 - INFO - Diag ID: 4324, file_name: /shared/data1/Users/l1065028/llvm-project/clang/test/SemaOpenCL/cl20-device-side-enqueue.cl, line number: 142, error_name: err_opencl_enqueue_kernel_invalid_local_size_type
+2024-12-03 15:00:12,217 - INFO - Compile Command: ['clang', '-cc1', 'tmp.c', '-cl-std=CL2.0', '-triple', 'spir-unknown-unknown', '-pedantic', '-fsyntax-only', '-DB32', '-DQUALS=']
+2024-12-03 15:00:12,217 - INFO - Error Message: error: invalid value 'clc++3.0' in '-cl-std=clc++3.0'
+
+2024-12-03 15:00:12,217 - INFO - IDs: [4328, 4328, 4328, 4990, 4990, 3036, 4965, 1508, 4965, 1508]
+2024-12-03 15:00:12,217 - INFO - Extract Diag Info:
+2024-12-03 15:00:12,217 - INFO - Diag ID: 4324, file_name: /shared/data1/Users/l1065028/llvm-project/clang/test/SemaOpenCL/cl20-device-side-enqueue.cl, line number: 136, error_name: err_opencl_enqueue_kernel_invalid_local_size_type
+2024-12-03 15:00:28,935 - INFO - Compile Command: ['clang', '-cc1', 'tmp.c', '-cl-std=CL2.0', '-triple', 'spir-unknown-unknown', '-pedantic', '-fsyntax-only', '-DB32', '-DQUALS=']
+2024-12-03 15:00:28,935 - INFO - Error Message: error: invalid value 'clc++3.0' in '-cl-std=clc++3.0'
+
+2024-12-03 15:00:28,935 - INFO - IDs: [3036, 4964]
+2024-12-03 15:00:28,935 - INFO - Extract Diag Info:
+2024-12-03 15:00:28,935 - INFO - Diag ID: 4324, file_name: /shared/data1/Users/l1065028/llvm-project/clang/test/SemaOpenCL/cl20-device-side-enqueue.cl, line number: 136, error_name: err_opencl_enqueue_kernel_invalid_local_size_type
+2024-12-03 15:00:43,483 - INFO - Compile Command: ['clang', '-cc1', 'tmp.c', '-cl-std=CL2.0', '-triple', 'spir-unknown-unknown', '-pedantic', '-fsyntax-only', '-DB32', '-DQUALS=']
+2024-12-03 15:00:43,483 - INFO - Error Message: error: invalid value 'clc++3.0' in '-cl-std=clc++3.0'
+
+2024-12-03 15:00:43,483 - INFO - IDs: [3036, 4964]
+2024-12-03 15:00:43,483 - INFO - Extract Diag Info:
+2024-12-03 15:00:43,483 - INFO - Diag ID: 4324, file_name: /shared/data1/Users/l1065028/llvm-project/clang/test/SemaOpenCL/cl20-device-side-enqueue.cl, line number: 142, error_name: err_opencl_enqueue_kernel_invalid_local_size_type
+2024-12-03 15:00:56,097 - INFO - Compile Command: ['clang', '-cc1', 'tmp.c', '-cl-std=CL2.0', '-triple', 'spir-unknown-unknown', '-pedantic', '-fsyntax-only', '-DB32', '-DQUALS=']
+2024-12-03 15:00:56,098 - INFO - Error Message: error: invalid value 'clc++3.0' in '-cl-std=clc++3.0'
+
+2024-12-03 15:00:56,098 - INFO - IDs: [3036, 4964]
+2024-12-03 15:00:56,098 - INFO - Extract Diag Info:
+2024-12-03 15:00:56,098 - INFO - Diag ID: 4324, file_name: /shared/data1/Users/l1065028/llvm-project/clang/test/SemaOpenCL/cl20-device-side-enqueue.cl, line number: 136, error_name: err_opencl_enqueue_kernel_invalid_local_size_type
+2024-12-03 15:01:09,135 - INFO - Compile Command: ['clang', '-cc1', 'tmp.c', '-cl-std=CL2.0', '-triple', 'spir-unknown-unknown', '-pedantic', '-fsyntax-only', '-DB32', '-DQUALS=']
+2024-12-03 15:01:09,135 - INFO - Error Message: error: invalid value 'clc++3.0' in '-cl-std=clc++3.0'
+
+2024-12-03 15:01:09,135 - INFO - IDs: [4538, 4538, 3036, 4964]
+2024-12-03 15:01:09,135 - INFO - Extract Diag Info:
+2024-12-03 15:01:09,135 - INFO - Diag ID: 4324, file_name: /shared/data1/Users/l1065028/llvm-project/clang/test/SemaOpenCL/cl20-device-side-enqueue.cl, line number: 136, error_name: err_opencl_enqueue_kernel_invalid_local_size_type
+2024-12-03 15:01:20,692 - INFO - Compile Command: ['clang', '-cc1', 'tmp.c', '-cl-std=CL2.0', '-triple', 'spir-unknown-unknown', '-pedantic', '-fsyntax-only', '-DB32', '-DQUALS=']
+2024-12-03 15:01:20,692 - INFO - Error Message: error: invalid value 'clc++3.0' in '-cl-std=clc++3.0'
+
+2024-12-03 15:01:20,693 - INFO - IDs: [1508, 1508, 3036]
+2024-12-03 15:01:20,693 - INFO - Extract Diag Info:
+2024-12-03 15:01:20,693 - INFO - Diag ID: 4324, file_name: /shared/data1/Users/l1065028/llvm-project/clang/test/SemaOpenCL/cl20-device-side-enqueue.cl, line number: 142, error_name: err_opencl_enqueue_kernel_invalid_local_size_type
+2024-12-03 15:01:33,996 - INFO - Compile Command: ['clang', '-cc1', 'tmp.c', '-cl-std=CL2.0', '-triple', 'spir-unknown-unknown', '-pedantic', '-fsyntax-only', '-DB32', '-DQUALS=']
+2024-12-03 15:01:33,996 - INFO - Error Message: error: invalid value 'clc++3.0' in '-cl-std=clc++3.0'
+
+2024-12-03 15:01:33,996 - INFO - IDs: [4328, 3036]
+2024-12-03 15:01:33,996 - INFO - Extract Diag Info:
+2024-12-03 15:01:33,996 - INFO - Diag ID: 4324, file_name: /shared/data1/Users/l1065028/llvm-project/clang/test/SemaOpenCL/cl20-device-side-enqueue.cl, line number: 136, error_name: err_opencl_enqueue_kernel_invalid_local_size_type
+2024-12-03 15:01:46,135 - INFO - Compile Command: ['clang', '-cc1', 'tmp.c', '-cl-std=CL2.0', '-triple', 'spir-unknown-unknown', '-pedantic', '-fsyntax-only', '-DB32', '-DQUALS=']
+2024-12-03 15:01:46,135 - INFO - Error Message: error: invalid value 'clc++3.0' in '-cl-std=clc++3.0'
+
+2024-12-03 15:01:46,135 - INFO - IDs: [4328, 3036, 3641]
+2024-12-03 15:01:46,135 - INFO - Extract Diag Info:
+2024-12-03 15:01:46,135 - INFO - Diag ID: 4324, file_name: /shared/data1/Users/l1065028/llvm-project/clang/test/SemaOpenCL/cl20-device-side-enqueue.cl, line number: 136, error_name: err_opencl_enqueue_kernel_invalid_local_size_type
+2024-12-03 15:01:56,794 - INFO - Compile Command: ['clang', '-cc1', 'tmp.c', '-cl-std=CL2.0', '-triple', 'spir-unknown-unknown', '-pedantic', '-fsyntax-only', '-DB32', '-DQUALS=']
+2024-12-03 15:01:56,794 - INFO - Error Message: error: invalid value 'clc++3.0' in '-cl-std=clc++3.0'
+
+2024-12-03 15:01:56,794 - INFO - IDs: [4538, 4538, 3036, 4354, 4336, 3036]
+2024-12-03 15:01:56,794 - INFO - Extract Diag Info:
+2024-12-03 15:01:56,794 - INFO - Diag ID: 4324, file_name: /shared/data1/Users/l1065028/llvm-project/clang/test/SemaOpenCL/cl20-device-side-enqueue.cl, line number: 142, error_name: err_opencl_enqueue_kernel_invalid_local_size_type
+2024-12-03 15:02:42,571 - INFO - Compile Command: ['clang', '-cc1', '-cl-std=clc++1.0', 'tmp.c']
+2024-12-03 15:02:42,571 - INFO - Error Message: error: invalid value 'clc++3.0' in '-cl-std=clc++3.0'
+
+2024-12-03 15:02:42,571 - INFO - IDs: []
+2024-12-03 15:02:42,571 - INFO - Extract Diag Info:
+2024-12-03 15:02:42,571 - INFO - Diag ID: 2921, file_name: /shared/data1/Users/l1065028/llvm-project/clang/test/SemaOpenCL/nosvm.cl, line number: 7, error_name: err_attribute_requires_opencl_version
+2024-12-03 15:02:55,602 - INFO - Compile Command: ['clang', '-cc1', '-triple', 'spir-unknown-unknown', '-pedantic', '-fsyntax-only', '-cl-std=clc++2021', 'tmp.c']
+2024-12-03 15:02:55,602 - INFO - Error Message: error: invalid value 'clc++3.0' in '-cl-std=clc++3.0'
+
+2024-12-03 15:02:55,603 - INFO - IDs: [1598, 4334]
+2024-12-03 15:02:55,603 - INFO - Extract Diag Info:
+2024-12-03 15:02:55,603 - INFO - Diag ID: 4337, file_name: /shared/data1/Users/l1065028/llvm-project/clang/test/SemaOpenCL/access-qualifier.cl, line number: 39, error_name: err_opencl_invalid_read_write
+2024-12-03 15:03:05,730 - INFO - Compile Command: ['clang', '-cc1', '-triple', 'spir-unknown-unknown', '-pedantic', '-fsyntax-only', '-cl-std=clc++2021', 'tmp.c']
+2024-12-03 15:03:05,730 - INFO - Error Message: error: invalid value 'clc++3.0' in '-cl-std=clc++3.0'
+
+2024-12-03 15:03:05,730 - INFO - IDs: []
+2024-12-03 15:03:05,730 - INFO - Extract Diag Info:
+2024-12-03 15:03:05,730 - INFO - Diag ID: 4337, file_name: /shared/data1/Users/l1065028/llvm-project/clang/test/SemaOpenCL/access-qualifier.cl, line number: 99, error_name: err_opencl_invalid_read_write
+2024-12-03 15:03:07,298 - INFO - failed running
+2024-12-03 15:03:07,298 - INFO - 'tuple' object does not support item assignment
+2024-12-03 15:03:07,301 - INFO - Traceback (most recent call last):
+  File "/shared/data1/Users/l1065028/Fuzzlang/src/llvm_test_agent/agent.py", line 276, in main
+    res = agent_openmp.generate_code_omp(diag, lines, code_type,
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/shared/data1/Users/l1065028/Fuzzlang/src/llvm_test_agent/agent_openmp.py", line 92, in generate_code_omp
+    command = process_command(command)
+              ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/shared/data1/Users/l1065028/Fuzzlang/src/llvm_test_agent/agent_openmp.py", line 16, in process_command
+    command[i] = 'clang'
+    ~~~~~~~^^^
+TypeError: 'tuple' object does not support item assignment
+
+2024-12-03 15:03:21,113 - INFO - Compile Command: ['clang', '-cc1', '-fsyntax-only', '-triple', 'spir-unknown-unknown', '-cl-std=CL2.0', 'tmp.c']
+2024-12-03 15:03:21,114 - INFO - Error Message: error: invalid value 'clc++3.0' in '-cl-std=clc++3.0'
+
+2024-12-03 15:03:21,114 - INFO - IDs: []
+2024-12-03 15:03:21,114 - INFO - Extract Diag Info:
+2024-12-03 15:03:21,114 - INFO - Diag ID: 4345, file_name: /shared/data1/Users/l1065028/llvm-project/clang/test/SemaOpenCL/invalid-kernel-parameters.cl, line number: 13, error_name: err_opencl_ptrptr_kernel_param
+2024-12-03 15:03:29,303 - INFO - Compile Command: ['clang', '-cc1', '-fsyntax-only', '-triple', 'spir-unknown-unknown', '-cl-std=CL2.0', 'tmp.c']
+2024-12-03 15:03:29,303 - INFO - Error Message: error: invalid value 'clc++3.0' in '-cl-std=clc++3.0'
+
+2024-12-03 15:03:29,303 - INFO - IDs: []
+2024-12-03 15:03:29,303 - INFO - Extract Diag Info:
+2024-12-03 15:03:29,303 - INFO - Diag ID: 4345, file_name: /shared/data1/Users/l1065028/llvm-project/clang/test/SemaOpenCL/invalid-kernel-parameters.cl, line number: 14, error_name: err_opencl_ptrptr_kernel_param
+2024-12-03 15:03:39,435 - INFO - Compile Command: ['clang', '-cc1', '-fsyntax-only', 'tmp.c', '-triple', 'spir-unknown-unknown', '-cl-std=CL2.0']
+2024-12-03 15:03:39,435 - INFO - Error Message: error: invalid value 'clc++3.0' in '-cl-std=clc++3.0'
+
+2024-12-03 15:03:39,435 - INFO - IDs: []
+2024-12-03 15:03:39,435 - INFO - Extract Diag Info:
+2024-12-03 15:03:39,435 - INFO - Diag ID: 4345, file_name: /shared/data1/Users/l1065028/llvm-project/clang/test/SemaOpenCL/invalid-kernel-parameters.cl, line number: 15, error_name: err_opencl_ptrptr_kernel_param
+2024-12-03 15:03:51,535 - INFO - Compile Command: ['clang', '-cc1', 'tmp.c', '-pedantic', '-fsyntax-only', '-cl-std=CL3.0', '-cl-ext=-all,+__opencl_c_program_scope_global_variables,+__opencl_c_generic_address_space']
+2024-12-03 15:03:51,535 - INFO - Error Message: error: invalid value 'clc++3.0' in '-cl-std=clc++3.0'
+
+2024-12-03 15:03:51,535 - INFO - IDs: [4330]
+2024-12-03 15:03:51,535 - INFO - Extract Diag Info:
+2024-12-03 15:03:51,535 - INFO - Diag ID: 51, file_name: /shared/data1/Users/l1065028/llvm-project/clang/test/SemaOpenCL/storageclass.cl, line number: 49, error_name: err_opencl_unknown_type_specifier
+2024-12-03 15:04:03,037 - INFO - Compile Command: ['clang', '-cc1', 'tmp.c', '-pedantic', '-fsyntax-only', '-cl-std=CL3.0', '-cl-ext=-all,+__opencl_c_program_scope_global_variables,+__opencl_c_generic_address_space']
+2024-12-03 15:04:03,037 - INFO - Error Message: error: invalid value 'clc++3.0' in '-cl-std=clc++3.0'
+
+2024-12-03 15:04:03,037 - INFO - IDs: []
+2024-12-03 15:04:03,037 - INFO - Extract Diag Info:
+2024-12-03 15:04:03,037 - INFO - Diag ID: 51, file_name: /shared/data1/Users/l1065028/llvm-project/clang/test/SemaOpenCL/storageclass.cl, line number: 95, error_name: err_opencl_unknown_type_specifier
+2024-12-03 15:04:22,241 - INFO - Compile Command: ['clang', '-cc1', 'tmp.c', '-cl-std=CL2.0', '-triple', 'spir-unknown-unknown', '-pedantic', '-fsyntax-only', '-DB32', '-DQUALS=']
+2024-12-03 15:04:22,242 - INFO - Error Message: error: invalid value 'clc++3.0' in '-cl-std=clc++3.0'
+
+2024-12-03 15:04:22,242 - INFO - IDs: [3036, 4964]
+2024-12-03 15:04:22,242 - INFO - Extract Diag Info:
+2024-12-03 15:04:22,242 - INFO - Diag ID: 4321, file_name: /shared/data1/Users/l1065028/llvm-project/clang/test/SemaOpenCL/cl20-device-side-enqueue.cl, line number: 42, error_name: err_opencl_enqueue_kernel_blocks_no_args
+2024-12-03 15:04:36,073 - INFO - Compile Command: ['clang', '-cc1', 'tmp.c', '-cl-std=CL2.0', '-triple', 'spir-unknown-unknown', '-pedantic', '-fsyntax-only', '-DB32', '-DQUALS=']
+2024-12-03 15:04:36,073 - INFO - Error Message: error: invalid value 'clc++3.0' in '-cl-std=clc++3.0'
+
+2024-12-03 15:04:36,073 - INFO - IDs: [3036, 4964]
+2024-12-03 15:04:36,073 - INFO - Extract Diag Info:
+2024-12-03 15:04:36,073 - INFO - Diag ID: 4321, file_name: /shared/data1/Users/l1065028/llvm-project/clang/test/SemaOpenCL/cl20-device-side-enqueue.cl, line number: 42, error_name: err_opencl_enqueue_kernel_blocks_no_args
+2024-12-03 15:04:47,920 - INFO - Compile Command: ['clang', '-cc1', 'tmp.c', '-cl-std=CL2.0', '-triple', 'spir-unknown-unknown', '-pedantic', '-fsyntax-only', '-DB32', '-DQUALS=']
+2024-12-03 15:04:47,921 - INFO - Error Message: error: invalid value 'clc++3.0' in '-cl-std=clc++3.0'
+
+2024-12-03 15:04:47,921 - INFO - IDs: [4538, 4538, 3036, 4964]
+2024-12-03 15:04:47,921 - INFO - Extract Diag Info:
+2024-12-03 15:04:47,921 - INFO - Diag ID: 4321, file_name: /shared/data1/Users/l1065028/llvm-project/clang/test/SemaOpenCL/cl20-device-side-enqueue.cl, line number: 42, error_name: err_opencl_enqueue_kernel_blocks_no_args
+2024-12-03 15:04:50,656 - INFO - failed running
+2024-12-03 15:04:50,656 - INFO - [Errno 2] No such file or directory: '-cl-std=CL2.0'
+2024-12-03 15:04:50,658 - INFO - Traceback (most recent call last):
+  File "/shared/data1/Users/l1065028/Fuzzlang/src/llvm_test_agent/agent.py", line 276, in main
+    res = agent_openmp.generate_code_omp(diag, lines, code_type,
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/shared/data1/Users/l1065028/Fuzzlang/src/llvm_test_agent/agent_openmp.py", line 116, in generate_code_omp
+    IDs, err_msg = run_command_w_code_omp(command, repro_code, code_type)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/shared/data1/Users/l1065028/Fuzzlang/src/llvm_test_agent/agent_openmp.py", line 54, in run_command_w_code_omp
+    process = subprocess.run(
+              ^^^^^^^^^^^^^^^
+  File "/hrtc/apps/scripting/anaconda3/x86_64/2024.02/lib/python3.11/subprocess.py", line 548, in run
+    with Popen(*popenargs, **kwargs) as process:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/hrtc/apps/scripting/anaconda3/x86_64/2024.02/lib/python3.11/subprocess.py", line 1026, in __init__
+    self._execute_child(args, executable, preexec_fn, close_fds,
+  File "/hrtc/apps/scripting/anaconda3/x86_64/2024.02/lib/python3.11/subprocess.py", line 1950, in _execute_child
+    raise child_exception_type(errno_num, err_msg, err_filename)
+FileNotFoundError: [Errno 2] No such file or directory: '-cl-std=CL2.0'
+
+2024-12-03 15:05:18,855 - INFO - Compile Command: ['clang', '-cc1', '-fblocks', '-cl-std=CL3.0', '-cl-ext=-all,+__opencl_c_device_enqueue,+__opencl_c_generic_address_space,+__opencl_c_program_scope_global_variables', 'tmp.c']
+2024-12-03 15:05:18,856 - INFO - Error Message: error: invalid value 'clc++3.0' in '-cl-std=clc++3.0'
+
+2024-12-03 15:05:18,856 - INFO - IDs: []
+2024-12-03 15:05:18,856 - INFO - Extract Diag Info:
+2024-12-03 15:05:18,856 - INFO - Diag ID: 4350, file_name: /shared/data1/Users/l1065028/llvm-project/clang/test/SemaOpenCL/invalid-block.cl, line number: 66, error_name: err_opencl_ternary_with_block
+2024-12-03 15:05:31,868 - INFO - Compile Command: ['clang', '-cc1', '-fblocks', '-cl-std=CL3.0', '-cl-ext=-all,+__opencl_c_device_enqueue,+__opencl_c_generic_address_space,+__opencl_c_program_scope_global_variables', 'tmp.c']
+2024-12-03 15:05:31,868 - INFO - Error Message: error: invalid value 'clc++3.0' in '-cl-std=clc++3.0'
+
+2024-12-03 15:05:31,868 - INFO - IDs: []
+2024-12-03 15:05:31,868 - INFO - Extract Diag Info:
+2024-12-03 15:05:31,868 - INFO - Diag ID: 4350, file_name: /shared/data1/Users/l1065028/llvm-project/clang/test/SemaOpenCL/invalid-block.cl, line number: 67, error_name: err_opencl_ternary_with_block
+2024-12-03 15:05:47,855 - INFO - Compile Command: ['clang', '-cc1', '-fblocks', '-cl-std=CL3.0', '-cl-ext=-all,+__opencl_c_device_enqueue,+__opencl_c_generic_address_space,+__opencl_c_program_scope_global_variables', 'tmp.c']
+2024-12-03 15:05:47,855 - INFO - Error Message: error: invalid value 'clc++3.0' in '-cl-std=clc++3.0'
+
+2024-12-03 15:05:47,855 - INFO - IDs: []
+2024-12-03 15:05:47,855 - INFO - Extract Diag Info:
+2024-12-03 15:05:47,855 - INFO - Diag ID: 4350, file_name: /shared/data1/Users/l1065028/llvm-project/clang/test/SemaOpenCL/invalid-block.cl, line number: 66, error_name: err_opencl_ternary_with_block
+2024-12-03 15:06:01,424 - INFO - Compile Command: ['clang', '-cc1', '-fblocks', '-cl-std=CL3.0', '-cl-ext=-all,+__opencl_c_device_enqueue,+__opencl_c_generic_address_space,+__opencl_c_program_scope_global_variables', 'tmp.c']
+2024-12-03 15:06:01,424 - INFO - Error Message: error: invalid value 'clc++3.0' in '-cl-std=clc++3.0'
+
+2024-12-03 15:06:01,424 - INFO - IDs: []
+2024-12-03 15:06:01,424 - INFO - Extract Diag Info:
+2024-12-03 15:06:01,424 - INFO - Diag ID: 4350, file_name: /shared/data1/Users/l1065028/llvm-project/clang/test/SemaOpenCL/invalid-block.cl, line number: 67, error_name: err_opencl_ternary_with_block
+2024-12-03 15:06:30,114 - INFO - Compile Command: ['clang', '-cc1', 'tmp.c', '-pedantic', '-fsyntax-only', '-Wno-unused-value', '-triple', 'spir-unknown-unknown']
+2024-12-03 15:06:30,114 - INFO - Error Message: error: invalid value 'clc++3.0' in '-cl-std=clc++3.0'
+
+2024-12-03 15:06:30,114 - INFO - IDs: [4331]
+2024-12-03 15:06:30,114 - INFO - Extract Diag Info:
+2024-12-03 15:06:30,114 - INFO - Diag ID: 4319, file_name: /shared/data1/Users/l1065028/llvm-project/clang/test/SemaOpenCL/half.cl, line number: 17, error_name: err_opencl_cast_to_half
+2024-12-03 15:06:38,850 - INFO - Compile Command: ['clang', '-cc1', 'tmp.c', '-pedantic', '-fsyntax-only', '-Wno-unused-value', '-triple', 'spir-unknown-unknown']
+2024-12-03 15:06:38,850 - INFO - Error Message: error: invalid value 'clc++3.0' in '-cl-std=clc++3.0'
+
+2024-12-03 15:06:38,850 - INFO - IDs: [3713, 3731, 4331]
+2024-12-03 15:06:38,850 - INFO - Extract Diag Info:
+2024-12-03 15:06:38,850 - INFO - Diag ID: 4319, file_name: /shared/data1/Users/l1065028/llvm-project/clang/test/SemaOpenCL/half.cl, line number: 17, error_name: err_opencl_cast_to_half
+2024-12-03 15:07:39,274 - INFO - Compile Command: ['clang', '-cc1', 'tmp.c', '-cl-std=CL2.0', '-triple', 'spir-unknown-unknown', '-pedantic', '-fsyntax-only', '-DB32', '-DQUALS=']
+2024-12-03 15:07:39,274 - INFO - Error Message: error: invalid value 'clc++3.0' in '-cl-std=clc++3.0'
+
+2024-12-03 15:07:39,274 - INFO - IDs: [3036, 3036, 4964]
+2024-12-03 15:07:39,274 - INFO - Extract Diag Info:
+2024-12-03 15:07:39,274 - INFO - Diag ID: 4322, file_name: /shared/data1/Users/l1065028/llvm-project/clang/test/SemaOpenCL/cl20-device-side-enqueue.cl, line number: 123, error_name: err_opencl_enqueue_kernel_blocks_non_local_void_args
+2024-12-03 15:07:48,575 - INFO - Compile Command: ['clang', '-cc1', 'tmp.c', '-cl-std=CL2.0', '-triple', 'spir-unknown-unknown', '-pedantic', '-fsyntax-only', '-DB32', '-DQUALS=']
+2024-12-03 15:07:48,575 - INFO - Error Message: error: invalid value 'clc++3.0' in '-cl-std=clc++3.0'
+
+2024-12-03 15:07:48,575 - INFO - IDs: [4990, 3036, 4336, 3036]
+2024-12-03 15:07:48,575 - INFO - Extract Diag Info:
+2024-12-03 15:07:48,575 - INFO - Diag ID: 4322, file_name: /shared/data1/Users/l1065028/llvm-project/clang/test/SemaOpenCL/cl20-device-side-enqueue.cl, line number: 191, error_name: err_opencl_enqueue_kernel_blocks_non_local_void_args
+2024-12-03 15:07:59,678 - INFO - Compile Command: ['clang', '-cc1', 'tmp.c', '-cl-std=CL2.0', '-triple', 'spir-unknown-unknown', '-pedantic', '-fsyntax-only', '-DB32', '-DQUALS=']
+2024-12-03 15:07:59,678 - INFO - Error Message: error: invalid value 'clc++3.0' in '-cl-std=clc++3.0'
+
+2024-12-03 15:07:59,678 - INFO - IDs: [3036, 3036, 4964]
+2024-12-03 15:07:59,678 - INFO - Extract Diag Info:
+2024-12-03 15:07:59,678 - INFO - Diag ID: 4322, file_name: /shared/data1/Users/l1065028/llvm-project/clang/test/SemaOpenCL/cl20-device-side-enqueue.cl, line number: 194, error_name: err_opencl_enqueue_kernel_blocks_non_local_void_args
+2024-12-03 15:08:12,300 - INFO - Compile Command: ['clang', '-cc1', 'tmp.c', '-cl-std=CL2.0', '-triple', 'spir-unknown-unknown', '-pedantic', '-fsyntax-only', '-DB32', '-DQUALS=']
+2024-12-03 15:08:12,300 - INFO - Error Message: error: invalid value 'clc++3.0' in '-cl-std=clc++3.0'
+
+2024-12-03 15:08:12,300 - INFO - IDs: [3036, 3036, 4964]
+2024-12-03 15:08:12,301 - INFO - Extract Diag Info:
+2024-12-03 15:08:12,301 - INFO - Diag ID: 4322, file_name: /shared/data1/Users/l1065028/llvm-project/clang/test/SemaOpenCL/cl20-device-side-enqueue.cl, line number: 195, error_name: err_opencl_enqueue_kernel_blocks_non_local_void_args
+2024-12-03 15:08:21,458 - INFO - Compile Command: ['clang', '-cc1', 'tmp.c', '-cl-std=CL2.0', '-triple', 'spir-unknown-unknown', '-pedantic', '-fsyntax-only', '-DB32', '-DQUALS=']
+2024-12-03 15:08:21,458 - INFO - Error Message: error: invalid value 'clc++3.0' in '-cl-std=clc++3.0'
+
+2024-12-03 15:08:21,458 - INFO - IDs: [3036, 4964]
+2024-12-03 15:08:21,458 - INFO - Extract Diag Info:
+2024-12-03 15:08:21,458 - INFO - Diag ID: 4322, file_name: /shared/data1/Users/l1065028/llvm-project/clang/test/SemaOpenCL/cl20-device-side-enqueue.cl, line number: 196, error_name: err_opencl_enqueue_kernel_blocks_non_local_void_args
+2024-12-03 15:08:31,072 - INFO - Compile Command: ['clang', '-cc1', 'tmp.c', '-cl-std=CL2.0', '-triple', 'spir-unknown-unknown', '-pedantic', '-fsyntax-only', '-DB32', '-DQUALS=']
+2024-12-03 15:08:31,072 - INFO - Error Message: error: invalid value 'clc++3.0' in '-cl-std=clc++3.0'
+
+2024-12-03 15:08:31,072 - INFO - IDs: [3036, 4964]
+2024-12-03 15:08:31,072 - INFO - Extract Diag Info:
+2024-12-03 15:08:31,072 - INFO - Diag ID: 4322, file_name: /shared/data1/Users/l1065028/llvm-project/clang/test/SemaOpenCL/cl20-device-side-enqueue.cl, line number: 208, error_name: err_opencl_enqueue_kernel_blocks_non_local_void_args
+2024-12-03 15:08:41,013 - INFO - Compile Command: ['clang', '-cc1', 'tmp.c', '-cl-std=CL2.0', '-triple', 'spir-unknown-unknown', '-pedantic', '-fsyntax-only', '-DB32', '-DQUALS=']
+2024-12-03 15:08:41,013 - INFO - Error Message: error: invalid value 'clc++3.0' in '-cl-std=clc++3.0'
+
+2024-12-03 15:08:41,013 - INFO - IDs: [3036, 4964]
+2024-12-03 15:08:41,013 - INFO - Extract Diag Info:
+2024-12-03 15:08:41,013 - INFO - Diag ID: 4322, file_name: /shared/data1/Users/l1065028/llvm-project/clang/test/SemaOpenCL/cl20-device-side-enqueue.cl, line number: 211, error_name: err_opencl_enqueue_kernel_blocks_non_local_void_args
+2024-12-03 15:08:51,322 - INFO - Compile Command: ['clang', '-cc1', 'tmp.c', '-cl-std=CL2.0', '-triple', 'spir-unknown-unknown', '-pedantic', '-fsyntax-only', '-DB32', '-DQUALS=']
+2024-12-03 15:08:51,322 - INFO - Error Message: error: invalid value 'clc++3.0' in '-cl-std=clc++3.0'
+
+2024-12-03 15:08:51,322 - INFO - IDs: [3036, 3036, 4964]
+2024-12-03 15:08:51,322 - INFO - Extract Diag Info:
+2024-12-03 15:08:51,322 - INFO - Diag ID: 4322, file_name: /shared/data1/Users/l1065028/llvm-project/clang/test/SemaOpenCL/cl20-device-side-enqueue.cl, line number: 214, error_name: err_opencl_enqueue_kernel_blocks_non_local_void_args
+2024-12-03 15:09:09,347 - INFO - Compile Command: ['clang', '-cc1', 'tmp.c', '-cl-std=CL2.0', '-triple', 'spir-unknown-unknown', '-pedantic', '-fsyntax-only', '-DB32', '-DQUALS=']
+2024-12-03 15:09:09,348 - INFO - Error Message: error: invalid value 'clc++3.0' in '-cl-std=clc++3.0'
+
+2024-12-03 15:09:09,348 - INFO - IDs: [3036, 3036, 4990, 3036, 4336, 4965, 4964]
+2024-12-03 15:09:09,348 - INFO - Extract Diag Info:
+2024-12-03 15:09:09,348 - INFO - Diag ID: 4322, file_name: /shared/data1/Users/l1065028/llvm-project/clang/test/SemaOpenCL/cl20-device-side-enqueue.cl, line number: 215, error_name: err_opencl_enqueue_kernel_blocks_non_local_void_args
+2024-12-03 15:09:22,571 - INFO - Compile Command: ['clang', '-cc1', 'tmp.c', '-cl-std=CL2.0', '-triple', 'spir-unknown-unknown', '-pedantic', '-fsyntax-only', '-DB32', '-DQUALS=']
+2024-12-03 15:09:22,571 - INFO - Error Message: error: invalid value 'clc++3.0' in '-cl-std=clc++3.0'
+
+2024-12-03 15:09:22,571 - INFO - IDs: [3036, 3036, 4964]
+2024-12-03 15:09:22,571 - INFO - Extract Diag Info:
+2024-12-03 15:09:22,571 - INFO - Diag ID: 4322, file_name: /shared/data1/Users/l1065028/llvm-project/clang/test/SemaOpenCL/cl20-device-side-enqueue.cl, line number: 123, error_name: err_opencl_enqueue_kernel_blocks_non_local_void_args
+2024-12-03 15:09:32,558 - INFO - Compile Command: ['clang', '-cc1', 'tmp.c', '-cl-std=CL2.0', '-triple', 'spir-unknown-unknown', '-pedantic', '-fsyntax-only', '-DB32', '-DQUALS=']
+2024-12-03 15:09:32,558 - INFO - Error Message: error: invalid value 'clc++3.0' in '-cl-std=clc++3.0'
+
+2024-12-03 15:09:32,558 - INFO - IDs: [3036, 4964]
+2024-12-03 15:09:32,558 - INFO - Extract Diag Info:
+2024-12-03 15:09:32,558 - INFO - Diag ID: 4322, file_name: /shared/data1/Users/l1065028/llvm-project/clang/test/SemaOpenCL/cl20-device-side-enqueue.cl, line number: 191, error_name: err_opencl_enqueue_kernel_blocks_non_local_void_args
+2024-12-03 15:09:46,147 - INFO - Compile Command: ['clang', '-cc1', 'tmp.c', '-cl-std=CL2.0', '-triple', 'spir-unknown-unknown', '-pedantic', '-fsyntax-only', '-DB32', '-DQUALS=']
+2024-12-03 15:09:46,147 - INFO - Error Message: error: invalid value 'clc++3.0' in '-cl-std=clc++3.0'
+
+2024-12-03 15:09:46,147 - INFO - IDs: [3036, 3036, 4964]
+2024-12-03 15:09:46,147 - INFO - Extract Diag Info:
+2024-12-03 15:09:46,147 - INFO - Diag ID: 4322, file_name: /shared/data1/Users/l1065028/llvm-project/clang/test/SemaOpenCL/cl20-device-side-enqueue.cl, line number: 194, error_name: err_opencl_enqueue_kernel_blocks_non_local_void_args
+2024-12-03 15:09:57,980 - INFO - Compile Command: ['clang', '-cc1', 'tmp.c', '-cl-std=CL2.0', '-triple', 'spir-unknown-unknown', '-pedantic', '-fsyntax-only', '-DB32', '-DQUALS=']
+2024-12-03 15:09:57,980 - INFO - Error Message: error: invalid value 'clc++3.0' in '-cl-std=clc++3.0'
+
+2024-12-03 15:09:57,980 - INFO - IDs: [3036, 4336, 3036, 3036]
+2024-12-03 15:09:57,980 - INFO - Extract Diag Info:
+2024-12-03 15:09:57,980 - INFO - Diag ID: 4322, file_name: /shared/data1/Users/l1065028/llvm-project/clang/test/SemaOpenCL/cl20-device-side-enqueue.cl, line number: 195, error_name: err_opencl_enqueue_kernel_blocks_non_local_void_args
+2024-12-03 15:10:07,575 - INFO - Compile Command: ['clang', '-cc1', 'tmp.c', '-cl-std=CL2.0', '-triple', 'spir-unknown-unknown', '-pedantic', '-fsyntax-only', '-DB32', '-DQUALS=']
+2024-12-03 15:10:07,575 - INFO - Error Message: error: invalid value 'clc++3.0' in '-cl-std=clc++3.0'
+
+2024-12-03 15:10:07,575 - INFO - IDs: [3036, 4964]
+2024-12-03 15:10:07,575 - INFO - Extract Diag Info:
+2024-12-03 15:10:07,575 - INFO - Diag ID: 4322, file_name: /shared/data1/Users/l1065028/llvm-project/clang/test/SemaOpenCL/cl20-device-side-enqueue.cl, line number: 196, error_name: err_opencl_enqueue_kernel_blocks_non_local_void_args
+2024-12-03 15:10:18,641 - INFO - Compile Command: ['clang', '-cc1', 'tmp.c', '-cl-std=CL2.0', '-triple', 'spir-unknown-unknown', '-pedantic', '-fsyntax-only', '-DB32', '-DQUALS=']
+2024-12-03 15:10:18,642 - INFO - Error Message: error: invalid value 'clc++3.0' in '-cl-std=clc++3.0'
+
+2024-12-03 15:10:18,642 - INFO - IDs: [4965, 4964, 4964, 3036, 4964]
+2024-12-03 15:10:18,642 - INFO - Extract Diag Info:
+2024-12-03 15:10:18,642 - INFO - Diag ID: 4322, file_name: /shared/data1/Users/l1065028/llvm-project/clang/test/SemaOpenCL/cl20-device-side-enqueue.cl, line number: 208, error_name: err_opencl_enqueue_kernel_blocks_non_local_void_args
+2024-12-03 15:10:26,154 - INFO - Compile Command: ['clang', '-cc1', 'tmp.c', '-fsyntax-only']
+2024-12-03 15:10:26,154 - INFO - Error Message: error: invalid value 'clc++3.0' in '-cl-std=clc++3.0'
+
+2024-12-03 15:10:26,154 - INFO - IDs: [4615]
+2024-12-03 15:10:26,154 - INFO - Extract Diag Info:
+2024-12-03 15:10:26,154 - INFO - Diag ID: 4348, file_name: /shared/data1/Users/l1065028/llvm-project/clang/test/SemaOpenCL/sizeof.cl, line number: 4, error_name: err_opencl_sizeof_alignof_type
+2024-12-03 15:10:46,659 - INFO - Compile Command: ['clang', '-cc1', 'tmp.c', '-cl-std=CL2.0', '-triple', 'spir64-unknown-unknown', '-pedantic', '-fsyntax-only', '-Wconversion', '-DWCONV', '-DQUALS=const volatile']
+2024-12-03 15:10:46,659 - INFO - Error Message: error: invalid value 'clc++3.0' in '-cl-std=clc++3.0'
+
+2024-12-03 15:10:46,659 - INFO - IDs: [3036, 4538, 3036, 4964, 4354, 4336]
+2024-12-03 15:10:46,659 - INFO - Extract Diag Info:
+2024-12-03 15:10:46,659 - INFO - Diag ID: 4325, file_name: /shared/data1/Users/l1065028/llvm-project/clang/test/SemaOpenCL/cl20-device-side-enqueue.cl, line number: 125, error_name: err_opencl_enqueue_kernel_local_size_args
+2024-12-03 15:11:00,401 - INFO - Compile Command: ['clang', '-cc1', 'tmp.c', '-cl-std=CL2.0', '-triple', 'spir-unknown-unknown', '-pedantic', '-fsyntax-only', '-DB32', '-DQUALS=']
+2024-12-03 15:11:00,401 - INFO - Error Message: error: invalid value 'clc++3.0' in '-cl-std=clc++3.0'
+
+2024-12-03 15:11:00,401 - INFO - IDs: [4538, 4538, 3036, 4964]
+2024-12-03 15:11:00,401 - INFO - Extract Diag Info:
+2024-12-03 15:11:00,401 - INFO - Diag ID: 4325, file_name: /shared/data1/Users/l1065028/llvm-project/clang/test/SemaOpenCL/cl20-device-side-enqueue.cl, line number: 157, error_name: err_opencl_enqueue_kernel_local_size_args
+2024-12-03 15:11:12,460 - INFO - Compile Command: ['clang', '-cc1', 'tmp.c', '-cl-std=CL2.0', '-triple', 'spir64-unknown-unknown', '-pedantic', '-fsyntax-only', '-Wconversion', '-DWCONV', '-DQUALS=const volatile']
+2024-12-03 15:11:12,460 - INFO - Error Message: error: invalid value 'clc++3.0' in '-cl-std=clc++3.0'
+
+2024-12-03 15:11:12,460 - INFO - IDs: [4538, 3036, 4964]
+2024-12-03 15:11:12,460 - INFO - Extract Diag Info:
+2024-12-03 15:11:12,460 - INFO - Diag ID: 4325, file_name: /shared/data1/Users/l1065028/llvm-project/clang/test/SemaOpenCL/cl20-device-side-enqueue.cl, line number: 125, error_name: err_opencl_enqueue_kernel_local_size_args
+2024-12-03 15:11:27,854 - INFO - Compile Command: ['clang', '-cc1', 'tmp.c', '-cl-std=CL2.0', '-triple', 'spir-unknown-unknown', '-pedantic', '-fsyntax-only', '-DB32', '-DQUALS=']
+2024-12-03 15:11:27,854 - INFO - Error Message: error: invalid value 'clc++3.0' in '-cl-std=clc++3.0'
+
+2024-12-03 15:11:27,854 - INFO - IDs: [4538, 4538, 4354, 3036, 4407]
+2024-12-03 15:11:27,854 - INFO - Extract Diag Info:
+2024-12-03 15:11:27,854 - INFO - Diag ID: 4325, file_name: /shared/data1/Users/l1065028/llvm-project/clang/test/SemaOpenCL/cl20-device-side-enqueue.cl, line number: 157, error_name: err_opencl_enqueue_kernel_local_size_args
+2024-12-03 15:11:41,496 - INFO - Compile Command: ['clang', '-cc1', 'tmp.c', '-cl-std=CL2.0', '-triple', 'spir-unknown-unknown', '-pedantic', '-fsyntax-only', '-DB32', '-DQUALS=']
+2024-12-03 15:11:41,496 - INFO - Error Message: error: invalid value 'clc++3.0' in '-cl-std=clc++3.0'
+
+2024-12-03 15:11:41,496 - INFO - IDs: [3036, 4964]
+2024-12-03 15:11:41,496 - INFO - Extract Diag Info:
+2024-12-03 15:11:41,496 - INFO - Diag ID: 4325, file_name: /shared/data1/Users/l1065028/llvm-project/clang/test/SemaOpenCL/cl20-device-side-enqueue.cl, line number: 125, error_name: err_opencl_enqueue_kernel_local_size_args
+2024-12-03 15:11:56,764 - INFO - Compile Command: ['clang', '-cc1', 'tmp.c', '-cl-std=CL2.0', '-triple', 'spir-unknown-unknown', '-pedantic', '-fsyntax-only', '-DB32', '-DQUALS=']
+2024-12-03 15:11:56,764 - INFO - Error Message: error: invalid value 'clc++3.0' in '-cl-std=clc++3.0'
+
+2024-12-03 15:11:56,764 - INFO - IDs: [4538, 4538, 3036, 4964, 3036, 4354, 4336]
+2024-12-03 15:11:56,764 - INFO - Extract Diag Info:
+2024-12-03 15:11:56,764 - INFO - Diag ID: 4325, file_name: /shared/data1/Users/l1065028/llvm-project/clang/test/SemaOpenCL/cl20-device-side-enqueue.cl, line number: 157, error_name: err_opencl_enqueue_kernel_local_size_args
+2024-12-03 15:12:11,356 - INFO - Compile Command: ['clang', '-cc1', 'tmp.c', '-cl-std=CL2.0', '-triple', 'spir-unknown-unknown', '-pedantic', '-fsyntax-only', '-DB32', '-DQUALS=']
+2024-12-03 15:12:11,357 - INFO - Error Message: error: invalid value 'clc++3.0' in '-cl-std=clc++3.0'
+
+2024-12-03 15:12:11,357 - INFO - IDs: [3036, 4964]
+2024-12-03 15:12:11,357 - INFO - Extract Diag Info:
+2024-12-03 15:12:11,357 - INFO - Diag ID: 4325, file_name: /shared/data1/Users/l1065028/llvm-project/clang/test/SemaOpenCL/cl20-device-side-enqueue.cl, line number: 125, error_name: err_opencl_enqueue_kernel_local_size_args
+2024-12-03 15:12:24,572 - INFO - Compile Command: ['clang', '-cc1', 'tmp.c', '-cl-std=CL2.0', '-triple', 'spir64-unknown-unknown', '-pedantic', '-fsyntax-only', '-Wconversion', '-DWCONV', '-DQUALS=const volatile']
+2024-12-03 15:12:24,572 - INFO - Error Message: error: invalid value 'clc++3.0' in '-cl-std=clc++3.0'
+
+2024-12-03 15:12:24,572 - INFO - IDs: [3036, 4964]
+2024-12-03 15:12:24,572 - INFO - Extract Diag Info:
+2024-12-03 15:12:24,572 - INFO - Diag ID: 4325, file_name: /shared/data1/Users/l1065028/llvm-project/clang/test/SemaOpenCL/cl20-device-side-enqueue.cl, line number: 157, error_name: err_opencl_enqueue_kernel_local_size_args
+2024-12-03 15:12:36,881 - INFO - Compile Command: ['clang', '-cc1', 'tmp.c', '-cl-std=CL2.0', '-triple', 'spir-unknown-unknown', '-pedantic', '-fsyntax-only', '-DB32', '-DQUALS=']
+2024-12-03 15:12:36,881 - INFO - Error Message: error: invalid value 'clc++3.0' in '-cl-std=clc++3.0'
+
+2024-12-03 15:12:36,881 - INFO - IDs: [3036, 4964]
+2024-12-03 15:12:36,881 - INFO - Extract Diag Info:
+2024-12-03 15:12:36,881 - INFO - Diag ID: 4325, file_name: /shared/data1/Users/l1065028/llvm-project/clang/test/SemaOpenCL/cl20-device-side-enqueue.cl, line number: 125, error_name: err_opencl_enqueue_kernel_local_size_args
+2024-12-03 15:12:52,185 - INFO - Compile Command: ['clang', '-cc1', 'tmp.c', '-cl-std=CL2.0', '-triple', 'spir-unknown-unknown', '-pedantic', '-fsyntax-only', '-DB32', '-DQUALS=']
+2024-12-03 15:12:52,185 - INFO - Error Message: error: invalid value 'clc++3.0' in '-cl-std=clc++3.0'
+
+2024-12-03 15:12:52,185 - INFO - IDs: [4538, 4538, 3036, 4964]
+2024-12-03 15:12:52,185 - INFO - Extract Diag Info:
+2024-12-03 15:12:52,185 - INFO - Diag ID: 4325, file_name: /shared/data1/Users/l1065028/llvm-project/clang/test/SemaOpenCL/cl20-device-side-enqueue.cl, line number: 157, error_name: err_opencl_enqueue_kernel_local_size_args
+2024-12-03 15:13:04,153 - INFO - Compile Command: ['clang', '-cc1', 'tmp.c', '-cl-std=CL2.0', '-triple', 'spir-unknown-unknown', '-pedantic', '-fsyntax-only', '-DB32', '-DQUALS=']
+2024-12-03 15:13:04,153 - INFO - Error Message: error: invalid value 'clc++3.0' in '-cl-std=clc++3.0'
+
+2024-12-03 15:13:04,153 - INFO - IDs: [3036, 4964]
+2024-12-03 15:13:04,153 - INFO - Extract Diag Info:
+2024-12-03 15:13:04,153 - INFO - Diag ID: 4325, file_name: /shared/data1/Users/l1065028/llvm-project/clang/test/SemaOpenCL/cl20-device-side-enqueue.cl, line number: 125, error_name: err_opencl_enqueue_kernel_local_size_args
+2024-12-03 15:13:16,648 - INFO - Compile Command: ['clang', '-cc1', 'tmp.c', '-cl-std=CL2.0', '-triple', 'spir-unknown-unknown', '-pedantic', '-fsyntax-only', '-DB32', '-DQUALS=']
+2024-12-03 15:13:16,648 - INFO - Error Message: error: invalid value 'clc++3.0' in '-cl-std=clc++3.0'
+
+2024-12-03 15:13:16,648 - INFO - IDs: [4538, 4538, 3036, 4964]
+2024-12-03 15:13:16,648 - INFO - Extract Diag Info:
+2024-12-03 15:13:16,648 - INFO - Diag ID: 4325, file_name: /shared/data1/Users/l1065028/llvm-project/clang/test/SemaOpenCL/cl20-device-side-enqueue.cl, line number: 157, error_name: err_opencl_enqueue_kernel_local_size_args
+2024-12-03 15:13:30,054 - INFO - Compile Command: ['clang', '-cc1', 'tmp.c', '-cl-std=CL2.0', '-triple', 'spir64-unknown-unknown', '-pedantic', '-fsyntax-only', '-Wconversion', '-DWCONV', '-DQUALS=const volatile']
+2024-12-03 15:13:30,054 - INFO - Error Message: error: invalid value 'clc++3.0' in '-cl-std=clc++3.0'
+
+2024-12-03 15:13:30,054 - INFO - IDs: [3036, 4964]
+2024-12-03 15:13:30,054 - INFO - Extract Diag Info:
+2024-12-03 15:13:30,054 - INFO - Diag ID: 4325, file_name: /shared/data1/Users/l1065028/llvm-project/clang/test/SemaOpenCL/cl20-device-side-enqueue.cl, line number: 125, error_name: err_opencl_enqueue_kernel_local_size_args
+2024-12-03 15:13:45,612 - INFO - Compile Command: ['clang', '-cc1', 'tmp.c', '-cl-std=CL2.0', '-triple', 'spir-unknown-unknown', '-pedantic', '-fsyntax-only', '-DB32', '-DQUALS=']
+2024-12-03 15:13:45,612 - INFO - Error Message: error: invalid value 'clc++3.0' in '-cl-std=clc++3.0'
+
+2024-12-03 15:13:45,612 - INFO - IDs: [3036, 4336, 3036, 4407]
+2024-12-03 15:13:45,612 - INFO - Extract Diag Info:
+2024-12-03 15:13:45,612 - INFO - Diag ID: 4325, file_name: /shared/data1/Users/l1065028/llvm-project/clang/test/SemaOpenCL/cl20-device-side-enqueue.cl, line number: 157, error_name: err_opencl_enqueue_kernel_local_size_args
+2024-12-03 15:14:01,201 - INFO - Compile Command: ['clang', '-cc1', 'tmp.c', '-cl-std=CL2.0', '-triple', 'spir-unknown-unknown', '-pedantic', '-fsyntax-only', '-DB32', '-DQUALS=']
+2024-12-03 15:14:01,202 - INFO - Error Message: error: invalid value 'clc++3.0' in '-cl-std=clc++3.0'
+
+2024-12-03 15:14:01,202 - INFO - IDs: [4538, 4538, 3036, 4964]
+2024-12-03 15:14:01,202 - INFO - Extract Diag Info:
+2024-12-03 15:14:01,202 - INFO - Diag ID: 4325, file_name: /shared/data1/Users/l1065028/llvm-project/clang/test/SemaOpenCL/cl20-device-side-enqueue.cl, line number: 125, error_name: err_opencl_enqueue_kernel_local_size_args
+2024-12-03 15:14:13,515 - INFO - Compile Command: ['clang', '-cc1', 'tmp.c', '-cl-std=CL2.0', '-triple', 'spir-unknown-unknown', '-pedantic', '-fsyntax-only', '-DB32', '-DQUALS=']
+2024-12-03 15:14:13,515 - INFO - Error Message: error: invalid value 'clc++3.0' in '-cl-std=clc++3.0'
+
+2024-12-03 15:14:13,515 - INFO - IDs: [4964]
+2024-12-03 15:14:13,515 - INFO - Extract Diag Info:
+2024-12-03 15:14:13,515 - INFO - Diag ID: 4323, file_name: /shared/data1/Users/l1065028/llvm-project/clang/test/SemaOpenCL/cl20-device-side-enqueue.cl, line number: 164, error_name: err_opencl_enqueue_kernel_incorrect_args
+2024-12-03 15:14:25,250 - INFO - Compile Command: ['clang', '-cc1', 'tmp.c', '-cl-std=CL2.0', '-triple', 'spir-unknown-unknown', '-pedantic', '-fsyntax-only', '-DB32', '-DQUALS=']
+2024-12-03 15:14:25,251 - INFO - Error Message: error: invalid value 'clc++3.0' in '-cl-std=clc++3.0'
+
+2024-12-03 15:14:25,251 - INFO - IDs: [4538, 4964]
+2024-12-03 15:14:25,251 - INFO - Extract Diag Info:
+2024-12-03 15:14:25,251 - INFO - Diag ID: 4323, file_name: /shared/data1/Users/l1065028/llvm-project/clang/test/SemaOpenCL/cl20-device-side-enqueue.cl, line number: 166, error_name: err_opencl_enqueue_kernel_incorrect_args
+2024-12-03 15:14:38,027 - INFO - Compile Command: ['clang', '-cc1', 'tmp.c', '-cl-std=CL2.0', '-triple', 'spir-unknown-unknown', '-pedantic', '-fsyntax-only', '-DB32', '-DQUALS=']
+2024-12-03 15:14:38,027 - INFO - Error Message: error: invalid value 'clc++3.0' in '-cl-std=clc++3.0'
+
+2024-12-03 15:14:38,027 - INFO - IDs: [4538, 4538]
+2024-12-03 15:14:38,027 - INFO - Extract Diag Info:
+2024-12-03 15:14:38,027 - INFO - Diag ID: 4323, file_name: /shared/data1/Users/l1065028/llvm-project/clang/test/SemaOpenCL/cl20-device-side-enqueue.cl, line number: 164, error_name: err_opencl_enqueue_kernel_incorrect_args
+2024-12-03 15:14:49,999 - INFO - Compile Command: ['clang', '-cc1', 'tmp.c', '-cl-std=CL2.0', '-triple', 'spir-unknown-unknown', '-pedantic', '-fsyntax-only', '-DB32', '-DQUALS=']
+2024-12-03 15:14:49,999 - INFO - Error Message: error: invalid value 'clc++3.0' in '-cl-std=clc++3.0'
+
+2024-12-03 15:14:49,999 - INFO - IDs: [4964]
+2024-12-03 15:14:49,999 - INFO - Extract Diag Info:
+2024-12-03 15:14:49,999 - INFO - Diag ID: 4323, file_name: /shared/data1/Users/l1065028/llvm-project/clang/test/SemaOpenCL/cl20-device-side-enqueue.cl, line number: 166, error_name: err_opencl_enqueue_kernel_incorrect_args
+2024-12-03 15:15:02,364 - INFO - Compile Command: ['clang', '-cc1', 'tmp.c', '-cl-std=CL2.0', '-triple', 'spir-unknown-unknown', '-pedantic', '-fsyntax-only', '-DB32', '-DQUALS=', '-cl-ext=-cl_khr_subgroups']
+2024-12-03 15:15:02,364 - INFO - Error Message: error: invalid value 'clc++3.0' in '-cl-std=clc++3.0'
+
+2024-12-03 15:15:02,364 - INFO - IDs: [4964]
+2024-12-03 15:15:02,364 - INFO - Extract Diag Info:
+2024-12-03 15:15:02,364 - INFO - Diag ID: 4323, file_name: /shared/data1/Users/l1065028/llvm-project/clang/test/SemaOpenCL/cl20-device-side-enqueue.cl, line number: 164, error_name: err_opencl_enqueue_kernel_incorrect_args
+2024-12-03 15:15:12,527 - INFO - Compile Command: ['clang', '-cc1', 'tmp.c', '-cl-std=CL2.0', '-triple', 'spir64-unknown-unknown', '-pedantic', '-fsyntax-only', '-Wconversion', '-DWCONV', '-DQUALS="const volatile"']
+2024-12-03 15:15:12,528 - INFO - Error Message: error: invalid value 'clc++3.0' in '-cl-std=clc++3.0'
+
+2024-12-03 15:15:12,528 - INFO - IDs: [4538, 4538, 4964]
+2024-12-03 15:15:12,528 - INFO - Extract Diag Info:
+2024-12-03 15:15:12,528 - INFO - Diag ID: 4323, file_name: /shared/data1/Users/l1065028/llvm-project/clang/test/SemaOpenCL/cl20-device-side-enqueue.cl, line number: 166, error_name: err_opencl_enqueue_kernel_incorrect_args
+2024-12-03 15:15:25,336 - INFO - Compile Command: ['clang', '-cc1', 'tmp.c', '-cl-std=CL2.0', '-triple', 'spir-unknown-unknown', '-pedantic', '-fsyntax-only', '-DB32', '-DQUALS=']
+2024-12-03 15:15:25,336 - INFO - Error Message: error: invalid value 'clc++3.0' in '-cl-std=clc++3.0'
+
+2024-12-03 15:15:25,336 - INFO - IDs: [4538, 4538]
+2024-12-03 15:15:25,336 - INFO - Extract Diag Info:
+2024-12-03 15:15:25,336 - INFO - Diag ID: 4323, file_name: /shared/data1/Users/l1065028/llvm-project/clang/test/SemaOpenCL/cl20-device-side-enqueue.cl, line number: 164, error_name: err_opencl_enqueue_kernel_incorrect_args
+2024-12-03 15:15:38,715 - INFO - Compile Command: ['clang', '-cc1', 'tmp.c', '-cl-std=CL2.0', '-triple', 'spir-unknown-unknown', '-pedantic', '-fsyntax-only', '-DB32', '-DQUALS=']
+2024-12-03 15:15:38,715 - INFO - Error Message: error: invalid value 'clc++3.0' in '-cl-std=clc++3.0'
+
+2024-12-03 15:15:38,715 - INFO - IDs: [4964]
+2024-12-03 15:15:38,715 - INFO - Extract Diag Info:
+2024-12-03 15:15:38,715 - INFO - Diag ID: 4323, file_name: /shared/data1/Users/l1065028/llvm-project/clang/test/SemaOpenCL/cl20-device-side-enqueue.cl, line number: 166, error_name: err_opencl_enqueue_kernel_incorrect_args
+2024-12-03 15:15:51,729 - INFO - Compile Command: ['clang', '-cc1', 'tmp.c', '-cl-std=CL2.0', '-triple', 'spir-unknown-unknown', '-pedantic', '-fsyntax-only', '-DB32', '-DQUALS=']
+2024-12-03 15:15:51,729 - INFO - Error Message: error: invalid value 'clc++3.0' in '-cl-std=clc++3.0'
+
+2024-12-03 15:15:51,729 - INFO - IDs: [4538, 4538, 3641, 3641, 4964]
+2024-12-03 15:15:51,729 - INFO - Extract Diag Info:
+2024-12-03 15:15:51,729 - INFO - Diag ID: 4323, file_name: /shared/data1/Users/l1065028/llvm-project/clang/test/SemaOpenCL/cl20-device-side-enqueue.cl, line number: 164, error_name: err_opencl_enqueue_kernel_incorrect_args
+2024-12-03 15:16:02,118 - INFO - Compile Command: ['clang', '-cc1', 'tmp.c', '-cl-std=CL2.0', '-triple', 'spir-unknown-unknown', '-pedantic', '-fsyntax-only', '-DB32', '-DQUALS=']
+2024-12-03 15:16:02,118 - INFO - Error Message: error: invalid value 'clc++3.0' in '-cl-std=clc++3.0'
+
+2024-12-03 15:16:02,118 - INFO - IDs: [4964]
+2024-12-03 15:16:02,118 - INFO - Extract Diag Info:
+2024-12-03 15:16:02,118 - INFO - Diag ID: 4323, file_name: /shared/data1/Users/l1065028/llvm-project/clang/test/SemaOpenCL/cl20-device-side-enqueue.cl, line number: 166, error_name: err_opencl_enqueue_kernel_incorrect_args
+2024-12-03 15:16:13,683 - INFO - Compile Command: ['clang', '-cc1', 'tmp.c', '-cl-std=CL2.0', '-triple', 'spir-unknown-unknown', '-pedantic', '-fsyntax-only', '-DB32', '-DQUALS=']
+2024-12-03 15:16:13,683 - INFO - Error Message: error: invalid value 'clc++3.0' in '-cl-std=clc++3.0'
+
+2024-12-03 15:16:13,683 - INFO - IDs: [4964]
+2024-12-03 15:16:13,683 - INFO - Extract Diag Info:
+2024-12-03 15:16:13,683 - INFO - Diag ID: 4323, file_name: /shared/data1/Users/l1065028/llvm-project/clang/test/SemaOpenCL/cl20-device-side-enqueue.cl, line number: 164, error_name: err_opencl_enqueue_kernel_incorrect_args
+2024-12-03 15:16:26,726 - INFO - Compile Command: ['clang', '-cc1', 'tmp.c', '-cl-std=CL2.0', '-triple', 'spir-unknown-unknown', '-pedantic', '-fsyntax-only', '-DB32', '-DQUALS=']
+2024-12-03 15:16:26,726 - INFO - Error Message: error: invalid value 'clc++3.0' in '-cl-std=clc++3.0'
+
+2024-12-03 15:16:26,726 - INFO - IDs: [4964]
+2024-12-03 15:16:26,726 - INFO - Extract Diag Info:
+2024-12-03 15:16:26,726 - INFO - Diag ID: 4323, file_name: /shared/data1/Users/l1065028/llvm-project/clang/test/SemaOpenCL/cl20-device-side-enqueue.cl, line number: 166, error_name: err_opencl_enqueue_kernel_incorrect_args
+2024-12-03 15:16:38,526 - INFO - Compile Command: ['clang', '-cc1', 'tmp.c', '-cl-std=CL2.0', '-triple', 'spir64-unknown-unknown', '-pedantic', '-fsyntax-only', '-Wconversion', '-DWCONV', '-DQUALS=const volatile']
+2024-12-03 15:16:38,526 - INFO - Error Message: error: invalid value 'clc++3.0' in '-cl-std=clc++3.0'
+
+2024-12-03 15:16:38,526 - INFO - IDs: [4964]
+2024-12-03 15:16:38,526 - INFO - Extract Diag Info:
+2024-12-03 15:16:38,526 - INFO - Diag ID: 4323, file_name: /shared/data1/Users/l1065028/llvm-project/clang/test/SemaOpenCL/cl20-device-side-enqueue.cl, line number: 164, error_name: err_opencl_enqueue_kernel_incorrect_args
+2024-12-03 15:16:49,701 - INFO - Compile Command: ['clang', '-cc1', 'tmp.c', '-cl-std=CL2.0', '-triple', 'spir-unknown-unknown', '-pedantic', '-fsyntax-only', '-DB32', '-DQUALS=']
+2024-12-03 15:16:49,702 - INFO - Error Message: error: invalid value 'clc++3.0' in '-cl-std=clc++3.0'
+
+2024-12-03 15:16:49,702 - INFO - IDs: [4964]
+2024-12-03 15:16:49,702 - INFO - Extract Diag Info:
+2024-12-03 15:16:49,702 - INFO - Diag ID: 4323, file_name: /shared/data1/Users/l1065028/llvm-project/clang/test/SemaOpenCL/cl20-device-side-enqueue.cl, line number: 166, error_name: err_opencl_enqueue_kernel_incorrect_args
+2024-12-03 15:17:04,159 - INFO - Compile Command: ['clang', '-cc1', 'tmp.c', '-cl-std=CL2.0', '-triple', 'spir-unknown-unknown', '-pedantic', '-fsyntax-only', '-DB32', '-DQUALS=']
+2024-12-03 15:17:04,159 - INFO - Error Message: error: invalid value 'clc++3.0' in '-cl-std=clc++3.0'
+
+2024-12-03 15:17:04,159 - INFO - IDs: [4538, 4538, 4964]
+2024-12-03 15:17:04,159 - INFO - Extract Diag Info:
+2024-12-03 15:17:04,159 - INFO - Diag ID: 4323, file_name: /shared/data1/Users/l1065028/llvm-project/clang/test/SemaOpenCL/cl20-device-side-enqueue.cl, line number: 164, error_name: err_opencl_enqueue_kernel_incorrect_args
+2024-12-03 15:17:25,786 - INFO - Compile Command: ['clang', '-cc1', '-fblocks', '-cl-std=CL3.0', '-cl-ext=-all,+__opencl_c_device_enqueue,+__opencl_c_generic_address_space,+__opencl_c_program_scope_global_variables', 'tmp.c']
+2024-12-03 15:17:25,786 - INFO - Error Message: error: invalid value 'clc++3.0' in '-cl-std=clc++3.0'
+
+2024-12-03 15:17:25,786 - INFO - IDs: [3310]
+2024-12-03 15:17:25,786 - INFO - Extract Diag Info:
+2024-12-03 15:17:25,786 - INFO - Diag ID: 4335, file_name: /shared/data1/Users/l1065028/llvm-project/clang/test/SemaOpenCL/invalid-block.cl, line number: 16, error_name: err_opencl_invalid_block_declaration
+2024-12-03 15:17:34,596 - INFO - Compile Command: ['clang', '-cc1', '-fblocks', '-cl-std=CL3.0', '-cl-ext=-all,+__opencl_c_device_enqueue,+__opencl_c_generic_address_space,+__opencl_c_program_scope_global_variables', 'tmp.c']
+2024-12-03 15:17:34,596 - INFO - Error Message: error: invalid value 'clc++3.0' in '-cl-std=clc++3.0'
+
+2024-12-03 15:17:34,596 - INFO - IDs: [3310]
+2024-12-03 15:17:34,596 - INFO - Extract Diag Info:
+2024-12-03 15:17:34,596 - INFO - Diag ID: 4335, file_name: /shared/data1/Users/l1065028/llvm-project/clang/test/SemaOpenCL/invalid-block.cl, line number: 16, error_name: err_opencl_invalid_block_declaration
+2024-12-03 15:17:59,490 - INFO - Compile Command: ['clang', '-cc1', 'tmp.c', '-pedantic', '-fsyntax-only']
+2024-12-03 15:17:59,490 - INFO - Error Message: error: invalid value 'clc++3.0' in '-cl-std=clc++3.0'
+
+2024-12-03 15:17:59,490 - INFO - IDs: [4538, 1553]
+2024-12-03 15:17:59,490 - INFO - Extract Diag Info:
+2024-12-03 15:17:59,490 - INFO - Diag ID: 4318, file_name: /shared/data1/Users/l1065028/llvm-project/clang/test/SemaOpenCL/event_t.cl, line number: 17, error_name: err_opencl_cast_non_zero_to_event_t
+2024-12-03 15:18:33,329 - INFO - Compile Command: ['clang', '-cc1', 'tmp.c', '-pedantic', '-fsyntax-only']
+2024-12-03 15:18:33,329 - INFO - Error Message: error: invalid value 'clc++3.0' in '-cl-std=clc++3.0'
+
+2024-12-03 15:18:33,329 - INFO - IDs: [3144]
+2024-12-03 15:18:33,329 - INFO - Extract Diag Info:
+2024-12-03 15:18:33,329 - INFO - Diag ID: 4333, file_name: /shared/data1/Users/l1065028/llvm-project/clang/test/SemaOpenCL/cond.cl, line number: 87, error_name: err_opencl_implicit_vector_conversion
+2024-12-03 15:19:05,034 - INFO - Compile Command: ['clang', '-cc1', 'tmp.c', '-cl-std=clc++2021', '-cl-ext=+__opencl_c_generic_address_space', '-pedantic', '-fsyntax-only']
+2024-12-03 15:19:05,034 - INFO - Error Message: error: invalid value 'clc++3.0' in '-cl-std=clc++3.0'
+
+2024-12-03 15:19:05,035 - INFO - IDs: [3471]
+2024-12-03 15:19:05,035 - INFO - Extract Diag Info:
+2024-12-03 15:19:05,035 - INFO - Diag ID: 4355, file_name: /shared/data1/Users/l1065028/llvm-project/clang/test/SemaOpenCL/address-spaces.cl, line number: 14, error_name: err_opencl_vla
+2024-12-03 15:19:13,749 - INFO - Compile Command: ['clang', '-cc1', 'tmp.c', '-cl-std=clc++2021', '-cl-ext=+__opencl_c_generic_address_space', '-pedantic', '-fsyntax-only']
+2024-12-03 15:19:13,749 - INFO - Error Message: error: invalid value 'clc++3.0' in '-cl-std=clc++3.0'
+
+2024-12-03 15:19:13,749 - INFO - IDs: [3471]
+2024-12-03 15:19:13,749 - INFO - Extract Diag Info:
+2024-12-03 15:19:13,749 - INFO - Diag ID: 4355, file_name: /shared/data1/Users/l1065028/llvm-project/clang/test/SemaOpenCL/address-spaces.cl, line number: 14, error_name: err_opencl_vla
+2024-12-03 15:19:26,182 - INFO - Compile Command: ['clang', '-cc1', 'tmp.c', '-pedantic', '-fsyntax-only', '-cl-std=clc++2021', '-cl-ext=+__opencl_c_generic_address_space']
+2024-12-03 15:19:26,182 - INFO - Error Message: error: invalid value 'clc++3.0' in '-cl-std=clc++3.0'
+
+2024-12-03 15:19:26,182 - INFO - IDs: [3471]
+2024-12-03 15:19:26,182 - INFO - Extract Diag Info:
+2024-12-03 15:19:26,182 - INFO - Diag ID: 4355, file_name: /shared/data1/Users/l1065028/llvm-project/clang/test/SemaOpenCL/address-spaces.cl, line number: 14, error_name: err_opencl_vla
+2024-12-03 15:19:34,766 - INFO - Compile Command: ['clang', '-cc1', 'tmp.c', '-DBITFIELDS_EXT', '-triple', 'spir']
+2024-12-03 15:19:34,766 - INFO - Error Message: error: invalid value 'clc++3.0' in '-cl-std=clc++3.0'
+
+2024-12-03 15:19:34,766 - INFO - IDs: [3471]
+2024-12-03 15:19:34,766 - INFO - Extract Diag Info:
+2024-12-03 15:19:34,766 - INFO - Diag ID: 4355, file_name: /shared/data1/Users/l1065028/llvm-project/clang/test/SemaOpenCL/unsupported.cl, line number: 16, error_name: err_opencl_vla
+2024-12-03 15:19:43,731 - INFO - Compile Command: ['clang', '-cc1', '-DBITFIELDS_EXT', '-triple', 'spir', 'tmp.c']
+2024-12-03 15:19:43,731 - INFO - Error Message: error: invalid value 'clc++3.0' in '-cl-std=clc++3.0'
+
+2024-12-03 15:19:43,731 - INFO - IDs: [3471]
+2024-12-03 15:19:43,731 - INFO - Extract Diag Info:
+2024-12-03 15:19:43,731 - INFO - Diag ID: 4355, file_name: /shared/data1/Users/l1065028/llvm-project/clang/test/SemaOpenCL/unsupported.cl, line number: 16, error_name: err_opencl_vla
+2024-12-03 15:20:52,069 - INFO - Compile Command: ['clang', '-cc1', '-fblocks', '-cl-std=CL3.0', '-cl-ext=-all,+__opencl_c_device_enqueue,+__opencl_c_generic_address_space,+__opencl_c_program_scope_global_variables', 'tmp.c']
+2024-12-03 15:20:52,069 - INFO - Error Message: error: invalid value 'clc++3.0' in '-cl-std=clc++3.0'
+
+2024-12-03 15:20:52,069 - INFO - IDs: [3310]
+2024-12-03 15:20:52,069 - INFO - Extract Diag Info:
+2024-12-03 15:20:52,069 - INFO - Diag ID: 4335, file_name: /shared/data1/Users/l1065028/llvm-project/clang/test/SemaOpenCL/invalid-block.cl, line number: 16, error_name: err_opencl_invalid_block_declaration
+2024-12-03 15:21:01,555 - INFO - Compile Command: ['clang', '-cc1', '-fblocks', '-cl-std=CL3.0', '-cl-ext=-all,+__opencl_c_device_enqueue,+__opencl_c_generic_address_space,+__opencl_c_program_scope_global_variables', 'tmp.c']
+2024-12-03 15:21:01,555 - INFO - Error Message: error: invalid value 'clc++3.0' in '-cl-std=clc++3.0'
+
+2024-12-03 15:21:01,555 - INFO - IDs: [3310]
+2024-12-03 15:21:01,555 - INFO - Extract Diag Info:
+2024-12-03 15:21:01,555 - INFO - Diag ID: 4335, file_name: /shared/data1/Users/l1065028/llvm-project/clang/test/SemaOpenCL/invalid-block.cl, line number: 16, error_name: err_opencl_invalid_block_declaration
+2024-12-03 15:21:18,633 - INFO - Compile Command: ['clang', '-cc1', 'tmp.c', '-triple', 'spir-unknown-unknown', '-fsyntax-only', '-cl-std=CL1.2', '-DFP64']
+2024-12-03 15:21:18,633 - INFO - Error Message: error: invalid value 'clc++3.0' in '-cl-std=clc++3.0'
+
+2024-12-03 15:21:18,633 - INFO - IDs: []
+2024-12-03 15:21:18,633 - INFO - Extract Diag Info:
+2024-12-03 15:21:18,633 - INFO - Diag ID: 4346, file_name: /shared/data1/Users/l1065028/llvm-project/clang/test/SemaOpenCL/fp64-fp16-options.cl, line number: 61, error_name: err_opencl_requires_extension
+2024-12-03 15:21:26,581 - INFO - Compile Command: ['clang', '-cc1', 'tmp.c', '-triple', 'spir-unknown-unknown', '-fsyntax-only', '-cl-std=CL1.2', '-DFP64']
+2024-12-03 15:21:26,581 - INFO - Error Message: error: invalid value 'clc++3.0' in '-cl-std=clc++3.0'
+
+2024-12-03 15:21:26,581 - INFO - IDs: []
+2024-12-03 15:21:26,581 - INFO - Extract Diag Info:
+2024-12-03 15:21:26,581 - INFO - Diag ID: 4346, file_name: /shared/data1/Users/l1065028/llvm-project/clang/test/SemaOpenCL/fp64-fp16-options.cl, line number: 67, error_name: err_opencl_requires_extension
+2024-12-03 15:21:57,583 - INFO - Compile Command: ['clang', '-cc1', 'tmp.c', '-triple', 'spir-unknown-unknown', '-fsyntax-only', '-cl-std=CL1.2', '-DFP64']
+2024-12-03 15:21:57,583 - INFO - Error Message: error: invalid value 'clc++3.0' in '-cl-std=clc++3.0'
+
+2024-12-03 15:21:57,583 - INFO - IDs: []
+2024-12-03 15:21:57,583 - INFO - Extract Diag Info:
+2024-12-03 15:21:57,583 - INFO - Diag ID: 4346, file_name: /shared/data1/Users/l1065028/llvm-project/clang/test/SemaOpenCL/fp64-fp16-options.cl, line number: 100, error_name: err_opencl_requires_extension
+2024-12-03 15:22:06,691 - INFO - Compile Command: ['clang', '-cc1', 'tmp.c', '-triple', 'spir-unknown-unknown', '-fsyntax-only', '-cl-std=CL1.2', '-DFP64']
+2024-12-03 15:22:06,692 - INFO - Error Message: error: invalid value 'clc++3.0' in '-cl-std=clc++3.0'
+
+2024-12-03 15:22:06,692 - INFO - IDs: []
+2024-12-03 15:22:06,692 - INFO - Extract Diag Info:
+2024-12-03 15:22:06,692 - INFO - Diag ID: 4346, file_name: /shared/data1/Users/l1065028/llvm-project/clang/test/SemaOpenCL/fp64-fp16-options.cl, line number: 109, error_name: err_opencl_requires_extension
+2024-12-03 15:22:37,616 - INFO - Compile Command: ['clang', '-cc1', 'tmp.c', '-triple', 'spir-unknown-unknown', '-fsyntax-only', '-cl-std=CL1.2', '-DFP64']
+2024-12-03 15:22:37,616 - INFO - Error Message: error: invalid value 'clc++3.0' in '-cl-std=clc++3.0'
+
+2024-12-03 15:22:37,616 - INFO - IDs: []
+2024-12-03 15:22:37,616 - INFO - Extract Diag Info:
+2024-12-03 15:22:37,616 - INFO - Diag ID: 4346, file_name: /shared/data1/Users/l1065028/llvm-project/clang/test/SemaOpenCL/fp64-fp16-options.cl, line number: 136, error_name: err_opencl_requires_extension
+2024-12-03 15:22:49,514 - INFO - Compile Command: ['clang', '-cc1', 'tmp.c', '-triple', 'spir-unknown-unknown', '-fsyntax-only', '-cl-std=CL1.2', '-DFP64']
+2024-12-03 15:22:49,514 - INFO - Error Message: error: invalid value 'clc++3.0' in '-cl-std=clc++3.0'
+
+2024-12-03 15:22:49,514 - INFO - IDs: []
+2024-12-03 15:22:49,514 - INFO - Extract Diag Info:
+2024-12-03 15:22:49,514 - INFO - Diag ID: 4346, file_name: /shared/data1/Users/l1065028/llvm-project/clang/test/SemaOpenCL/fp64-fp16-options.cl, line number: 100, error_name: err_opencl_requires_extension
+2024-12-03 15:22:58,840 - INFO - Compile Command: ['clang', '-cc1', 'tmp.c', '-triple', 'spir-unknown-unknown', '-fsyntax-only', '-cl-std=CL1.2', '-DFP64']
+2024-12-03 15:22:58,840 - INFO - Error Message: error: invalid value 'clc++3.0' in '-cl-std=clc++3.0'
+
+2024-12-03 15:22:58,840 - INFO - IDs: []
+2024-12-03 15:22:58,840 - INFO - Extract Diag Info:
+2024-12-03 15:22:58,840 - INFO - Diag ID: 4346, file_name: /shared/data1/Users/l1065028/llvm-project/clang/test/SemaOpenCL/fp64-fp16-options.cl, line number: 109, error_name: err_opencl_requires_extension
+2024-12-03 15:23:08,544 - INFO - Compile Command: ['clang', '-cc1', 'tmp.c', '-triple', 'spir-unknown-unknown', '-fsyntax-only', '-cl-std=CL1.2', '-DFP64']
+2024-12-03 15:23:08,544 - INFO - Error Message: error: invalid value 'clc++3.0' in '-cl-std=clc++3.0'
+
+2024-12-03 15:23:08,544 - INFO - IDs: []
+2024-12-03 15:23:08,544 - INFO - Extract Diag Info:
+2024-12-03 15:23:08,544 - INFO - Diag ID: 4346, file_name: /shared/data1/Users/l1065028/llvm-project/clang/test/SemaOpenCL/fp64-fp16-options.cl, line number: 100, error_name: err_opencl_requires_extension
+2024-12-03 15:23:18,786 - INFO - Compile Command: ['clang', '-cc1', 'tmp.c', '-triple', 'spir-unknown-unknown', '-fsyntax-only', '-cl-std=CL1.2', '-DFP64']
+2024-12-03 15:23:18,786 - INFO - Error Message: error: invalid value 'clc++3.0' in '-cl-std=clc++3.0'
+
+2024-12-03 15:23:18,787 - INFO - IDs: []
+2024-12-03 15:23:18,787 - INFO - Extract Diag Info:
+2024-12-03 15:23:18,787 - INFO - Diag ID: 4346, file_name: /shared/data1/Users/l1065028/llvm-project/clang/test/SemaOpenCL/fp64-fp16-options.cl, line number: 109, error_name: err_opencl_requires_extension
+2024-12-03 15:24:04,308 - INFO - Compile Command: ['clang', '-cc1', '-fblocks', '-cl-std=CL3.0', '-cl-ext=-all,+__opencl_c_device_enqueue,+__opencl_c_generic_address_space,+__opencl_c_program_scope_global_variables', 'tmp.c']
+2024-12-03 15:24:04,308 - INFO - Error Message: error: invalid value 'clc++3.0' in '-cl-std=clc++3.0'
+
+2024-12-03 15:24:04,308 - INFO - IDs: [3310]
+2024-12-03 15:24:04,308 - INFO - Extract Diag Info:
+2024-12-03 15:24:04,308 - INFO - Diag ID: 4335, file_name: /shared/data1/Users/l1065028/llvm-project/clang/test/SemaOpenCL/invalid-block.cl, line number: 16, error_name: err_opencl_invalid_block_declaration
+2024-12-03 15:24:11,993 - INFO - Compile Command: ['clang', '-cc1', '-fblocks', '-cl-std=CL3.0', '-cl-ext=-all,+__opencl_c_device_enqueue,+__opencl_c_generic_address_space,+__opencl_c_program_scope_global_variables', 'tmp.c']
+2024-12-03 15:24:11,993 - INFO - Error Message: error: invalid value 'clc++3.0' in '-cl-std=clc++3.0'
+
+2024-12-03 15:24:11,993 - INFO - IDs: [3310]
+2024-12-03 15:24:11,993 - INFO - Extract Diag Info:
+2024-12-03 15:24:11,993 - INFO - Diag ID: 4335, file_name: /shared/data1/Users/l1065028/llvm-project/clang/test/SemaOpenCL/invalid-block.cl, line number: 16, error_name: err_opencl_invalid_block_declaration
+2024-12-03 15:24:24,728 - INFO - failed running
+2024-12-03 15:24:24,728 - INFO - [Errno 2] No such file or directory: '-cc1'
+2024-12-03 15:24:24,729 - INFO - Traceback (most recent call last):
+  File "/shared/data1/Users/l1065028/Fuzzlang/src/llvm_test_agent/agent.py", line 294, in main
+    res = agent_openmp.generate_code_omp(diag, lines, code_type,
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/shared/data1/Users/l1065028/Fuzzlang/src/llvm_test_agent/agent_openmp.py", line 116, in generate_code_omp
+    IDs, err_msg = run_command_w_code_omp(command, repro_code, code_type)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/shared/data1/Users/l1065028/Fuzzlang/src/llvm_test_agent/agent_openmp.py", line 54, in run_command_w_code_omp
+    process = subprocess.run(
+              ^^^^^^^^^^^^^^^
+  File "/hrtc/apps/scripting/anaconda3/x86_64/2024.02/lib/python3.11/subprocess.py", line 548, in run
+    with Popen(*popenargs, **kwargs) as process:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/hrtc/apps/scripting/anaconda3/x86_64/2024.02/lib/python3.11/subprocess.py", line 1026, in __init__
+    self._execute_child(args, executable, preexec_fn, close_fds,
+  File "/hrtc/apps/scripting/anaconda3/x86_64/2024.02/lib/python3.11/subprocess.py", line 1950, in _execute_child
+    raise child_exception_type(errno_num, err_msg, err_filename)
+FileNotFoundError: [Errno 2] No such file or directory: '-cc1'
+
+2024-12-03 15:24:36,691 - INFO - Compile Command: ['clang', '-cc1', 'tmp.c', '-cl-std=CL2.0', '-triple', 'spir-unknown-unknown', '-pedantic', '-fsyntax-only', '-DB32', '-DQUALS=']
+2024-12-03 15:24:36,692 - INFO - Error Message: error: invalid value 'clc++3.0' in '-cl-std=clc++3.0'
+
+2024-12-03 15:24:36,692 - INFO - IDs: [4964, 3036, 4964]
+2024-12-03 15:24:36,692 - INFO - Extract Diag Info:
+2024-12-03 15:24:36,692 - INFO - Diag ID: 4312, file_name: /shared/data1/Users/l1065028/llvm-project/clang/test/SemaOpenCL/cl20-device-side-enqueue.cl, line number: 28, error_name: err_opencl_builtin_expected_type
+2024-12-03 15:24:47,456 - INFO - Compile Command: ['clang', '-cc1', 'tmp.c', '-cl-std=CL2.0', '-triple', 'spir64-unknown-unknown', '-pedantic', '-fsyntax-only', '-Wconversion', '-DWCONV', '-DQUALS="const volatile"']
+2024-12-03 15:24:47,456 - INFO - Error Message: error: invalid value 'clc++3.0' in '-cl-std=clc++3.0'
+
+2024-12-03 15:24:47,456 - INFO - IDs: [3036, 4964]
+2024-12-03 15:24:47,456 - INFO - Extract Diag Info:
+2024-12-03 15:24:47,456 - INFO - Diag ID: 4312, file_name: /shared/data1/Users/l1065028/llvm-project/clang/test/SemaOpenCL/cl20-device-side-enqueue.cl, line number: 32, error_name: err_opencl_builtin_expected_type
+2024-12-03 15:24:59,013 - INFO - Compile Command: ['clang', '-cc1', 'tmp.c', '-cl-std=CL2.0', '-triple', 'spir-unknown-unknown', '-pedantic', '-fsyntax-only', '-DB32', '-DQUALS=']
+2024-12-03 15:24:59,013 - INFO - Error Message: error: invalid value 'clc++3.0' in '-cl-std=clc++3.0'
+
+2024-12-03 15:24:59,013 - INFO - IDs: [3036, 4964]
+2024-12-03 15:24:59,013 - INFO - Extract Diag Info:
+2024-12-03 15:24:59,013 - INFO - Diag ID: 4312, file_name: /shared/data1/Users/l1065028/llvm-project/clang/test/SemaOpenCL/cl20-device-side-enqueue.cl, line number: 36, error_name: err_opencl_builtin_expected_type
+2024-12-03 15:25:12,837 - INFO - Compile Command: ['clang', '-cc1', 'tmp.c', '-cl-std=CL2.0', '-triple', 'spir64-unknown-unknown', '-pedantic', '-fsyntax-only', '-Wconversion', '-DWCONV', '-DQUALS=const volatile']
+2024-12-03 15:25:12,837 - INFO - Error Message: error: invalid value 'clc++3.0' in '-cl-std=clc++3.0'
+
+2024-12-03 15:25:12,837 - INFO - IDs: [3036, 4964]
+2024-12-03 15:25:12,837 - INFO - Extract Diag Info:
+2024-12-03 15:25:12,837 - INFO - Diag ID: 4324, file_name: /shared/data1/Users/l1065028/llvm-project/clang/test/SemaOpenCL/cl20-device-side-enqueue.cl, line number: 136, error_name: err_opencl_enqueue_kernel_invalid_local_size_type
+2024-12-03 15:25:29,908 - INFO - Compile Command: ['clang', '-cc1', 'tmp.c', '-cl-std=CL2.0', '-triple', 'spir-unknown-unknown', '-pedantic', '-fsyntax-only', '-DB32', '-DQUALS=']
+2024-12-03 15:25:29,908 - INFO - Error Message: error: invalid value 'clc++3.0' in '-cl-std=clc++3.0'
+
+2024-12-03 15:25:29,908 - INFO - IDs: [3036, 4336, 3036, 4407]
+2024-12-03 15:25:29,908 - INFO - Extract Diag Info:
+2024-12-03 15:25:29,908 - INFO - Diag ID: 4324, file_name: /shared/data1/Users/l1065028/llvm-project/clang/test/SemaOpenCL/cl20-device-side-enqueue.cl, line number: 136, error_name: err_opencl_enqueue_kernel_invalid_local_size_type
+2024-12-03 15:25:47,048 - INFO - Compile Command: ['clang', '-cc1', 'tmp.c', '-cl-std=CL2.0', '-triple', 'spir-unknown-unknown', '-pedantic', '-fsyntax-only', '-DB32', '-DQUALS=']
+2024-12-03 15:25:47,048 - INFO - Error Message: error: invalid value 'clc++3.0' in '-cl-std=clc++3.0'
+
+2024-12-03 15:25:47,048 - INFO - IDs: [3036, 4964, 4964, 3036]
+2024-12-03 15:25:47,048 - INFO - Extract Diag Info:
+2024-12-03 15:25:47,048 - INFO - Diag ID: 4324, file_name: /shared/data1/Users/l1065028/llvm-project/clang/test/SemaOpenCL/cl20-device-side-enqueue.cl, line number: 142, error_name: err_opencl_enqueue_kernel_invalid_local_size_type
+2024-12-03 15:26:00,127 - INFO - failed running
+2024-12-03 15:26:00,127 - INFO - 'tuple' object does not support item assignment
+2024-12-03 15:26:00,128 - INFO - Traceback (most recent call last):
+  File "/shared/data1/Users/l1065028/Fuzzlang/src/llvm_test_agent/agent.py", line 294, in main
+    res = agent_openmp.generate_code_omp(diag, lines, code_type,
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/shared/data1/Users/l1065028/Fuzzlang/src/llvm_test_agent/agent_openmp.py", line 92, in generate_code_omp
+    command = process_command(command)
+              ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/shared/data1/Users/l1065028/Fuzzlang/src/llvm_test_agent/agent_openmp.py", line 16, in process_command
+    command[i] = 'clang'
+    ~~~~~~~^^^
+TypeError: 'tuple' object does not support item assignment
+
+2024-12-03 15:26:14,844 - INFO - Compile Command: ['clang', '-cc1', 'tmp.c', '-cl-std=CL2.0', '-triple', 'spir-unknown-unknown', '-pedantic', '-fsyntax-only', '-DB32', '-DQUALS=']
+2024-12-03 15:26:14,844 - INFO - Error Message: error: invalid value 'clc++3.0' in '-cl-std=clc++3.0'
+
+2024-12-03 15:26:14,844 - INFO - IDs: [4538, 4538, 4964]
+2024-12-03 15:26:14,844 - INFO - Extract Diag Info:
+2024-12-03 15:26:14,844 - INFO - Diag ID: 4323, file_name: /shared/data1/Users/l1065028/llvm-project/clang/test/SemaOpenCL/cl20-device-side-enqueue.cl, line number: 164, error_name: err_opencl_enqueue_kernel_incorrect_args
+2024-12-03 15:26:25,536 - INFO - Compile Command: ['clang', '-cc1', 'tmp.c', '-cl-std=CL2.0', '-triple', 'spir-unknown-unknown', '-pedantic', '-fsyntax-only', '-DB32', '-DQUALS=']
+2024-12-03 15:26:25,536 - INFO - Error Message: error: invalid value 'clc++3.0' in '-cl-std=clc++3.0'
+
+2024-12-03 15:26:25,536 - INFO - IDs: [4538, 4964]
+2024-12-03 15:26:25,536 - INFO - Extract Diag Info:
+2024-12-03 15:26:25,536 - INFO - Diag ID: 4323, file_name: /shared/data1/Users/l1065028/llvm-project/clang/test/SemaOpenCL/cl20-device-side-enqueue.cl, line number: 166, error_name: err_opencl_enqueue_kernel_incorrect_args
+2024-12-03 15:26:37,092 - INFO - Compile Command: ['clang', '-cc1', 'tmp.c', '-cl-std=CL2.0', '-triple', 'spir64-unknown-unknown', '-pedantic', '-fsyntax-only', '-Wconversion', '-DWCONV', '-DQUALS="const volatile"']
+2024-12-03 15:26:37,092 - INFO - Error Message: error: invalid value 'clc++3.0' in '-cl-std=clc++3.0'
+
+2024-12-03 15:26:37,092 - INFO - IDs: [4964]
+2024-12-03 15:26:37,092 - INFO - Extract Diag Info:
+2024-12-03 15:26:37,092 - INFO - Diag ID: 4323, file_name: /shared/data1/Users/l1065028/llvm-project/clang/test/SemaOpenCL/cl20-device-side-enqueue.cl, line number: 164, error_name: err_opencl_enqueue_kernel_incorrect_args
+2024-12-03 15:26:57,534 - INFO - Compile Command: ['clang', '-cc1', 'tmp.c', '-fsyntax-only']
+2024-12-03 15:26:57,534 - INFO - Error Message: error: invalid value 'clc++3.0' in '-cl-std=clc++3.0'
+
+2024-12-03 15:26:57,534 - INFO - IDs: [4615]
+2024-12-03 15:26:57,534 - INFO - Extract Diag Info:
+2024-12-03 15:26:57,534 - INFO - Diag ID: 4348, file_name: /shared/data1/Users/l1065028/llvm-project/clang/test/SemaOpenCL/sizeof.cl, line number: 4, error_name: err_opencl_sizeof_alignof_type
+2024-12-03 15:27:11,355 - INFO - Compile Command: ['clang', '-cc1', '-fblocks', '-cl-std=CL3.0', '-cl-ext=-all,+__opencl_c_device_enqueue,+__opencl_c_generic_address_space,+__opencl_c_program_scope_global_variables', 'tmp.c']
+2024-12-03 15:27:11,355 - INFO - Error Message: error: invalid value 'clc++3.0' in '-cl-std=clc++3.0'
+
+2024-12-03 15:27:11,355 - INFO - IDs: []
+2024-12-03 15:27:11,355 - INFO - Extract Diag Info:
+2024-12-03 15:27:11,355 - INFO - Diag ID: 4350, file_name: /shared/data1/Users/l1065028/llvm-project/clang/test/SemaOpenCL/invalid-block.cl, line number: 66, error_name: err_opencl_ternary_with_block
+2024-12-03 15:27:22,823 - INFO - Compile Command: ['clang', '-cc1', '-fblocks', '-cl-std=CL3.0', '-cl-ext=-all,+__opencl_c_device_enqueue,+__opencl_c_generic_address_space,+__opencl_c_program_scope_global_variables', 'tmp.c']
+2024-12-03 15:27:22,823 - INFO - Error Message: error: invalid value 'clc++3.0' in '-cl-std=clc++3.0'
+
+2024-12-03 15:27:22,824 - INFO - IDs: []
+2024-12-03 15:27:22,824 - INFO - Extract Diag Info:
+2024-12-03 15:27:22,824 - INFO - Diag ID: 4350, file_name: /shared/data1/Users/l1065028/llvm-project/clang/test/SemaOpenCL/invalid-block.cl, line number: 67, error_name: err_opencl_ternary_with_block
+2024-12-03 15:27:33,598 - INFO - Compile Command: ['clang', '-cc1', '-fblocks', '-cl-std=CL3.0', '-cl-ext=-all,+__opencl_c_device_enqueue,+__opencl_c_generic_address_space,+__opencl_c_program_scope_global_variables', 'tmp.c']
+2024-12-03 15:27:33,598 - INFO - Error Message: error: invalid value 'clc++3.0' in '-cl-std=clc++3.0'
+
+2024-12-03 15:27:33,598 - INFO - IDs: [4342]
+2024-12-03 15:27:33,598 - INFO - Extract Diag Info:
+2024-12-03 15:27:33,598 - INFO - Diag ID: 4350, file_name: /shared/data1/Users/l1065028/llvm-project/clang/test/SemaOpenCL/invalid-block.cl, line number: 66, error_name: err_opencl_ternary_with_block
+2024-12-03 15:27:45,661 - INFO - Compile Command: ['clang', '-cc1', 'tmp.c', '-pedantic', '-fsyntax-only', '-Wno-unused-value', '-triple', 'spir-unknown-unknown']
+2024-12-03 15:27:45,661 - INFO - Error Message: error: invalid value 'clc++3.0' in '-cl-std=clc++3.0'
+
+2024-12-03 15:27:45,661 - INFO - IDs: [4331]
+2024-12-03 15:27:45,661 - INFO - Extract Diag Info:
+2024-12-03 15:27:45,661 - INFO - Diag ID: 4319, file_name: /shared/data1/Users/l1065028/llvm-project/clang/test/SemaOpenCL/half.cl, line number: 17, error_name: err_opencl_cast_to_half
+2024-12-03 15:27:55,512 - INFO - Compile Command: ['clang', '-cc1', 'tmp.c', '-pedantic', '-fsyntax-only', '-Wno-unused-value', '-triple', 'spir-unknown-unknown']
+2024-12-03 15:27:55,512 - INFO - Error Message: error: invalid value 'clc++3.0' in '-cl-std=clc++3.0'
+
+2024-12-03 15:27:55,512 - INFO - IDs: []
+2024-12-03 15:27:55,512 - INFO - Extract Diag Info:
+2024-12-03 15:27:55,512 - INFO - Diag ID: 4319, file_name: /shared/data1/Users/l1065028/llvm-project/clang/test/SemaOpenCL/half.cl, line number: 17, error_name: err_opencl_cast_to_half
+2024-12-03 15:28:15,273 - INFO - Compile Command: ['clang', '-cc1', 'tmp.c', '-pedantic', '-fsyntax-only']
+2024-12-03 15:28:15,273 - INFO - Error Message: error: invalid value 'clc++3.0' in '-cl-std=clc++3.0'
+
+2024-12-03 15:28:15,273 - INFO - IDs: [4538, 2984]
+2024-12-03 15:28:15,274 - INFO - Extract Diag Info:
+2024-12-03 15:28:15,274 - INFO - Diag ID: 4318, file_name: /shared/data1/Users/l1065028/llvm-project/clang/test/SemaOpenCL/event_t.cl, line number: 17, error_name: err_opencl_cast_non_zero_to_event_t
+2024-12-03 15:28:29,822 - INFO - Compile Command: ['clang', '-cc1', 'tmp.c', '-cl-std=CL2.0', '-triple', 'spir-unknown-unknown', '-pedantic', '-fsyntax-only', '-DB32', '-DQUALS=']
+2024-12-03 15:28:29,822 - INFO - Error Message: error: invalid value 'clc++3.0' in '-cl-std=clc++3.0'
+
+2024-12-03 15:28:29,822 - INFO - IDs: [3036, 4336, 3036]
+2024-12-03 15:28:29,822 - INFO - Extract Diag Info:
+2024-12-03 15:28:29,822 - INFO - Diag ID: 4325, file_name: /shared/data1/Users/l1065028/llvm-project/clang/test/SemaOpenCL/cl20-device-side-enqueue.cl, line number: 125, error_name: err_opencl_enqueue_kernel_local_size_args
+2024-12-03 15:28:46,668 - INFO - Compile Command: ['clang', '-cc1', 'tmp.c', '-cl-std=CL2.0', '-triple', 'spir-unknown-unknown', '-pedantic', '-fsyntax-only', '-DB32', '-DQUALS=']
+2024-12-03 15:28:46,668 - INFO - Error Message: error: invalid value 'clc++3.0' in '-cl-std=clc++3.0'
+
+2024-12-03 15:28:46,668 - INFO - IDs: [4538, 4538, 3036, 4964]
+2024-12-03 15:28:46,668 - INFO - Extract Diag Info:
+2024-12-03 15:28:46,668 - INFO - Diag ID: 4325, file_name: /shared/data1/Users/l1065028/llvm-project/clang/test/SemaOpenCL/cl20-device-side-enqueue.cl, line number: 157, error_name: err_opencl_enqueue_kernel_local_size_args
+2024-12-03 15:28:59,513 - INFO - Compile Command: ['clang', '-cc1', 'tmp.c', '-cl-std=CL2.0', '-triple', 'spir-unknown-unknown', '-pedantic', '-fsyntax-only', '-DB32', '-DQUALS=']
+2024-12-03 15:28:59,513 - INFO - Error Message: error: invalid value 'clc++3.0' in '-cl-std=clc++3.0'
+
+2024-12-03 15:28:59,513 - INFO - IDs: [4538, 4538, 3036, 4964]
+2024-12-03 15:28:59,513 - INFO - Extract Diag Info:
+2024-12-03 15:28:59,513 - INFO - Diag ID: 4325, file_name: /shared/data1/Users/l1065028/llvm-project/clang/test/SemaOpenCL/cl20-device-side-enqueue.cl, line number: 125, error_name: err_opencl_enqueue_kernel_local_size_args
+2024-12-03 15:29:11,700 - INFO - Compile Command: ['clang', '-cc1', 'tmp.c', '-cl-std=CL2.0', '-triple', 'spir-unknown-unknown', '-pedantic', '-fsyntax-only', '-DB32', '-DQUALS=']
+2024-12-03 15:29:11,700 - INFO - Error Message: error: invalid value 'clc++3.0' in '-cl-std=clc++3.0'
+
+2024-12-03 15:29:11,700 - INFO - IDs: [4538, 3036, 3036, 4964]
+2024-12-03 15:29:11,700 - INFO - Extract Diag Info:
+2024-12-03 15:29:11,700 - INFO - Diag ID: 4322, file_name: /shared/data1/Users/l1065028/llvm-project/clang/test/SemaOpenCL/cl20-device-side-enqueue.cl, line number: 123, error_name: err_opencl_enqueue_kernel_blocks_non_local_void_args
+2024-12-03 15:29:20,991 - INFO - Compile Command: ['clang', '-cc1', 'tmp.c', '-cl-std=CL2.0', '-triple', 'spir-unknown-unknown', '-pedantic', '-fsyntax-only', '-DB32', '-DQUALS=']
+2024-12-03 15:29:20,991 - INFO - Error Message: error: invalid value 'clc++3.0' in '-cl-std=clc++3.0'
+
+2024-12-03 15:29:20,991 - INFO - IDs: [4965, 4964, 3036, 4964]
+2024-12-03 15:29:20,991 - INFO - Extract Diag Info:
+2024-12-03 15:29:20,991 - INFO - Diag ID: 4322, file_name: /shared/data1/Users/l1065028/llvm-project/clang/test/SemaOpenCL/cl20-device-side-enqueue.cl, line number: 191, error_name: err_opencl_enqueue_kernel_blocks_non_local_void_args
+2024-12-03 15:29:33,381 - INFO - Compile Command: ['clang', '-cc1', 'tmp.c', '-cl-std=CL2.0', '-triple', 'spir64-unknown-unknown', '-pedantic', '-fsyntax-only', '-Wconversion', '-DWCONV', '-DQUALS=const volatile']
+2024-12-03 15:29:33,381 - INFO - Error Message: error: invalid value 'clc++3.0' in '-cl-std=clc++3.0'
+
+2024-12-03 15:29:33,381 - INFO - IDs: [3036, 3036, 4964]
+2024-12-03 15:29:33,381 - INFO - Extract Diag Info:
+2024-12-03 15:29:33,381 - INFO - Diag ID: 4322, file_name: /shared/data1/Users/l1065028/llvm-project/clang/test/SemaOpenCL/cl20-device-side-enqueue.cl, line number: 194, error_name: err_opencl_enqueue_kernel_blocks_non_local_void_args
+2024-12-03 15:30:05,384 - INFO - Compile Command: ['clang', '-cc1', '-fsyntax-only', 'tmp.c', '-triple', 'spir-unknown-unknown', '-cl-std=CL2.0']
+2024-12-03 15:30:05,384 - INFO - Error Message: error: invalid value 'clc++3.0' in '-cl-std=clc++3.0'
+
+2024-12-03 15:30:05,384 - INFO - IDs: []
+2024-12-03 15:30:05,384 - INFO - Extract Diag Info:
+2024-12-03 15:30:05,384 - INFO - Diag ID: 4345, file_name: /shared/data1/Users/l1065028/llvm-project/clang/test/SemaOpenCL/invalid-kernel-parameters.cl, line number: 13, error_name: err_opencl_ptrptr_kernel_param
+2024-12-03 15:30:13,943 - INFO - Compile Command: ['clang', '-cc1', '-fsyntax-only', '-triple', 'spir-unknown-unknown', '-cl-std=CL2.0', 'tmp.c']
+2024-12-03 15:30:13,943 - INFO - Error Message: error: invalid value 'clc++3.0' in '-cl-std=clc++3.0'
+
+2024-12-03 15:30:13,943 - INFO - IDs: []
+2024-12-03 15:30:13,943 - INFO - Extract Diag Info:
+2024-12-03 15:30:13,943 - INFO - Diag ID: 4345, file_name: /shared/data1/Users/l1065028/llvm-project/clang/test/SemaOpenCL/invalid-kernel-parameters.cl, line number: 14, error_name: err_opencl_ptrptr_kernel_param
+2024-12-03 15:30:23,206 - INFO - Compile Command: ['clang', '-cc1', '-fsyntax-only', 'tmp.c', '-triple', 'spir-unknown-unknown', '-cl-std=CL2.0']
+2024-12-03 15:30:23,206 - INFO - Error Message: error: invalid value 'clc++3.0' in '-cl-std=clc++3.0'
+
+2024-12-03 15:30:23,206 - INFO - IDs: []
+2024-12-03 15:30:23,206 - INFO - Extract Diag Info:
+2024-12-03 15:30:23,206 - INFO - Diag ID: 4345, file_name: /shared/data1/Users/l1065028/llvm-project/clang/test/SemaOpenCL/invalid-kernel-parameters.cl, line number: 15, error_name: err_opencl_ptrptr_kernel_param
+2024-12-03 15:30:34,236 - INFO - Compile Command: ['clang', '-cc1', 'tmp.c', '-cl-std=CL2.0']
+2024-12-03 15:30:34,236 - INFO - Error Message: error: invalid value 'clc++3.0' in '-cl-std=clc++3.0'
+
+2024-12-03 15:30:34,236 - INFO - IDs: []
+2024-12-03 15:30:34,236 - INFO - Extract Diag Info:
+2024-12-03 15:30:34,236 - INFO - Diag ID: 2921, file_name: /shared/data1/Users/l1065028/llvm-project/clang/test/SemaOpenCL/nosvm.cl, line number: 7, error_name: err_attribute_requires_opencl_version
+2024-12-03 15:30:48,657 - INFO - Compile Command: ['clang', '-cc1', 'tmp.c', '-triple', 'spir-unknown-unknown', '-fsyntax-only', '-cl-std=CL1.2', '-DFP64']
+2024-12-03 15:30:48,657 - INFO - Error Message: error: invalid value 'clc++3.0' in '-cl-std=clc++3.0'
+
+2024-12-03 15:30:48,657 - INFO - IDs: []
+2024-12-03 15:30:48,657 - INFO - Extract Diag Info:
+2024-12-03 15:30:48,657 - INFO - Diag ID: 4346, file_name: /shared/data1/Users/l1065028/llvm-project/clang/test/SemaOpenCL/fp64-fp16-options.cl, line number: 61, error_name: err_opencl_requires_extension
+2024-12-03 15:30:59,682 - INFO - Compile Command: ['clang', '-cc1', 'tmp.c', '-triple', 'spir-unknown-unknown', '-fsyntax-only', '-cl-std=CL1.2', '-DFP64']
+2024-12-03 15:30:59,682 - INFO - Error Message: error: invalid value 'clc++3.0' in '-cl-std=clc++3.0'
+
+2024-12-03 15:30:59,682 - INFO - IDs: []
+2024-12-03 15:30:59,682 - INFO - Extract Diag Info:
+2024-12-03 15:30:59,682 - INFO - Diag ID: 4346, file_name: /shared/data1/Users/l1065028/llvm-project/clang/test/SemaOpenCL/fp64-fp16-options.cl, line number: 67, error_name: err_opencl_requires_extension
+2024-12-03 15:31:09,130 - INFO - Compile Command: ['clang', '-cc1', 'tmp.c', '-triple', 'spir-unknown-unknown', '-fsyntax-only', '-cl-std=CL1.2', '-DFP64']
+2024-12-03 15:31:09,130 - INFO - Error Message: error: invalid value 'clc++3.0' in '-cl-std=clc++3.0'
+
+2024-12-03 15:31:09,130 - INFO - IDs: []
+2024-12-03 15:31:09,130 - INFO - Extract Diag Info:
+2024-12-03 15:31:09,130 - INFO - Diag ID: 4346, file_name: /shared/data1/Users/l1065028/llvm-project/clang/test/SemaOpenCL/fp64-fp16-options.cl, line number: 100, error_name: err_opencl_requires_extension
+2024-12-03 15:31:10,237 - INFO - failed running
+2024-12-03 15:31:10,238 - INFO - 'tuple' object does not support item assignment
+2024-12-03 15:31:10,238 - INFO - Traceback (most recent call last):
+  File "/shared/data1/Users/l1065028/Fuzzlang/src/llvm_test_agent/agent.py", line 276, in main
+    res = agent_openmp.generate_code_omp(diag, lines, code_type,
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/shared/data1/Users/l1065028/Fuzzlang/src/llvm_test_agent/agent_openmp.py", line 92, in generate_code_omp
+    command = process_command(command)
+              ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/shared/data1/Users/l1065028/Fuzzlang/src/llvm_test_agent/agent_openmp.py", line 16, in process_command
+    command[i] = 'clang'
+    ~~~~~~~^^^
+TypeError: 'tuple' object does not support item assignment
+
+2024-12-03 15:31:16,262 - INFO - failed running
+2024-12-03 15:31:16,263 - INFO - 'tuple' object does not support item assignment
+2024-12-03 15:31:16,263 - INFO - Traceback (most recent call last):
+  File "/shared/data1/Users/l1065028/Fuzzlang/src/llvm_test_agent/agent.py", line 276, in main
+    res = agent_openmp.generate_code_omp(diag, lines, code_type,
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/shared/data1/Users/l1065028/Fuzzlang/src/llvm_test_agent/agent_openmp.py", line 92, in generate_code_omp
+    command = process_command(command)
+              ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/shared/data1/Users/l1065028/Fuzzlang/src/llvm_test_agent/agent_openmp.py", line 16, in process_command
+    command[i] = 'clang'
+    ~~~~~~~^^^
+TypeError: 'tuple' object does not support item assignment
+

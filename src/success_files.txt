@@ -1,0 +1,10 @@
+/shared/data1/Users/l1065028/Fuzzlang/src/llvm_test_agent/success_files/err_anonymous_record_nonpublic_member.cpp
+/shared/data1/Users/l1065028/Fuzzlang/src/llvm_test_agent/success_files/err_external_source_symbol_duplicate_clause.c
+/shared/data1/Users/l1065028/Fuzzlang/src/llvm_test_agent/success_files/err_operator_overload_must_be_member.cpp
+/shared/data1/Users/l1065028/Fuzzlang/src/llvm_test_agent/success_files/err_mutable_function.cpp
+/shared/data1/Users/l1065028/Fuzzlang/src/llvm_test_agent/success_files/err_standalone_class_nested_name_specifier.cpp
+/shared/data1/Users/l1065028/Fuzzlang/src/llvm_test_agent/success_files/err_template_spec_redecl_out_of_scope.cpp
+/shared/data1/Users/l1065028/Fuzzlang/src/llvm_test_agent/success_files/err_mutable_const.cpp
+/shared/data1/Users/l1065028/Fuzzlang/src/llvm_test_agent/success_files/err_attribute_weakref_not_global_context.cpp
+/shared/data1/Users/l1065028/Fuzzlang/src/llvm_test_agent/success_files/err_enum_redeclare_fixed_mismatch.cpp
+/shared/data1/Users/l1065028/Fuzzlang/src/llvm_test_agent/success_files/err_constexpr_redecl_mismatch.cpp

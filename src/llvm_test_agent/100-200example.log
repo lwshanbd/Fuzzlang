@@ -1,0 +1,114 @@
+2024-11-18 17:08:14,163 - INFO - Compile Command: ['env', 'ASAN_OPTIONS=detect_stack_use_after_return=0', 'clang', '-cc1', '-std=c++20', 'tmp.cpp', '-fexceptions', '-fcxx-exceptions', '-pedantic-errors']
+2024-11-18 17:08:14,163 - INFO - Error Message: False
+2024-11-18 17:08:14,163 - INFO - Extract Diag Info:
+2024-11-18 17:08:14,163 - INFO - Diag ID: 5298, file_name: /shared/data1/Users/l1065028/llvm-project/clang/test/CXX/drs/cwg4xx.cpp, line number: 1017
+2024-11-18 17:10:30,012 - INFO - Compile Command: ['env', 'ASAN_OPTIONS=detect_stack_use_after_return=0', 'clang', '-cc1', '-std=c++20', 'tmp.cpp', '-fexceptions', '-fcxx-exceptions', '-pedantic-errors']
+2024-11-18 17:10:30,012 - INFO - Error Message: DiagID: 2660
+tmp.cpp:11:11: error: temporary of type 'S' has private destructor
+   11 |     throw S(); // expected-error {{temporary of type 'S' has private destructor}}
+      |           ^
+tmp.cpp:7:5: note: declared private here
+    7 |     ~S();         // Private destructor
+      |     ^
+DiagID: 2657
+tmp.cpp:11:11: error: exception object of type 'S' has private destructor
+   11 |     throw S(); // expected-error {{temporary of type 'S' has private destructor}}
+      |           ^
+tmp.cpp:7:5: note: declared private here
+    7 |     ~S();         // Private destructor
+      |     ^
+2 errors generated.
+
+2024-11-18 17:10:30,012 - INFO - Extract Diag Info:
+2024-11-18 17:10:30,012 - INFO - Diag ID: 5280, file_name: /shared/data1/Users/l1065028/llvm-project/clang/test/CXX/drs/cwg4xx.cpp, line number: 1134
+2024-11-18 17:11:07,915 - INFO - [Errno 2] No such file or directory: 'env ASAN_OPTIONS=detect_stack_use_after_return=0'
+2024-11-18 17:11:25,994 - INFO - Compile Command: ['env', 'ASAN_OPTIONS=detect_stack_use_after_return=0', 'clang', '-cc1', '-std=c++20', 'tmp.cpp', '-fexceptions', '-fcxx-exceptions', '-pedantic-errors']
+2024-11-18 17:11:25,994 - INFO - Error Message: DiagID: 4990
+tmp.cpp:4:3: error: unknown type name 'T'
+    4 |   T *x;  // expected-error {{unknown type name 'T'}}
+      |   ^
+1 error generated.
+
+2024-11-18 17:11:25,994 - INFO - Extract Diag Info:
+2024-11-18 17:11:25,994 - INFO - Diag ID: 4991, file_name: /shared/data1/Users/l1065028/llvm-project/clang/test/CXX/drs/cwg4xx.cpp, line number: 1194
+2024-11-18 17:11:44,272 - INFO - Compile Command: ['env', 'ASAN_OPTIONS=detect_stack_use_after_return=0', 'clang', '-cc1', '-std=c++20', 'tmp.cpp', '-fexceptions', '-fcxx-exceptions', '-pedantic-errors']
+2024-11-18 17:11:44,272 - INFO - Error Message: tmp.cpp:6:15: warning: extra qualification on member 'a' [-Wextra-qualification]
+    6 |   int cwg482::a = 0;
+      |               ^
+DiagID: 4533
+tmp.cpp:6:15: error: redefinition of 'a'
+tmp.cpp:3:7: note: previous definition is here
+    3 |   int a;
+      |       ^
+tmp.cpp:8:16: warning: extra qualification on member 'f' [-Wextra-qualification]
+    8 |   void cwg482::f() {}
+      |                ^
+2 warnings and 1 error generated.
+
+2024-11-18 17:11:44,272 - INFO - Extract Diag Info:
+2024-11-18 17:11:44,272 - INFO - Diag ID: 1876, file_name: /shared/data1/Users/l1065028/llvm-project/clang/test/CXX/drs/cwg4xx.cpp, line number: 1246
+2024-11-18 17:12:51,415 - INFO - Compile Command: ['env', 'ASAN_OPTIONS=detect_stack_use_after_return=0', 'clang', '-cc1', '-std=c++20', 'tmp.cpp', '-fexceptions', '-fcxx-exceptions', '-pedantic-errors']
+2024-11-18 17:12:51,416 - INFO - Error Message: DiagID: 4971
+tmp.cpp:3:30: error: function 'cwg488::f<E>' is used but not defined in this translation unit, and cannot be defined in any other translation unit because its type does not have linkage
+    3 |   template <typename T> void f(T);
+      |                              ^
+tmp.cpp:7:5: note: used here
+    7 |     f(e); // expected-error {{template argument uses local type 'E'}}
+      |     ^
+1 error generated.
+
+2024-11-18 17:12:51,417 - INFO - Extract Diag Info:
+2024-11-18 17:12:51,417 - INFO - Diag ID: 5295, file_name: /shared/data1/Users/l1065028/llvm-project/clang/test/CXX/drs/cwg4xx.cpp, line number: 1387
+2024-11-18 17:13:18,962 - INFO - Compile Command: ['env', 'ASAN_OPTIONS=detect_stack_use_after_return=0', 'clang', '-cc1', '-std=c++20', 'tmp.cpp', '-fexceptions', '-fcxx-exceptions', '-pedantic-errors']
+2024-11-18 17:13:18,963 - INFO - Error Message: DiagID: 4990
+tmp.cpp:4:31: error: unknown type name 'size_t'
+    4 |     static void *operator new(size_t, size_t);
+      |                               ^
+DiagID: 4990
+tmp.cpp:4:39: error: unknown type name 'size_t'
+    4 |     static void *operator new(size_t, size_t);
+      |                                       ^
+DiagID: 4990
+tmp.cpp:5:40: error: unknown type name 'size_t'
+    5 |     static void operator delete(void*, size_t); // #cwg429-delete
+      |                                        ^
+3 errors generated.
+
+2024-11-18 17:13:18,963 - INFO - Extract Diag Info:
+2024-11-18 17:13:18,963 - INFO - Diag ID: 4446, file_name: /shared/data1/Users/l1065028/llvm-project/clang/test/CXX/drs/cwg4xx.cpp, line number: 587
+2024-11-18 17:14:41,945 - INFO - Compile Command: ['clang', '-cc1', '-triple=powerpc64-unknown-linux-gnu', '-target-feature', '+altivec', '-target-feature', '+vsx', '-fsyntax-only', '-std=c++11', 'tmp.cpp']
+2024-11-18 17:14:41,946 - INFO - Error Message: False
+2024-11-18 17:14:41,946 - INFO - Extract Diag Info:
+2024-11-18 17:14:41,946 - INFO - Diag ID: 3728, file_name: /shared/data1/Users/l1065028/llvm-project/clang/test/Parser/cxx-altivec.cpp, line number: 62
+2024-11-18 17:14:59,084 - INFO - Compile Command: ['clang', '-cc1', '-triple=powerpc64-unknown-linux-gnu', '-target-feature', '+altivec', '-target-feature', '+vsx', '-fsyntax-only', '-std=c++11', 'tmp.cpp']
+2024-11-18 17:14:59,084 - INFO - Error Message: False
+2024-11-18 17:14:59,084 - INFO - Extract Diag Info:
+2024-11-18 17:14:59,084 - INFO - Diag ID: 3730, file_name: /shared/data1/Users/l1065028/llvm-project/clang/test/Parser/cxx-altivec.cpp, line number: 107
+2024-11-18 17:15:28,657 - INFO - Compile Command: ['clang', '-cc1', '-std=c++23', '-triple', 'x86_64-unknown-linux-gnu', 'tmp.cpp', '-fexceptions', '-fcxx-exceptions', '-pedantic-errors']
+2024-11-18 17:15:28,657 - INFO - Error Message: DiagID: 1437
+tmp.cpp:3:25: error: declaration of anonymous struct must be a definition
+    3 |   template <typename U> struct operator+ {};
+      |                         ^
+DiagID: 3920
+tmp.cpp:3:25: error: declaration does not declare anything
+DiagID: 3925
+tmp.cpp:7:20: error: no member named 'operator+' in 'T'
+    7 |   enum T::template operator+<int>::E d;  // expected-error {{expected identifier}}
+      |        ~~~         ^
+DiagID: 3520
+tmp.cpp:7:36: error: ISO C++ forbids forward references to 'enum' types
+    7 |   enum T::template operator+<int>::E d;  // expected-error {{expected identifier}}
+      |                                    ^
+4 errors generated.
+
+2024-11-18 17:15:28,657 - INFO - Extract Diag Info:
+2024-11-18 17:15:28,657 - INFO - Diag ID: 3963, file_name: /shared/data1/Users/l1065028/llvm-project/clang/test/CXX/drs/cwg3xx.cpp, line number: 56
+2024-11-18 17:19:35,828 - INFO - Compile Command: ['clang', '-cc1', '-std=c++23', '-triple', 'x86_64-unknown-linux-gnu', 'tmp.cpp', '-fexceptions', '-fcxx-exceptions', '-pedantic-errors']
+2024-11-18 17:19:35,828 - INFO - Error Message: DiagID: 4957
+tmp.cpp:10:12: error: undeclared identifier 'G' in destructor name
+   10 |   f.N::F::~G(); // expected-error {{ISO C++ requires the name after '::~' to be found in the same scope as the name before '::~'}}
+      |            ^
+1 error generated.
+
+2024-11-18 17:19:35,828 - INFO - Extract Diag Info:
+2024-11-18 17:19:35,828 - INFO - Diag ID: 5273, file_name: /shared/data1/Users/l1065028/llvm-project/clang/test/CXX/drs/cwg3xx.cpp, line number: 1767

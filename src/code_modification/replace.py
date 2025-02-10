@@ -6,6 +6,7 @@ import re
 import subprocess
 import difflib
 import json
+import logging
 import tempfile
 from utils import log_to_json, get_line_at_offset, get_ast_string, find_node_at_offset
 
@@ -37,7 +38,6 @@ def all_running(filename, original_command, log_file_path, replace_mode='1'):
 def replace_single_symbol(filename, symbol_source, symbol_target, original_command, log_file_path, replace_mode='1'):
 
     fuzz_mode = get_fuzz_mode(symbol_source, symbol_target)
-    print(f"Fuzz mode: {fuzz_mode}")
     if fuzz_mode == 'unknown_symbol':
         raise ValueError(f"Unknown symbol: {symbol_source}, {symbol_target}")
 
@@ -85,12 +85,13 @@ def replace_single_symbol(filename, symbol_source, symbol_target, original_comma
 
         original_line = get_line_at_offset(
             content, start + symbol)
-        print(f"Original line: {original_line.strip()}")
-
-        print(node.spelling)
+        logging.info(f"Original line: {original_line.strip()}")
+        logging.info(f"Node spelling: {node.spelling}")
+        
         symbol_node = find_node_at_offset(node, start + symbol)
         node_kind = symbol_node.kind
-        print(f"Node kind: {symbol_node.kind}")
+        logging.info(f"Node kind: {symbol_node.kind}")
+        
         if 'replace_double' in fuzz_mode:
             modified_content = content[:start + symbol] + \
                 symbol_target + content[start + symbol + 2:]
@@ -99,7 +100,7 @@ def replace_single_symbol(filename, symbol_source, symbol_target, original_comma
                 symbol_target + content[start + symbol + 1:]
         modified_line = get_line_at_offset(
             modified_content, start + symbol)
-        print(f"Modified line: {modified_line.strip()}\n")
+        logging.info(f"Modified line: {modified_line.strip()}")
         
         with tempfile.NamedTemporaryFile(mode='w+', suffix='.cpp') as temp_file:
             # Write the modified content to the temporary file

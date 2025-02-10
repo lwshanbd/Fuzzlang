@@ -3,8 +3,7 @@ import random
 import subprocess
 import os
 import subprocess
-import difflib
-import json
+import logging
 from utils import log_to_json, get_line_at_offset
 
 
@@ -44,7 +43,7 @@ def add_asterisk_to_variables(filename, original_command, command_line, log_file
             if node.kind in [clang.cindex.CursorKind.VAR_DECL, clang.cindex.CursorKind.PARM_DECL, clang.cindex.CursorKind.FIELD_DECL]:
                 identifier_token = find_identifier_token(node)
                 if identifier_token is not None:
-                    print(f"Identifier token: {identifier_token.spelling}")
+                    logging.info(f"Identifier token: {identifier_token.spelling}")
                     start = identifier_token.extent.start.offset
                 for child in node.get_children():
                     if child.kind == clang.cindex.CursorKind.TYPE_REF:
@@ -56,21 +55,20 @@ def add_asterisk_to_variables(filename, original_command, command_line, log_file
             if referenced is not None:
                 if referenced.kind == clang.cindex.CursorKind.OVERLOADED_DECL_REF:
                     continue
-                print(f"Referenced: {referenced.spelling}")
-                print(f"Referenced: {referenced.kind}")
+                logging.info(f"Referenced: {referenced.spelling}")
+                logging.info(f"Referenced: {referenced.kind}")
             
 
             original_line = get_line_at_offset(content, start)
-            print(f"Original line: {original_line.strip()}")
-            print(f"Start: {start}")
-            print(f"node location: {node.location.file}")
-            print(f"node spelling: {node.spelling}")
+            logging.info(f"Original line: {original_line.strip()}")
+            logging.info(f"Start: {start}")
+            logging.info(f"node location: {node.location.file}")
+            logging.info(f"node spelling: {node.spelling}")
             # Add asterisk before variable name or reference
             modified_content = content[:start] + '*' + content[start:]
             modified_line = get_line_at_offset(modified_content, start)
-            print(f"Modified line: {modified_line.strip()}")
-            print(f"Node kind: {node.kind}")
-            print()
+            logging.info(f"Modified line: {modified_line.strip()}")
+            logging.info(f"Node kind: {node.kind}")
 
             modified_filename = os.path.splitext(
                 filename)[0] + '_modified' + os.path.splitext(filename)[1]

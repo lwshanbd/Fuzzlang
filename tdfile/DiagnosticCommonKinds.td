@@ -85,7 +85,7 @@ def warn_fp_nan_inf_when_disabled : Warning<
 
 let CategoryName = "Parse Issue" in {
 
-def err_expected : Error<"expected %0">;
+
 def err_expected_either : Error<"expected %0 or %1">;
 def err_expected_after : Error<"expected %1 after %0">;
 

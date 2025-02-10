@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/hrtc/apps/scripting/anaconda3/x86_64/2024.02/bin/python
 
 import subprocess
 import sys
@@ -14,18 +14,23 @@ import code_modification.symbol as symbol
 import code_modification.asterisk as asterisk
 import code_modification.replace as symbol_replace
 import code_modification.remove_single as remove_single
+import code_modification.remove_pair as remove_pair
 import code_modification.lambdafunc as lambda_modification
+import code_modification.agent as agent
+import utils
 from utils import log_to_json
 
 class FuzzlangWrapper:
     RECOGNIZED_SOURCE_FILE_EXTENSIONS = ['.c', '.cpp', '.cxx', '.cc', '.c++']
     ARG_WITH_ATTACHED = ['-Xlinker', '-MF', '-MT', '-isystem', '-o', '-D']
     ARG_NOT_REMOVED = ['-o', '-I', '-L', '-c']
-    MODE_LIST = ['argsremove', 'argsreorder', 'replace_all', 'remove_single', 
-                 'remove_parentheses', 'replace_colon_with_semicolon', 'add_asterisk_to_variables','lambda_captures']
+    MODE_LIST = ['argsremove', 'argsreorder', 'replace_all', 'remove_single', 'remove_pair',
+                 'remove_parentheses', 'replace_colon_with_semicolon', 'add_asterisk_to_variables','lambda_captures', 'agent']
+    
+    error_file_list = []
     
     def __init__(self):
-        self.log_file_path = './tmp.json'
+        self.log_file_path = '/shared/data1/Users/l1065028/Fuzzlang/total-jsons/add_asterisk_id.jsonl'
         self.fuzz_modes = ['none']
         self.remove_level = 1
         self.command = []
@@ -33,8 +38,12 @@ class FuzzlangWrapper:
         self.parsed_command = {}
 
         if not clang.cindex.Config.library_file:
-            clang.cindex.Config.set_library_file('/lustre/software/llvm/18.1.1/lib/libclang.so')
+            clang.cindex.Config.set_library_file(
+                '/hrtc/apps/devtools/spack/PINE/linux-rocky9-zen4/gcc-11.4.1/llvm-17.0.4-zwkzgzmep5nkmdjypj52qebr7dvzkc5o/lib/libclang.so')
         self.index = clang.cindex.Index.create()
+        
+        error_files = open("/shared/data1/Users/l1065028/Fuzzlang/src/error_list.txt", "r").readlines()
+        self.error_file_list = [error_file[:-1] for error_file in error_files]
 
     def parse_fuzz_mode(self):
         fuzz_mode = os.getenv('FUZZ_MODE', '')
@@ -123,8 +132,21 @@ class FuzzlangWrapper:
                 symbol_replace.all_running(source_file, self.original_command, self.log_file_path)
             elif fuzz_type == 'remove_single':
                 remove_single.all_running(source_file, self.original_command, self.log_file_path)
+            elif fuzz_type == 'remove_pair':
+                remove_pair.all_running(source_file, self.original_command, self.log_file_path)
             elif fuzz_type == 'lambda_captures':
                 lambda_modification.all_running(source_file, self.original_command, self.log_file_path)
+                
+    def agent_run(self):
+        success_files = [line.strip() for line in open("/shared/data1/Users/l1065028/Fuzzlang/src/success_files.txt", "r").readlines()]
+        for error_file in self.error_file_list:
+            if error_file in success_files:
+                continue
+            for source_file in self.parsed_command['source_file']:
+                res = agent.run_with_error(source_file, self.original_command, self.log_file_path, error_file)
+                if res:
+                    open("/shared/data1/Users/l1065028/Fuzzlang/src/success_files.txt", "a").write(error_file + "\n")
+
 
     def run_command(self, command_to_run, fuzz_type, fuzzed_args=None):
         try:
@@ -162,13 +184,15 @@ class FuzzlangWrapper:
 
         if mode in ['argsremove', 'argsreorder']:
             self.argsfuzz(mode)
-        elif mode in ['remove_parentheses', 'replace_colon_with_semicolon', 'add_asterisk_to_variables', 'replace_all', 'remove_single', 'lambda_captures']:
+        elif mode in ['remove_parentheses', 'replace_colon_with_semicolon', 'add_asterisk_to_variables', 'replace_all', 'remove_single', 'remove_pair', 'lambda_captures']:
             self.fuzz_source_code(mode)
-
+        elif mode == 'agent':
+            self.agent_run()
+        print(self.original_command)
         try:
             subprocess.run(self.original_command, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         except subprocess.CalledProcessError as e1:
-            print('Wrong Command!')
+            print('Wrong Command !!')
             print(self.original_command)
             print(e1.stderr.decode().strip())
 

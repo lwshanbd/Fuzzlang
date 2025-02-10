@@ -306,23 +306,18 @@ def main():
         all_errors.update(extract_errors_from_td(td_file))
         
     errors = []
-    
     err_messages = []
     
-    # def get_json_files(folder_path):
-    #     return [os.path.join(folder_path, file) for file in os.listdir(folder_path) if file.endswith('.json')]
-    # jsonfiles = get_json_files('../.json')
-    # for file_name in jsonfiles:
-    #     print(file_name)
-    #     err_messages.extend(process_json(file_name))
-    file_name = "..//error_cpacks.json"
+    file_name = "../total-jsons/remove.jsonl"
     err_messages.extend(process_json(file_name))
-    # file_name = "../.json/error_log_llvm1.json"
-    # err_messages.extend(process_json(file_name))
-    # file_name = "../.json/error_log_llvm6.json"
-    # err_messages.extend(process_json(file_name))
-    # file_name = "../.json/error_log_llvm5.json"
-    # err_messages.extend(process_json(file_name))
+    file_name = "../total-jsons/replace_all.jsonl"
+    err_messages.extend(process_json(file_name))
+    file_name = "../total-jsons/remove_single.jsonl"
+    err_messages.extend(process_json(file_name))
+    file_name = "../total-jsons/add_lambda.jsonl"
+    err_messages.extend(process_json(file_name))
+    print(len(err_messages))
+    
     for i in err_messages:
         str_tmp = i['message']
         str_tmp = remove_ansi_escape_sequences(str_tmp)
@@ -331,12 +326,12 @@ def main():
     
     
     
-    with open('notfound4.list', 'w') as file:
+    with open('notfound.list', 'w') as file:
         for element in notfound:
             file.write(f"{element}\n")
     print(len(results))
     #print(results)
-    filename = 'cpacks_errortype.json'
+    filename = 'full.json'
 
     with open(filename, 'w') as json_file:
         json.dump(results, json_file, indent=4)

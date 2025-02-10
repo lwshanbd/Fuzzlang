@@ -28,8 +28,6 @@ def find_node_at_offset1(node, target_offset):
             result = find_node_at_offset(child, target_offset)
             if result:
                 return result
-        # print("AST for this line:")
-        # print(get_ast_string(node))
         return node
     return None
 
