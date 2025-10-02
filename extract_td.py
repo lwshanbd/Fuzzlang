@@ -2,12 +2,12 @@ import os
 import re
 
 def extract_error_names_from_folder(folder_path):
-    # 正则表达式匹配 error name
+    # Regular expression to match error names
     pattern = r"def\s+([a-zA-Z0-9_]+)\s*:"
 
     error_names = []
 
-    # 遍历文件夹中的所有 .td 文件
+    # Iterate through all .td files in the folder
     for root, _, files in os.walk(folder_path):
         for file in files:
             if file.endswith(".td"):
@@ -16,7 +16,7 @@ def extract_error_names_from_folder(folder_path):
                 try:
                     with open(file_path, 'r', encoding='utf-8') as f:
                         content = f.read()
-                        # 提取所有匹配的 error name
+                        # Extract all matching error names
                         matches = re.findall(pattern, content)
                         error_names.extend(matches)
                 except Exception as e:
@@ -28,7 +28,7 @@ def extract_error_names_from_folder(folder_path):
 folder_path = "tdfile"
 
 
-# 提取 error names
+# Extract error names
 error_names = extract_error_names_from_folder(folder_path)
 res = []
 for i in error_names:
