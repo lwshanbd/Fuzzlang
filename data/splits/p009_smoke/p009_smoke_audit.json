@@ -1,0 +1,50 @@
+{
+  "hash_mode": "text",
+  "inputs": {
+    "dev": "data/splits/p009_smoke/x_dev_smoke.jsonl",
+    "eval": "data/splits/p009_smoke/y_eval_smoke.jsonl",
+    "train": "data/splits/p009_smoke/x_train_smoke.jsonl"
+  },
+  "overall_ok": true,
+  "pairs": [
+    {
+      "collisions": 0,
+      "examples": [],
+      "left": "train",
+      "left_unique_hashes": 50,
+      "ok": true,
+      "right": "dev",
+      "right_unique_hashes": 48
+    },
+    {
+      "collisions": 0,
+      "examples": [],
+      "left": "train",
+      "left_unique_hashes": 50,
+      "ok": true,
+      "right": "eval",
+      "right_unique_hashes": 50
+    },
+    {
+      "collisions": 0,
+      "examples": [],
+      "left": "dev",
+      "left_unique_hashes": 48,
+      "ok": true,
+      "right": "eval",
+      "right_unique_hashes": 50
+    }
+  ],
+  "row_counts": {
+    "dev": 50,
+    "eval": 50,
+    "train": 50
+  },
+  "schema_version": 1,
+  "task": "P009 dedup audit (G-M2 second half)",
+  "unique_hash_counts": {
+    "dev": 48,
+    "eval": 50,
+    "train": 50
+  }
+}
