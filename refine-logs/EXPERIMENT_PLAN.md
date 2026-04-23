@@ -1,10 +1,10 @@
-# Experiment Plan
+# Experiment Plan (v2, matches FINAL_PROPOSAL.md Round 7 READY)
 
 **Problem**: LLM-based code repair for compilation errors does not close the loop on the compiler's own structured diagnostic output; reported gains collapse under rigorous data isolation.
-**Method Thesis**: Typed compiler diagnostics used as an inference-time verifier signal produce measurably better compilation-error repair than stderr-text feedback and than static supervised fine-tuning, under project-level-isolated evaluation and at matched inference budgets, on natural C/C++ compilation errors from real projects.
-**Date**: 2026-04-23
+**Method Thesis**: Typed compiler diagnostics used as an inference-time verifier signal produce measurably better compilation-error repair than stderr-text feedback and static SFT, under **both** rigorous mutation-based evaluation (project-level train/eval holdout + AST-hash dedup) **and** natural-error evaluation (real developer compile errors), at matched inference budgets.
+**Date**: 2026-04-23 (v2 cycle)
 **Venue**: NeurIPS 2026 main track
-**Compute**: Polaris @ Argonne, project `diomp`, Qwen2.5-Coder-7B-Instruct headline + 32B appendix
+**Compute**: Polaris A100-40GB × `diomp`, headline model Qwen2.5-Coder-7B-Instruct; 32B / 70B / frontier API as appendix scale calibration.
 
 ---
 
@@ -12,227 +12,245 @@
 
 | ID | Claim | Why It Matters | Minimum Convincing Evidence | Linked Blocks |
 |---|---|---|---|---|
-| **C1** | **DVCR > B1 stderr-loop AND DVCR > B2 static SFT**, at matched base model (Qwen2.5-Coder-7B) and matched output-token budget, on NatErr natural-C/C++-errors split. | The paper's central mechanism claim. If this fails, the paper does not exist. | 4-row main table, 3 seeds, non-overlapping 95% bootstrap CIs between DVCR and the next-best row. Absolute gap ≥ 5 pp on `verified_fix_rate@T=5`. | B1 |
-| **C2** | **DVCR > DVCR−id** at matched budget. | Isolates the typed 488-class ID as the causal factor on top of "structured feedback in general". Without this, the contribution degrades from "typed diagnostics" to "any structured compiler feedback". | 3-way signal ablation, 3 seeds, DVCR−id beats DVCR−structure (structure helps) AND DVCR beats DVCR−id (ID helps on top of structure). Each gap ≥ 3 pp with non-overlapping CI or p<0.05. | B2 |
-| **C3** (supporting) | DVCR's lift persists on **HPC directive-parallel** (OpenMP + OpenACC) natural errors from real projects. | Domain robustness; reused Fuzzlang v1 infra is uniquely positioned here. Appendix-only result. | Appendix table, single column on HPC NatErr slice, DVCR > B1 with positive-direction gap. | B5 appendix |
+| **C1-A** | **DVCR > B0/B1/B2/B3/B_classical on Column A (mutation eval with project-level holdout + AST-dedup)**, N = 3000, Qwen2.5-Coder-7B matched budget. | Primary statistical claim. Addresses Reviewer C's same-codebase objection directly. | Main table, 3 seeds, non-overlapping 95% bootstrap CIs between DVCR and B1. Absolute gap ≥ 5 pp. | B1, B2 |
+| **C1-B** | **DVCR > B1 (stderr-loop) on Column B (NatErr, real developer errors)** at matched budget. | External-validity check. Directly answers Reviewer B's "entirely on synthetic errors" concern. | Directional (positive, same sign on both columns). CI can be looser given smaller N. | B1, B2 |
+| **C2** | **DVCR > DVCR − id** on Column A at matched budget. | Typed categorical ID causally isolable from structure in general. Answers Reviewer C's direct ask about diagnostic-ID contribution. | 3-way signal ablation (DVCR / DVCR−id / DVCR−structure), 3 seeds, gap ≥ 3 pp with non-overlapping CI. | B2 |
+| **C3** (appendix) | DVCR's lift persists under scale calibration (32B, 70B, optional frontier API) and on HPC directive-parallel subset. | Robustness. Addresses Reviewer B's "stronger models" ask without making scale the headline. | Appendix table showing consistent-direction gains. | B3 |
 
 ### Anti-claims explicitly ruled out
 
-| Anti-claim | Where it is ruled out |
+| Anti-claim | Ruled out by |
 |---|---|
-| A1: "DVCR beats B1/B2 only because it uses more compute / longer token budget." | Matched-budget protocol: same max output-token envelope per instance across all methods. |
-| A2: "DVCR beats B1 only because the JSON-schema interface is more structured, not because of diagnostic IDs." | Three-way ablation DVCR−id isolates structure from ID. |
-| A3: "Gains are because B2 overfits to mutation-generated training and fails on naturals — any inference-time method would beat it." | B1 stderr-loop uses the same base model with no SFT and is a strong comparator; head-to-head DVCR vs B1 is the clean test. |
-| A4: "The loop is what matters, not the diag_id signal." | Loop-off ablation (DVCR − loop, T=1) quantifies the loop contribution separately; combined with three-way signal ablation this isolates all three axes. |
-| A5: "Results are contamination artifacts — Qwen2.5-Coder has seen these commits." | Calendar cutoff 2025-06-01 + measured contamination floor on the held-out split. All gains reported relative to the floor. |
-| A6: "The numbers are inflated by LLM-as-judge." | Compiler is the only oracle. No LLM judge anywhere in the main table. |
-| A7: "Gains are from head-class domination of a few diagnostic types." | Per-diagnostic-family breakdown reported in appendix; macro-average alongside micro-average in the main table. |
-| A8: "DVCR works only because Clang is special (modified ID emission); it's a Clang trick, not a method." | GCC cross-compiler transfer in appendix probes whether the mechanism transfers under a diagnostic-ID crosswalk. |
+| A1: DVCR's gain is compute / token-budget artifact. | Matched-budget protocol across all methods (same `E_tokens = 5120` envelope per instance). |
+| A2: DVCR beats B1 only because of JSON-schema structured interface, not diagnostic ID. | 3-way DVCR − id vs DVCR − structure isolates structure from ID. |
+| A3: Mutation-eval is near-duplicate leakage. | Column A uses X/Y project-level holdout + AST-hash dedup across X↔Y + source-provenance-level X-dev carve. Reviewer C's objection. |
+| A4: Loop alone explains gain, not typed signal. | DVCR − loop (T=1, K=4) ablation. |
+| A5: Contamination — Qwen has seen the commits. | Temporal holdout ≥ 2025-06-01 + measured contamination floor. |
+| A6: LLM-as-judge inflates scores. | Compiler is only oracle everywhere. Audit manifest released. |
+| A7: DVCR fixes compile but breaks semantics. | **Limitations subset** reports `(compile_ok ∧ tests_pass)` rate on test-covered files with honest gap and case studies. |
+| A8: Results depend on silent test-set tuning. | **Model Selection Protocol** (published, §Methodology). All tuning on X-train/X-dev only; Y-eval and NatErr never touched pre-submission. |
+| A9: Mechanism is a Clang-only trick. | GCC cross-compiler transfer appendix with diag-ID crosswalk. |
+| A10: Only same-codebase eval shown. | Column A is disjoint-projects by construction; Column B is multi-project naturals. |
 
 ---
 
 ## Paper Storyline
 
 **Main paper must prove**:
-- **C1** (main 4-row table) and **C2** (three-way signal ablation).
-- Loop contribution isolated from signal contribution.
-- Contamination floor reported so gains are honest.
-- At least one qualitative / failure-mode section so reviewers can see where DVCR still loses.
+- **C1-A** (main 6-row table, Column A) + **C2** (3-way signal ablation on Column A).
+- **C1-B** (same 6-row table, Column B column) at whatever honest scale Stage 2 yields.
+- Methodology subsection documenting split mechanics + Model Selection Protocol (answers Reviewer A+C directly).
+- Limitations subsection with `(compile_ok ∧ tests_pass)` subset (answers Reviewer B).
+- Data + code availability committed.
 
 **Appendix supports**:
-- **C3** HPC domain robustness.
-- Rigor: B3 SFT+stderr-loop "strongest plausible baseline" safety row; GCC transfer; Qwen2.5-Coder-32B scale robustness.
-- Mechanism depth: notes / macro / template-chain inclusion variant; trajectory trim sensitivity; budget T sensitivity; DTFT sanity row; per-family table; synthetic stress test (Fuzzlang-Transformer errors — shows natural↔synthetic gap).
+- **C3** (scale calibration, HPC domain transfer).
+- Rigor depth: GCC cross-compiler transfer; per-diagnostic-family breakdown; synthetic-stress in-distribution comparator.
+- Mechanism depth: trajectory-trim / budget-T / notes-inclusion / DTFT sanity.
 
 **Experiments intentionally cut**:
-- Multi-search-policy comparison (greedy / beam / MCTS / majority-vote). Skill's R1 advice — do not turn the paper into a search-engineering paper.
-- Multi-base-family (Llama / DeepSeek / StarCoder). One coder model is enough for C1/C2.
-- Multi-language beyond C/C++ + directive-parallel. Out of anchor scope.
-- Retrieval augmentation. No RAG baseline for compilation errors has published strong numbers under rigorous isolation; adding it muddles the mechanism story.
-- Full RL (PPO / GRPO / DPO). The whole point is inference-time suffices.
+- Multi-search-policy comparison (greedy / beam / MCTS).
+- Multi-base-family (Llama / DeepSeek / StarCoder) — Qwen2.5-Coder main + scale calibration only.
+- Multi-language beyond C/C++ + directive-parallel.
+- Retrieval augmentation.
+- Full RL (PPO/GRPO/DPO).
 
 ---
 
 ## Experiment Blocks
 
-### Block B1 — Main anchor result (MUST-RUN)
+### Block B1 — Main two-column table (MUST-RUN, primary)
 
-- **Claim tested**: C1 (and part of A1).
-- **Why this block exists**: the paper's 4-row table. Without this, there is no paper.
-- **Dataset / split / task**: NatErr main split. Natural compilation errors from commits ≥ 2025-06-01 in {LLVM, Chromium, FFmpeg, LibreOffice, PostgreSQL, Blender, Qt, Bitcoin Core}. Target n ≥ 3000 per scope decision tree; fallback tiers narrow scope.
-- **Compared systems (4 rows, all Qwen2.5-Coder-7B-Instruct at matched output-token budget)**:
-  - **B0** zero-shot single-shot: one LLM call with `(buggy_src, compile_cmd, stderr)` → full patched source.
-  - **B1** stderr-loop: Self-Debug-style iterative, T=5 turns × K=4 branches, JSON-schema edit action same as DVCR, but observation = raw compiler stderr text (no structured fields).
-  - **B2** static SFT: LoRA-rank-16-SFT on Fuzzlang-LLVM held-in mutations (Fuzzlang v1 recipe), then single-shot inference like B0.
-  - **DVCR** (ours): T=5, K=4, observation = `{diag_id, diag_name, diag_msg, span}`, JSON-schema edit action, parallel-sampling + verifier selection, span-hash dead-end detection, primary-diagnostic-only rule.
+- **Claims tested**: C1-A and C1-B.
+- **Why this block exists**: the 6×2 table is the paper's headline. Without this there is no paper.
+- **Dataset / split**:
+  - **Column A (Mutation, primary)**: Fuzzlang-Transformer mutations on Y = {PostgreSQL, FFmpeg, Qt, Blender}. N = 3000. Training set is X = {LLVM}, 50k filtered mutations. X-dev carved at source-provenance level (file/function/commit) BEFORE mutation generation. AST-hash dedup across X↔Y.
+  - **Column B (Natural)**: NatErr Stage 2 reproductions from 8 projects, commits ≥ 2025-06-01. Eval-only; never in training. N ≈ 100–500 (Stage 2 yield projected).
+- **6 methods per column, all Qwen2.5-Coder-7B, matched token envelope** (E_tokens = T×K×256 = 5120):
+  - **B0** zero-shot: one LLM call, stderr observation, no loop, no SFT.
+  - **B1** stderr-loop: T=5 K=4, stderr text only observation.
+  - **B2** static SFT: LoRA on X mutations, single-shot inference.
+  - **B3** SFT + stderr-loop: B2 policy + B1's loop.
+  - **B_classical** DrRepair (Yasunaga & Liang 2020): prior-era compile-error repair comparator. MACER (Pu et al. 2019) fallback if DrRepair unmaintainable.
+  - **DVCR (ours)**: loop + typed diag-ID + JSON edits.
 - **Metrics**:
   - Primary: `verified_fix_rate@T=5` (compiler-verified OK under original compile_cmd, whole-file no-regression, trivial-deletion guard), 95% bootstrap CI, 3 seeds.
-  - Secondary: `token_efficiency` = `verified_fix_rate / avg_output_tokens`.
-  - Secondary: `avg_verifier_calls`, `avg_turns_to_success` (successes only).
-  - Reported both micro-avg and macro-avg-over-diagnostic-family.
-- **Setup details**:
-  - Qwen2.5-Coder-7B-Instruct, FP16, vLLM.
-  - Temp 0.8 for sampling K=4 proposals.
-  - Matched token envelope per instance: `E_tokens = 5 (T) × 4 (K) × 256 (per-call cap) = 5120` output tokens per instance for loop methods; B0 / B2 get `E_tokens` in one shot.
-  - B2 training: LoRA rank 16, 1 epoch, bs 8, lr 2e-4, bf16, ~50k filtered (buggy, error, fixed) triples from Fuzzlang-LLVM train split.
-  - Seeds {17, 23, 42} for all stochastic sampling.
-- **Success criterion**: DVCR's verified_fix_rate − B1's ≥ 5 pp AND their 95% CIs do not overlap. Same vs B2.
-- **Failure interpretation**:
-  - DVCR ≤ B1 → central thesis refuted; do NOT publish until Phase 3 (proposal revision) re-opened.
-  - DVCR > B1 but < 5 pp → honest report; consider "small but significant structured-feedback gain" framing.
-  - DVCR > B1 but ≤ B2 → B2's mutation-SFT generalized surprisingly well to naturals; investigate whether data-isolation was correctly enforced.
-- **Table / figure target**: Table 1 (headline), Figure 1 (schematic of the 4 methods' observation/action flow).
-- **Priority**: **MUST-RUN**.
-
-### Block B2 — Novelty isolation: 3-way verifier-signal ablation (MUST-RUN)
-
-- **Claim tested**: C2 (and A2, A8).
-- **Why this block exists**: the paper's causal ablation. Without this, the "typed diagnostic ID" claim is a just-so story.
-- **Dataset / split / task**: same NatErr main split as B1.
-- **Compared systems (3 rows, all Qwen2.5-Coder-7B, loop T=5, K=4, matched token budget)**:
-  - **DVCR** (full signal): observation = `{diag_id, diag_name, diag_msg, span}`.
-  - **DVCR − id** (structured, no ID): observation = `{diag_name, diag_msg, span}`. Diagnostic text + span preserved; integer ID removed. This isolates ID from structure.
-  - **DVCR − structure** (stderr only): observation = raw compiler stderr text. Same loop and action schema as DVCR; just the observation channel collapses to unstructured text.
-- **Metrics**: same as B1. Reported at matched budget.
-- **Setup details**: same seeds, same base model, same search policy. Only the observation field differs.
+  - Reported both micro and macro-avg-over-diagnostic-family.
+  - Secondary: `token_efficiency`, `avg_turns_to_success`, `avg_verifier_calls`.
 - **Success criterion**:
-  - DVCR > DVCR − id ≥ 3 pp with non-overlapping CI → typed-ID claim supported.
-  - DVCR − id > DVCR − structure ≥ 3 pp with non-overlapping CI → structured-interface claim also supported (stronger story).
+  - Column A: DVCR beats B1 by ≥ 5 pp with non-overlapping 95% CI.
+  - Column B: DVCR > B1 directionally (positive gap, same sign), CI can be looser given smaller N.
 - **Failure interpretation**:
-  - DVCR ≈ DVCR − id → typed-ID claim collapses. Thesis weakens to "structured inference-time compiler verifier"; rewrite headline accordingly; anchor still solved. This is the pre-identified scientific risk.
-  - DVCR − id ≈ DVCR − structure → structure alone does not help; implausible but would refute the entire mechanism framing.
-- **Table / figure target**: Table 2 (causal ablation).
-- **Priority**: **MUST-RUN**.
+  - DVCR ≤ B1 on Column A → central thesis refuted; halt and rethink.
+  - DVCR > B1 on A but < on B → mutation-regime artifact suspected; report honestly.
+- **Table / figure target**: Table 1 (two-column 6-row main).
+- **Priority**: **MUST-RUN** both columns.
 
-### Block B3 — Loop ablation: inference-time-scaling contribution (MUST-RUN)
+### Block B2 — Causal ablations (MUST-RUN, on Column A for power)
 
-- **Claim tested**: A4 — is the loop doing the work or is the signal doing the work?
-- **Why this block exists**: simplicity check the other way — a reviewer might say "the gain is just inference-time compute, nothing to do with diag_id". This block separates "compute" from "signal".
-- **Dataset / split / task**: same NatErr main split.
-- **Compared systems**:
-  - **DVCR** (T=5, K=4): full method.
-  - **DVCR − loop** (T=1, K=4): same method, no iterative refinement. K=4 branches still explore at first turn; verifier still selects best, but no repair trajectory.
-  - **DVCR − loop, K=1**: strict zero-shot with the DVCR observation (single sample). Compares against B0 with identical observation.
+- **Claims tested**: C2 (typed ID causal) + A2, A4, A8.
+- **Dataset**: same Column A eval split (N = 3000, Y projects).
+- **Compared systems** (all Qwen2.5-Coder-7B, loop T=5 K=4 except where stated, matched budget):
+  - **DVCR** (full): `{diag_id, diag_name, diag_msg, span}`.
+  - **DVCR − id**: `{diag_name, diag_msg, span}` (structure without ID).
+  - **DVCR − structure**: raw stderr (no typed fields).
+  - **DVCR − loop**: T=1 K=4, full observation.
 - **Metrics**: same as B1.
-- **Setup details**: same as B1; only T and K change.
-- **Success criterion**: DVCR (T=5, K=4) > DVCR − loop (T=1, K=4) ≥ 5 pp with non-overlapping CI. Confirms loop adds real value beyond a single-turn verified best-of-4.
+- **Success criterion**:
+  - DVCR > DVCR − id ≥ 3 pp with non-overlapping CI (typed-ID causal claim).
+  - DVCR − id > DVCR − structure ≥ 3 pp (structure-also-helps supporting fact).
 - **Failure interpretation**:
-  - DVCR ≈ DVCR − loop (T=1, K=4) → loop unnecessary; paper becomes "verifier-guided best-of-N at first turn", which is simpler but less novel.
-  - DVCR − loop (T=1, K=4) already beats B1 heavily → verifier selection at first turn is itself the main win; report honestly.
-- **Table / figure target**: Table 2 shared with B2 ablation.
+  - DVCR ≈ DVCR − id → weaken thesis to "structured inference-time verifier"; anchor still solved; still publishable.
 - **Priority**: **MUST-RUN**.
 
-### Block B4 — Rigor audit: contamination floor, evaluation purity, seed variance (MUST-RUN)
+### Block B3 — Rigor audit (MUST-RUN, post-hoc)
 
-- **Claim tested**: A5, A6, A7, and broader evaluation-rigor audit.
-- **Why this block exists**: makes the headline numbers defensible. Every reviewer concern from the OOPSLA rejection (data isolation, LLM judge, contamination) is addressed here.
 - **Sub-experiments**:
-  - **B4a Contamination floor**: run B0 (pre-intervention base model, no SFT, no loop, no reflection) on NatErr main. This is the floor; all gains reported relative to it.
-  - **B4b NatErr purity audit**: the pipeline's manifest is checked for (a) commit SHAs ≥ 2025-06-01, (b) no authors-of-this-paper contributions, (c) AST-hash dedup vs any Fuzzlang-LLVM training instance, (d) no `llvm-lit` tests in the main split. Audit artifact released.
-  - **B4c Seed variance**: for DVCR and B1, run 3 seeds and report Std / 95% bootstrap CI to confirm gaps are significant, not seed-lucky.
-  - **B4d Macro vs micro**: report both macro-average (per-diagnostic-family, unweighted mean across families) and micro-average (per-instance weighted). Head-class inflation shows up as micro − macro gap.
-- **Metrics**:
-  - Contamination floor = B0 verified_fix_rate on NatErr main.
-  - Purity audit = pass/fail per criterion, release manifest.
-  - Seed variance = 95% CI width on each reported number.
-  - Macro-vs-micro = two numbers per method.
-- **Setup details**: B4c runs overlap with B1 runs (B0, B1, DVCR all 3 seeds there).
-- **Success criterion**:
-  - Contamination floor < DVCR verified_fix_rate with meaningful gap (else paper cannot claim gain).
-  - Purity audit: all 4 criteria pass.
-  - Seed variance: CI width < 3 pp on DVCR.
-  - Macro ≈ Micro (within 2 pp) for DVCR → no head-class inflation. If Macro << Micro, report both honestly.
-- **Failure interpretation**:
-  - Contamination floor high (>60% on NatErr) → base model is too contaminated; try older Qwen2.5-Coder checkpoint or accept smaller relative gain.
-  - Purity audit fails → re-run NatErr harvest with fixed filters before any numbers are reported.
-- **Table / figure target**: Table 1 footnote (contamination floor); Table 2 row (macro vs micro); audit artifact in appendix.
-- **Priority**: **MUST-RUN**.
+  - **B3a** Contamination floor = B0 verified_fix_rate on Column A and Column B. Measured once at submission time.
+  - **B3b** Split-purity audit: verify X/Y projects disjoint; AST-hash dedup audit passes; temporal cutoff 2025-06-01 honored on Column B; no paper-author commits.
+  - **B3c** Seed variance: 95% bootstrap CI widths on DVCR, B1 on both columns. Target < 3 pp.
+  - **B3d** Macro vs micro avg: report both; flag if gap > 2 pp.
+  - **B3e** Model Selection Protocol audit trail: publish the log of which decisions were made on X-dev and when final config was frozen. Released with audit manifest.
+- **Metrics**: auxiliary to B1/B2; no new main-table cell.
+- **Priority**: **MUST-RUN** (all post-hoc on existing runs + protocol metadata).
 
-### Block B5 — Failure analysis & qualitative diagnosis (MUST-RUN)
+### Block B4 — Limitations / safety subset (MUST-RUN, appendix figure)
 
-- **Claim tested**: where does DVCR still fail, and is the failure pattern interpretable?
-- **Why this block exists**: every serious method paper needs a "we are not claiming this solves everything" section. Also, per-diagnostic-family data shows which diagnostics the method handles and which need future work.
-- **Sub-experiments**:
-  - **B5a Per-family breakdown**: partition NatErr instances by top-level diagnostic family (e.g., `err_expected_*`, `err_undeclared_*`, `err_typecheck_*`, `err_template_*`, `err_redefinition_*`, etc.); report per-family verified_fix_rate for DVCR, B1, and B0.
-  - **B5b Dead-end analysis**: for FAIL cases, tabulate the terminal `diag_id` (what the agent could not fix); look for systematic blind spots.
-  - **B5c Trivial-deletion-reject rate**: how often the trivial-deletion guard fires — if high, the base model is trying to game the verifier.
-  - **B5d Qualitative case studies**: 3-5 hand-selected success + failure cases with full trajectories, printed in the paper to ground the quantitative story.
-  - **B5e HPC appendix column** (supports C3, not main): DVCR vs B1 vs B2 on HPC NatErr slice (OpenMP + OpenACC errors from real ECP / Argonne applications).
-- **Metrics**: same primary metric stratified.
-- **Setup details**: reuses all B1 + B2 + B3 runs; this is post-hoc analysis.
-- **Success criterion**:
-  - Per-family table shows DVCR wins on > 70% of families (else head-class concern).
-  - Dead-end analysis identifies ≤ 3 systematic blind spots (e.g., "DVCR consistently fails on template-instantiation errors").
-  - HPC appendix column: DVCR ≥ B1 with a positive direction (does not need to be statistically decisive; appendix-only).
-- **Failure interpretation**:
-  - DVCR wins on < 50% of families → head-class inflation confirmed; fix macro-avg reporting and tone down headline.
-  - Dead-end analysis finds many systematic blind spots → write them as limitations, do not hide.
-- **Table / figure target**: Table 3 (per-family), Figure 2 (qualitative cases), Appendix Table A1 (HPC).
-- **Priority**: **MUST-RUN** (B5a-d); **NICE-TO-HAVE** for B5e HPC column (but strongly recommended).
+- **Claim tested**: anti-claim A7 (compile-rate ≠ semantic-fix rate).
+- **Dataset**: subset of Column A + Column B where the source file is covered by the project's own test suite (e.g., PostgreSQL `regress`, FFmpeg `fate`, Qt tests, Blender tests, LLVM `check-all`).
+- **Metric**: `(compile_ok ∧ tests_pass)` rate. Gap vs verified_fix_rate is the honest semantic-fix gap.
+- **Priority**: **MUST-RUN** — Reviewer B's specific ask.
+- **Case studies**: 3-5 DVCR "successes" where the repair is wrong (compile succeeds, tests fail). Narrated in the appendix.
+
+### Block B5 — Failure analysis (MUST-RUN, post-hoc)
+
+- Per-diagnostic-family breakdown on Column A (Reviewer C's "how much does diag_id help, breakdown?").
+- Dead-end `(diag_id, span_hash)` distribution analysis.
+- Trivial-deletion-reject rate (how often the guard fires).
+- 3-5 qualitative case studies with full trajectories (successes and failures).
+
+### Block C1 — Scale calibration (appendix, NICE-TO-HAVE but strongly recommended)
+
+- **Claim tested**: C3 (robustness).
+- **Compute**: Qwen2.5-Coder-32B-Instruct, Llama-3.3-70B-Instruct, and **one optional frontier API cell** (GPT-5 or Claude-4.5, 2026-era) — single seed each, ≤ 1000 instances each.
+- **Answers Reviewer B's "stronger baselines" request** without letting scale become a parallel paper.
+- **Priority**: **NICE-TO-HAVE** but budget 30 node-hours for it.
+
+### Block C2 — Domain + cross-compiler transfer (appendix)
+
+- HPC slice (OpenMP + OpenACC Stage 2 reproductions from NatErr): DVCR vs B1 on 500 instances.
+- GCC cross-compiler transfer with diag-ID crosswalk: DVCR vs B1 on 1000 instances.
+- **Priority**: NICE-TO-HAVE.
+
+### Block C3 — Mechanism depth (appendix)
+
+- Budget sensitivity T ∈ {1, 2, 3, 5, 10} on DVCR × 1 seed × 1000.
+- Trajectory trim 1 / 2 / full × 1 seed × 1000.
+- Notes/macro/template-chain inclusion variant × 1 seed × 1000.
+- DTFT sanity (LoRA on DVCR successful trajectories).
+- Synthetic in-distribution stress test (DVCR + baselines on X-train mutations — expose the in-distribution vs Y gap).
+- **Priority**: NICE-TO-HAVE.
 
 ---
 
 ## Run Order and Milestones
 
-| Milestone | Goal | Runs included | Decision Gate | Wall-clock | Risk |
+| Milestone | Goal | Runs included | Gate | Wall | Risk |
 |---|---|---|---|---|---|
-| **M0 Sanity** (W1 early) | Verifier wrapper works; JSON-schema edit parses; trivial hand-crafted case ("missing `;`") fixes in 1 turn. | Unit tests + 1 hand-crafted trajectory. | Gate: hand-crafted case succeeds. If fails, DVCR scaffolding is broken — fix before any dataset runs. | 1-2 days | Very low. |
-| **M1 Pipeline build** (W1 late) | DVCR + B1 + B0 + B2-train scaffolding complete. Matched-budget envelope enforced. Cache layer warm. | Build only; no data runs. | Gate: dry-run of 10 synthetic instances through all 4 methods produces valid output + logs. | 3-4 days | Low — mostly plumbing. |
-| **M2 NatErr harvest** (W2) | NatErr pipeline runs on 8 projects; dedup + filters + contamination floor measured; scope decision tree applied. | R-PREP1 (harvest), R-PREP3 (dedup audit), R022 (contamination floor = B0 on first 500 → full when available). | **Gate**: NatErr yield bucket (≥3000 / 1000-2999 / 300-999 / <300) determines paper scope. If <300, HALT and escalate. | 5-6 days | **HIGH** — yield is the biggest open variable. |
-| **M3 Main table** (W3) | B1 block: 4 methods × 3 seeds on full NatErr main split. | R001-R012 (or equivalent per seed grouping). | **Gate (C1)**: DVCR > B1 with non-overlapping CI? If NO, pause and diagnose (likely a scaffolding bug in DVCR); do not proceed to ablations on a broken foundation. | 5-6 days | Medium — depends on inference farm throughput. |
-| **M4 Causal ablations** (W3-W4) | B2 block (3-way signal) + B3 block (loop ablation). | R013-R021 (signal ablation + loop ablation seeds). | **Gate (C2)**: DVCR > DVCR−id significantly? If NO, trigger honest-report path: reframe thesis to "structured-feedback" variant before writing. | 4-5 days | Medium — B2 block requires re-running loops with changed observation channel. |
-| **M5 Rigor + failure analysis** (W4) | B4 audit + B5a-d analyses. | Post-hoc over M3/M4 outputs; releases audit manifest. | Gate: macro vs micro gap < 5 pp for DVCR; else rewrite headline with macro number. | 2-3 days | Low — reuses data. |
-| **M6 Appendix extras** (W4 late - W5) | B5e HPC column, B3 SFT+stderr-loop, GCC transfer, 32B scale-robustness, DTFT sanity row, T sensitivity, trajectory trim, synthetic stress. | R025-R040 (selective). | No gate — appendix; run what time allows. | variable | Low — additive. |
-| **M7 Writing** (W5) | Full paper draft with final tables/figures. | — | Gate: every table/figure has a producing run in the tracker. | W5 | Low. |
-| **M8 External review loop** (W6) | `/auto-review-loop` on draft. | — | Gate: score ≥ READY equivalent. | W6 | Medium. |
-| **Slack** (+1 week) | Buffer for any M2/M3 gate reopens. | — | — | +1 wk | — |
+| **M0 Sanity** (W1 early) | Verifier wrapper + JSON-schema edit parses; hand-crafted missing-`;` smoke passes. | P001, P002, hand-crafted DVCR trajectory. | hand-crafted case fixes in 1 turn. | 1 day | low |
+| **M1 Pipeline build** (W1 late) | All 6 methods wired; matched-budget envelope enforced; cache warm. | P003 + method factories + eval harness. | dry-run 10 synthetic instances through 6 methods produces valid logs. | 3 days | low |
+| **M2 X/Y split + X-dev carve** (W1-W2) | Source-provenance-level X-dev carve on LLVM; Fuzzlang-Transformer emits mutations on X-train only; Y = {PG, FFmpeg, Qt, Blender} mutation set built. | P009, P011. | AST-hash dedup audit passes across X-train/X-dev AND across X↔Y. | 3 days | **medium** — need clean pre-mutation split infra. |
+| **M3 B2 LoRA SFT** (W2) | B2 policy trained on X-train mutations (Fuzzlang v1 recipe). | P008. | held-in validation loss monotonic. | 1 day | low |
+| **M4 NatErr Stage 2 (LLVM)** (W2) | Run `scripts/run_natErr_stage2_llvm.py` against the 488 LLVM candidates. | P012. Produces Column B LLVM subset. | reproduction rate measured; either ≥ some threshold → scale Column B, or demote. | 1 day compute + 1 day analysis | medium |
+| **M4b NatErr Stage 2 (other projects)** (W2 / in parallel) | Per-project drivers for postgres/ffmpeg/qt. | P013-P015. | target total Column B N. | 3 days | **high** — per-project drivers are real work. |
+| **M5 DrRepair setup** (W2) | Install / patch / containerize DrRepair; smoke on 10 instances. MACER fallback ready. | P010. | produces at least one valid fix on at least one instance; rate not needed. | 2-3 days | **medium** — 2020 codebase. |
+| **M6 Column A main sweep** (W3) | 6 methods × 3 seeds on Column A (N=3000) at matched budget. | RA001-RA018. | **Gate C1-A**: DVCR > B1 ≥ 5 pp non-overlapping CI. | 5 days (80 node-hours) | medium |
+| **M7 Column A ablations** (W3 late) | DVCR − id / − structure / − loop × 3 seeds. | RA019-RA027. | **Gate C2**: DVCR > DVCR-id ≥ 3 pp non-overlapping CI. | 3 days (50 node-hours) | medium |
+| **M8 Column B main sweep** (W3-W4) | Same 6 methods × 3 seeds on Column B. | RB001-RB018. | **Gate C1-B**: DVCR > B1 directionally. | 2 days (15 node-hours) | low if M4 yielded enough |
+| **M9 Limitations subset** (W4) | Tests-covered instances from both columns; report (compile_ok ∧ tests_pass). | RL001-RL006. | honest reporting; gap expected. | 2 days | low |
+| **M10 Appendix runs** (W4) | 32B / 70B / frontier scale cal; HPC; GCC; budget/trim/notes variants. | RC001-RC020. | robustness direction matches. | 3-4 days | low |
+| **M11 Writing** (W5) | Paper draft with all tables + figures. | — | every reported number has a run in the tracker. | W5 | medium |
+| **M12 External review** (W5-W6) | `/auto-review-loop` on draft. | — | READY-equivalent score. | 1 week | medium |
+| **Slack** | buffer before deadline. | — | — | +1 week | — |
 
 ---
 
 ## Compute and Data Budget
 
-### Main paper compute (must-run M0 → M5)
+### Main paper (MUST-RUN M6-M9)
 
-| Component | GPU-hours (A100-40GB) | CPU core-hours | Notes |
-|---|---|---|---|
-| B2 LoRA SFT training (Qwen2.5-Coder-7B) | ~30 | — | 1 run, ~50k triples, 1 epoch. |
-| B0 inference × 3 seeds × 3000 | ~15 | — | Zero-shot single-shot. |
-| B1 stderr-loop × 3 seeds × 3000 × (T=5, K=4) | ~80 | — | Biggest inference cost per method. |
-| B2 inference × 3 seeds × 3000 | ~15 | — | Same as B0. |
-| DVCR × 3 seeds × 3000 × (T=5, K=4) | ~80 | — | |
-| DVCR−id × 3 seeds × 3000 × (T=5, K=4) | ~80 | — | |
-| DVCR−structure × 3 seeds × 3000 × (T=5, K=4) | ~80 | — | |
-| DVCR−loop × 3 seeds × 3000 × (T=1, K=4) | ~16 | — | |
-| Clang verifier farm (all methods) | — | ~500 | Dominates CPU; parallelizable. |
-| **Main total** | **~400 GPU-hrs** | **~500 core-hrs** | |
-
-### Appendix compute (M6, nice-to-have)
-
-| Component | GPU-hours | Notes |
+| Component | GPU-hours | Node-hours |
 |---|---|---|
-| HPC NatErr slice (500 inst × 4 methods × 3 seeds) | ~30 | |
-| B3 SFT+stderr-loop × 3 seeds × 3000 | ~80 | Strongest safety baseline. |
-| Qwen2.5-Coder-32B scale robustness (4 methods × 1 seed × 1000) | ~300 | Most expensive item. |
-| GCC cross-compiler transfer (1000 inst × DVCR + B1) | ~30 | Needs GCC diag-ID crosswalk; engineering cost. |
-| DTFT sanity row (1 seed × 3000) | ~50 | LoRA on DVCR successful rollouts. |
-| T ∈ {1,2,3,5,10} budget sweep × DVCR × 1 seed × 1000 | ~40 | |
-| Trajectory trim {1, 2, full} × DVCR × 1 seed × 1000 | ~24 | |
-| Synthetic stress test (Fuzzlang-Transformer errors × 4 methods × 1 seed × 1000) | ~40 | |
-| **Appendix total** | **~600 GPU-hrs** | |
+| B2 LoRA SFT on X-train (one run) | ~30 | 8 |
+| Column A sweep: 6 methods × 3 seeds × 3000 instances × 5 turns × 4 branches (for loop methods) / 1 shot (for B0/B2) | ~320 | 80 |
+| Column A ablations: 3 × 3 seeds × 3000 × 5×4 | ~200 | 50 |
+| Column B sweep: 6 methods × 3 seeds × ~500 instances × loop | ~60 | 15 |
+| Limitations subset: re-run existing configs on test-covered slice | ~25 | 7 |
+| **Main subtotal** | **~635 GPU-hours** | **~160 node-hours** |
 
-**Grand total**: ~1000 GPU-hours + ~500 CPU core-hours. Fits within a typical Polaris allocation across W1-W5 with 4-8 nodes.
+### Appendix (NICE-TO-HAVE M10)
 
-### Data preparation
+| Component | GPU-hours | Node-hours |
+|---|---|---|
+| Qwen-32B scale (6 methods × 1 seed × 1000) | ~120 | 30 |
+| Llama-3.3-70B scale (2 methods × 1 seed × 500) | ~80 | 20 |
+| Frontier API (1 method × 1 seed × 300) | 0 (API) | 0 |
+| HPC slice (NatErr OpenMP+OpenACC × 6 methods × 1 seed × 500) | ~30 | 8 |
+| GCC cross-compiler (DVCR + B1 × 1 seed × 1000) | ~30 | 8 |
+| Budget sensitivity / trim / notes / DTFT / stress | ~50 | 13 |
+| **Appendix subtotal** | **~310 GPU-hours** | **~79 node-hours** |
 
-- **NatErr harvest** (M2): scripted git-walk + CI-log scrape across 8 projects. Docker containers for reproducibility across project toolchains. Expected wall-clock: 3-4 days with 16 parallel workers.
-- **Fuzzlang-LLVM training split**: already exists (v1 dataset). Re-filter for AST-hash dedup against NatErr before B2/B3 training.
-- **HPC NatErr slice**: curated in parallel with main NatErr from within the same project list (LLVM OpenMP/OpenACC tests are excluded — S3), plus hand-curated from ECP applications (e.g., XSBench, LULESH, miniMD) if the 500 target is not reached from S1/S2.
+**Grand total**: ~950 GPU-hours / ~240 node-hours.
 
-### Human evaluation needs
+### Budget reconciliation
 
-**None for the main claim.** Compiler is the oracle. The only human work is:
-- Writing qualitative case-study narratives in B5d (~3-5 cases, couple of hours).
-- Sanity-checking a random sample of 50 NatErr instances to ensure genuine compile errors (W2 audit).
+150 node-hour budget is **tight** against the 160 node-hour main + 79 node-hour appendix projection. Mitigation tiers:
+
+1. **Drop to 2 seeds** on non-headline main rows (keep 3 seeds only on DVCR and B1): saves ~30 node-hours. Still enough for the headline CI.
+2. **Trim Column B to ≤ 300 instances**: saves ~5 node-hours.
+3. **Drop Llama-3.3-70B row** (keep 32B only): saves 20 node-hours.
+4. **Drop GCC transfer**: saves 8 node-hours.
+5. **Drop mechanism-depth variants** (budget sensitivity, trim, notes): saves ~13 node-hours.
+
+Applying (1)-(3): ~195 node-hours total, fits 150 budget with ~10 hours buffer if we additionally drop (4). If Pine cluster provides the Column A sweep instead of Polaris (CPU-rich with GPU access), Polaris can keep only the scale-calibration cells.
+
+### CPU-side budget (NatErr Stage 2 + DrRepair training/install)
+- LLVM Stage 2: one baseline LLVM build (~30 CPU-hours on 32 cores) + per-candidate reproduction (~1-2 CPU-hours at 16 workers).
+- Per-project Stage 2 drivers (postgres, ffmpeg, qt, blender): 1-3 CPU-days each to write + smoke.
+- DrRepair/MACER env containerization: ~3 CPU-days of eng.
+
+### Human effort
+- Case study narratives in Block B5: 2-3 days of writing.
+- 50-instance random sanity check of Column A and Column B post-dedup: 0.5 day.
+
+---
+
+## §Methodology (paper subsection — lives here so there is a single source of truth)
+
+### Split mechanics
+1. **X / Y project-level holdout** for Column A: X = {LLVM}, Y = {PostgreSQL, FFmpeg, Qt, Blender}. No shared projects.
+2. **Source-provenance X-dev carve**: X = LLVM is partitioned at file/function/commit level **before** mutation generation. Mutations of same underlying function cannot appear in both X-train and X-dev.
+3. **AST-hash dedup** across X↔Y: 5-line-window AST-hash computed on every Column A eval instance, rejected if it collides with any X-train hash.
+4. **Temporal holdout** for Column B: NatErr commits ≥ 2025-06-01.
+5. **Diagnostic-family stratification**: some Column A instances drawn from families absent from X-train (generalization check).
+6. **Contamination floor**: pre-intervention base-model verified_fix_rate on Column A + Column B. Measurement *procedure* locked on X-dev; *values* measured on the eval sets at submission time.
+7. **Compiler oracle**: Fuzzlang-patched clang is the only success signal. No LLM judge.
+
+### Model Selection Protocol
+Locked on **X-train / X-dev only**:
+- Prompts (all three signal modes)
+- LoRA rank/alpha/LR/epochs for B2/B3/DTFT
+- T, K, temperature, span window L, trajectory retention N
+- DVCR edit schema
+- Dead-end respawn rule
+- Contamination-floor measurement procedure
+
+**Never touched for tuning**:
+- Column A eval (Y mutations)
+- Column B eval (NatErr)
+- All appendix eval subsets
+
+Audit trail archived; frozen configs hash-committed before eval numbers are generated.
 
 ---
 
@@ -240,27 +258,30 @@
 
 | Risk | Impact | Mitigation |
 |---|---|---|
-| **NatErr yield < 3000** | Claim 1 scope narrows. | Scope decision tree from FINAL_PROPOSAL; narrow to single-project depth study without padding. |
-| **NatErr yield < 300** | Submission halted. | Escalate to user; consider 1-year earlier cutoff (2024-10-01) as last resort, label as weakened-isolation variant. |
-| **Contamination floor high (>60%)** | Gain relative to floor shrinks. | Report floor honestly; switch to an earlier Qwen2.5-Coder checkpoint (released pre-2025-06) if available; reframe gain relative to floor. |
-| **DVCR ≈ DVCR−id** | Typed-ID claim collapses. | Pre-identified in FINAL_PROPOSAL. Rewrite headline to "structured inference-time compiler verifier" and focus main contribution on structure + loop. Still publishable. |
-| **DVCR ≈ DVCR−loop (T=1, K=4)** | Loop unnecessary. | Reframe as "verifier-selected best-of-K at first turn"; simpler story. Publishable. |
-| **Qwen2.5-Coder JSON-schema compliance fails > 10% at 7B** | Edits rejected too often, distorting matched-budget comparison. | Post-hoc regex parse of free-form output as fallback; count parse-fail as a no-op turn for all methods equally to preserve matched budget. |
-| **Clang verifier CPU farm too slow** | M3/M4 wall-clock blows out. | Scale CPU workers; cache by `(code_hash, cmd_hash)`; use `ccache` on headers. |
-| **B2 SFT training gets a cursed seed** | Unrepresentative baseline. | 3 seeds for B2 inference even though training is fixed; re-train B2 with different LoRA seed if variance on B2 inference > 5 pp across seeds. |
-| **NeurIPS reviewer demands 32B as main** | Headline revision during rebuttal. | 32B appendix row pre-run during W4; if reviewers ask, surface it with one sentence. Do not spend main-paper time on this unless forced. |
-| **NeurIPS reviewer demands multi-model (Llama, DeepSeek)** | Rebuttal scramble. | Explicitly argue mechanism-is-base-model-agnostic; 32B appendix handles scale. Multi-family is a future-work bullet, not a rebuttal demand we meet. |
+| **NatErr Stage 2 yield < 100** | Column B underpowered. | Demote Column B to appendix (already in plan); paper rests on Column A with explicit "natural external-validity reported at honest scale". |
+| **DrRepair unmaintainable in 2026** | B_classical row empty. | MACER (2019) fallback ready. BIFI third-resort. |
+| **Qwen2.5-Coder cutoff undocumented → contamination concern** | Reviewer skepticism on Column B. | Contamination floor measurement supplies ground truth independent of cutoff documentation. |
+| **DVCR ≈ DVCR − id** | Typed-ID causal claim collapses. | Thesis weakens to "structured inference-time compiler verifier". Anchor still solved; publishable. |
+| **70B / frontier closes the gap** | Robustness claim in reverse. | Honest finding; paper framing pivots to "small-model enabler" — still a meaningful result. |
+| **Budget overrun** | Appendix cells cut. | Tier-1 drops (2 seeds on non-headline rows, 70B cut, GCC cut) defined above; total fits within 150 node-hours. |
+| **X-dev leak into Y via transitive dedup failure** | Headline invalidated. | AST-hash dedup audit (Block B3b) run BEFORE main sweep; block gate. |
+| **Model-selection protocol drift** (e.g., hyperparameter peek at Y) | Headline invalidated. | Configs hash-frozen before eval runs; audit trail committed to repo. |
 
 ---
 
 ## Final Checklist
 
-- [x] Main paper tables are covered (B1 → Table 1, B2/B3 → Table 2, B5a → Table 3).
-- [x] Novelty is isolated (B2 three-way verifier-signal ablation).
-- [x] Simplicity is defended (B3 loop ablation; trajectory trim in appendix; single search policy locked).
-- [x] Frontier contribution is justified (the frontier primitive is verifier-grounded inference-time search; DVCR vs B1 is the direct head-to-head).
-- [x] Nice-to-have runs are separated from must-run runs (M6 explicitly appendix).
-- [x] Contamination / isolation story is airtight (B4 audit + calendar cut 2025-06-01 + floor).
-- [x] Failure analysis included (B5d).
-- [x] Matched-budget protocol specified (`E_tokens = 5 × 4 × 256 = 5120` per instance).
+- [x] Main paper tables covered (B1 → Table 1 two-column, B2 → Table 2 ablation, B5a → Table 3 per-family).
+- [x] Novelty isolated (B2 three-way verifier-signal ablation).
+- [x] Simplicity defended (B2 loop ablation).
+- [x] Frontier leverage justified (inference-time verifier-grounded search).
+- [x] Nice-to-have runs separated from must-run.
+- [x] Contamination / isolation story airtight (B3 audit + Model Selection Protocol).
+- [x] Failure / limitations analysis included (B4 test-covered subset + B5 case studies).
+- [x] Cross-codebase eval (Column A Y-projects + Column B multi-project NatErr).
+- [x] Classical-repair comparator (B_classical = DrRepair / MACER).
+- [x] Stronger-model calibration appendix (32B + 70B + optional frontier).
+- [x] Model Selection Protocol published; no silent test-set tuning.
+- [x] Data + code availability committed (HuggingFace + GitHub + audit manifest).
+- [x] Matched-budget protocol specified (E_tokens = 5120 per instance).
 - [x] Handoff to `/run-experiment` clear (see EXPERIMENT_TRACKER.md).

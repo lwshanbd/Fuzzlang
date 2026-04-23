@@ -1,13 +1,23 @@
 # Off-Polaris runbook (CPU-rich machine)
 
+> **v2 plan (Round 7 READY, 9.3/10) is now canonical.**
+> **Before acting on anything below, read in order:**
+> - `refine-logs/FINAL_PROPOSAL.md` — the current canonical plan
+> - `refine-logs/OOPSLA_REVIEWS.md` — verbatim reviewer text that drove the v2 revision
+> - `refine-logs/EXPERIMENT_PLAN.md` — run-level plan matching v2
+> - `refine-logs/EXPERIMENT_TRACKER.md` — flat table of every run to do
+
 Step-by-step for running the CPU-heavy work away from Polaris. Covers:
 1. Clone the repo + check out the working branch.
 2. Install Python deps.
 3. Build Fuzzlang-modified Clang.
-4. Run NatErr Stage 1 (fix-build commit harvest).
-5. What Stage 2 (actual compile reproduction) looks like — and honest caveat that Stage 2 is not yet scripted.
+4. Run NatErr Stage 1 (fix-build commit harvest). **v2 update: Column B use only; not the headline source anymore.**
+5. Stage 2 (compile reproduction). **v2 update: LLVM driver already scaffolded at `scripts/run_natErr_stage2_llvm.py`. Per-project drivers for PostgreSQL/FFmpeg/Qt remain TODO.**
+6. **v2 NEW: Fuzzlang-Transformer X/Y split pipeline** — generates Column A training set (X-train = LLVM) and Column A eval set (Y = {PostgreSQL, FFmpeg, Qt, Blender}) with AST-hash dedup across X↔Y.
+7. **v2 NEW: Source-provenance X-train / X-dev carve on LLVM** — required for the Model Selection Protocol.
+8. **v2 NEW: DrRepair (or MACER fallback)** — classical baseline install + containerization.
 
-Polaris work picks up from step 4's manifest + Stage 2's produced eval split.
+Polaris work picks up from these artifacts + Stage 2's produced eval split + X/Y mutation splits.
 
 ## 0. Prerequisites
 
