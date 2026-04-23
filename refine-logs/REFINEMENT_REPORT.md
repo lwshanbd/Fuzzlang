@@ -1,93 +1,149 @@
-# Refinement Report
+# Refinement Report (v1 + v2 cycles)
 
 **Problem**: rewrite the rejected OOPSLA Fuzzlang paper for NeurIPS 2026.
-**Initial Approach**: combine Agent code repair + fine-tuning + compiler cooperation.
+**Initial approach**: combine Agent code repair + fine-tuning + compiler cooperation.
 **Date**: 2026-04-23
-**Rounds**: 4 / 5
-**Final Score**: **9.2 / 10**
+**Rounds**: v1 = R1–R4 (+ R5 sanity); v2 = R6–R7
+**Final Score**: **9.3 / 10**
 **Final Verdict**: **READY**
-**Thread**: `019db833-f01f-7753-a705-e9b1cb416d09`
+**Thread**: `019db833-f01f-7753-a705-e9b1cb416d09` (continuous across both cycles)
 
-## Problem Anchor (verbatim, preserved across all 4 rounds)
-See `refine-logs/PROBLEM_ANCHOR.md`. Anchored to: compiler diagnostic is the cheapest precise repair signal; no LLM pipeline closes the loop on it; reported gains collapse under rigorous isolation + compiler-oracle eval. Non-goals, constraints, success condition unchanged.
+## Problem Anchor
+See `refine-logs/PROBLEM_ANCHOR.md`. Bottom-line problem immutable across both cycles. Success condition amended on 2026-04-23 after verbatim OOPSLA reviewer text was recovered (see `OOPSLA_REVIEWS.md`).
 
 ## Output Files
-- Review summary: `refine-logs/REVIEW_SUMMARY.md`
-- Final clean proposal: `refine-logs/FINAL_PROPOSAL.md`
-- Literature scan: `refine-logs/LITERATURE_SCAN.md`
-- Per-round: `round-{0..4}-{initial-proposal | review | refinement}.md`
-- Score history: `refine-logs/score-history.md`
-- State: `refine-logs/REFINE_STATE.json`
+- `PROBLEM_ANCHOR.md` — frozen anchor with 2026-04-23 evidence-standard addendum
+- `OOPSLA_REVIEWS.md` — verbatim OOPSLA reviewer text (load-bearing for v2 cycle)
+- `LITERATURE_SCAN.md` — 2024–2026 related work by bucket
+- `FINAL_PROPOSAL.md` — canonical v2 final proposal
+- `REVIEW_SUMMARY.md` — both-cycles evolution summary
+- `round-0-initial-proposal.md` — v1 cycle round 0
+- `round-{1..4}-{review,refinement}.md` — v1 cycle rounds
+- `round-5-sanity-check.md` — post-v1 sanity
+- `round-6-initial-proposal.md` — v2 cycle reopen round
+- `round-{6,7}-review.md` — v2 cycle reviews
+- `round-7-refinement.md` — v2 cycle final refinement
+- `score-history.md` — full score table across both cycles
 
-## Score Evolution
+## Score Evolution (all rounds)
 
-| Round | Problem Fidelity | Method Specificity | Contribution Quality | Frontier Leverage | Feasibility | Validation Focus | Venue Readiness | Overall | Verdict | Drift |
-|---|---|---|---|---|---|---|---|---|---|---|
-| 1 | 9 | 7 | 7 | 9 | 6 | 5 | 6 | 7.4 | REVISE | NONE |
-| 2 | 9 | 8 | 8 | 9 | 8 | 8 | 8 | 8.3 | REVISE | NONE |
-| 3 | 9 | 9 | 9 | 9 | 8 | 8 | 9 | 8.9 | REVISE | NONE (conditional) |
-| 4 | 10 | 9 | 9 | 9 | 9 | 9 | 9 | **9.2** | **READY** | **NONE** |
+| Round | Problem Fidelity | Method Specificity | Contribution Quality | Frontier Leverage | Feasibility | Validation Focus | Venue Readiness | Overall | Verdict | Drift | Note |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| 1 | 9 | 7 | 7 | 9 | 6 | 5 | 6 | 7.4 | REVISE | NONE | v1 initial |
+| 2 | 9 | 8 | 8 | 9 | 8 | 8 | 8 | 8.3 | REVISE | NONE | v1 |
+| 3 | 9 | 9 | 9 | 9 | 8 | 8 | 9 | 8.9 | REVISE | cond. | v1 |
+| 4 | 10 | 9 | 9 | 9 | 9 | 9 | 9 | 9.2 | READY | NONE | v1 end |
+| 5 | 10 | 9 | 9 | 9 | 9 | 9 | 9 | 9.2 | READY | NONE | sanity |
+| **6** | **10** | **9** | **9** | **9** | **8** | **9** | **9** | **9.1** | **READY** | **NONE** | **v2 reopen** |
+| **7** | **10** | **9** | **9** | **9** | **8** | **9** | **9** | **9.3** | **READY** | **NONE** | **v2 end** |
 
 Weighting used: PF 15 + MS 25 + CQ 25 + FL 15 + F 10 + VF 5 + VR 5.
 
-## Round-by-Round Review Record
+## Round-by-Round Review Record (all rounds)
 
-| Round | Main Reviewer Concerns | What Was Changed | Result |
-|---|---|---|---|
-| 1 | Contribution sprawl; GCC, multi-scale, DTFT, multi-search all on critical path; bloated matrix; paper identity not frozen. | Headline locked to one sentence; main table 4 rows + 2 ablations; single 32B; JSON-schema action; parallel-sampling+verifier; GCC/DTFT/multi-scale → appendix. | Resolved. |
-| 2 | `diag_id → stderr` ablation confounded; no multi-diag rule; `span_hash` undefined; "post-cutoff" wording fragile; missing B3 safety. | 3-way verifier-signal ablation; primary-diagnostic-only rule; precise `span_hash`; calendar-cut + measured contamination floor; B3 appendix-ready; trajectory trim to last 2 turns; HPC column with demote-fallback. | Resolved. |
-| 3 | Latent drift risk: synthetic-pad fallback for sparse naturals; no pre-specified harvesting protocol. | Evaluation-Purity Rule; NatErr pipeline (S1 git-history + S2 CI logs; S3 `llvm-lit` excluded); fixed project list; filters + dedup + audit manifest; scope decision tree; HPC fully → appendix. | Resolved. |
-| 4 | — | — | READY. |
+| Round | Cycle | Main Reviewer Concerns | What Was Changed | Result |
+|---|---|---|---|---|
+| 1 | v1 | Contribution sprawl; multi-axis critical path; bloated matrix. | Headline locked; 4-row main + 2 ablations; single base model; JSON-schema action. | REVISE → sharper |
+| 2 | v1 | Confounded ablation; missing multi-diag rule; fragile cutoff wording. | 3-way signal ablation; primary-diag rule; span_hash defined; calendar cut + floor; B3 appendix. | REVISE → tight |
+| 3 | v1 | Latent synthetic-pad drift risk; no harvesting protocol. | Evaluation-Purity Rule (natural-only); NatErr pipeline. | REVISE → anchor-safe |
+| 4 | v1 | — | — | **READY 9.2** |
+| 5 | v1 | Post-READY feasibility changes. | 32B → 7B main; cutoff 2024-10 → 2025-06. | READY preserved |
+| 6 | v2 | Verbatim OOPSLA reviews showed R3 drift warning was on the wrong evidence standard; Stage 2 yield is halt-borderline; missing classical baseline + scale cal + split mechanics + limitations. | Two-column main table (mutation + natural); DrRepair; 70B appendix; Methodology subsection; limitations subsection; data-availability commits. | **READY 9.1** |
+| 7 | v2 | Hidden-validity: model selection could silently tune on Y/NatErr. | Model Selection Protocol subsection; X-dev carved at source-provenance; floor protocol locked on X-dev, values on Y/NatErr. | **READY 9.3** |
 
 ## Final Proposal Snapshot
 
-Final clean version: `refine-logs/FINAL_PROPOSAL.md`. Summary in 5 bullets:
+Canonical clean version: `refine-logs/FINAL_PROPOSAL.md`. Summary in 5 bullets:
 
-- **Thesis**: typed compiler diagnostics as inference-time verifier signal beats stderr feedback and static SFT under rigorous isolation on natural C/C++ compilation errors at matched budget.
-- **Mechanism**: `V(code, cmd) → {status, diag_id, diag_name, diag_msg, span}` with primary-diagnostic-only rule; agent π conditions on span snippet + 488-class diag_id + last-2-turn trajectory; action = JSON `{start_line, end_line, replacement}` schema-constrained to span ±5; K=4 parallel proposals + exact verifier selection; T=5; span-hash dead-end detection.
-- **Main table**: 4 rows (B0 zero-shot / B1 stderr-loop / B2 static SFT / DVCR) at matched Qwen2.5-Coder-32B and matched token budget on NatErr natural-errors-only split.
-- **Causal ablations**: 3-way verifier signal (full / no-id / no-structure) + loop-off. DVCR vs DVCR−id is the typed-ID causal claim.
-- **Evaluation**: NatErr pipeline (git-history fault harvest + CI-log scrape on 8 projects, post 2024-10-01); audit-manifest released; scope decision tree prevents synthetic padding; contamination floor replaces fragile cutoff claims.
+- **Thesis**: typed compiler diagnostics as inference-time verifier signal beats stderr feedback and static SFT, under **both** rigorous mutation-with-holdout and natural-error regimes, at matched budgets.
+- **Mechanism (unchanged since v1)**: `V(code, cmd) → {status, diag_id, diag_name, diag_msg, span}` with primary-diag rule; agent π conditions on span + ID + last-2-turn trajectory; K=4 parallel samples + exact verifier; T=5; span-hash dead-end; JSON-schema edit.
+- **Main table (v2)**: two columns × six rows. Column A = mutation on Y disjoint from X-train, N=3000, AST-dedup, primary claim. Column B = NatErr naturals, N=100-500, external validity. Rows: B0, B1, B2, B3, **B_classical DrRepair**, DVCR.
+- **Causal ablations**: 3-way verifier signal + loop-off on Column A.
+- **Rigor protocol**: §Methodology covers split mechanics + Model Selection Protocol (X-train/X-dev only for tuning; Y and NatErr never touched). Audit manifest released.
 
 ## Method Evolution Highlights
-1. **Biggest simplification**: the R0 proposal had DTFT, GCC transfer, multi-scale, multi-budget, and multi-search all on the critical path as "optional but interesting". R1 reviewer forced all of them into appendix. The paper became a method paper, not a benchmark paper.
-2. **Biggest causal-isolation upgrade**: R2 replaced the 2-way `diag_id → stderr` ablation with a 3-way (full / no-id / no-structure). Separates "structure in general" from "typed categorical ID on top of structure" — previously confounded.
-3. **Biggest integrity upgrade**: R3 promoted an implicit convention (use natural errors) to a paper-level **Evaluation-Purity Rule** with a fixed NatErr pipeline, explicit dedup, and a scope decision tree that forbids synthetic padding ever. This closed a latent drift route (R2 had "supplement with synthetic" as a risk mitigation; R3 caught that was itself drift).
-4. **Biggest modernity move (preserved throughout)**: JSON-schema structured-output action + parallel sampling with exact verifier selection (instead of beam/MCTS/learned scorer). Aligned with AlphaCodium / Large Language Monkeys / Archon lineage.
+
+1. **Biggest framing upgrade (v2 R6)**: moved from natural-only eval to Column A (mutation, rigorous holdout) + Column B (natural, eval-only). Triggered by verbatim Reviewer C "not just injected" + empirical yield showing natural-only at halt threshold. Fixed both the scale problem and the external-validity problem simultaneously.
+2. **Biggest rigor upgrade (v2 R7)**: Model Selection Protocol makes explicit that prompts/hyperparameters/schema are tuned only on X-train/X-dev; Y-eval and NatErr are untouched until submission. Closes the hidden-tuning concern that would otherwise invalidate the main claim.
+3. **Biggest causal-isolation upgrade (v1 R2)**: 3-way verifier-signal ablation (full / no-id / no-structure) separates "structure" from "typed ID".
+4. **Biggest simplification (v1 R1)**: locked one main table + two ablations; demoted DTFT/GCC/multi-scale/multi-search to appendix. Prevented contribution sprawl.
+5. **Biggest baseline addition (v2 R6)**: DrRepair as B_classical gives a prior-era comparator per Reviewer B.
 
 ## Pushback / Drift Log
 
 | Round | Reviewer Said | Author Response | Outcome |
 |---|---|---|---|
-| 1 | Delete DTFT from main plan. | Accepted. Kept as one-row appendix sanity check (user's original framing preserved the "fine-tune + agent" direction; appendix-only preserves that intellectual interest without diluting headline). Noted in R1 refinement that we could re-escalate DTFT to co-equal if user disagrees. | Accepted. |
-| 2 | Confounded `diag_id → stderr` ablation. | Accepted; replaced with clean 3-way. | Accepted. |
-| 3 | Synthetic padding of naturals would be drift. | Accepted fully; replaced with scope decision tree (shrink, never pad). | Accepted. |
-
-No reviewer feedback was rejected on drift grounds. The reviewer's instincts and the anchor were aligned throughout.
+| 1 | Delete DTFT from main plan. | Accepted; DTFT appendix-only row. | Accepted |
+| 2 | Confounded diag_id→stderr ablation. | Replaced with clean 3-way. | Accepted |
+| 3 | Synthetic padding would be drift. | Replaced with scope decision tree — natural-only. | Accepted at time; **partially revised in v2 R6** after verbatim reviewer text made the evidence standard more permissive. |
+| 6 | Under new evidence standard, mutation-in-main is now fine given X/Y protocol. | Accepted retraction of R3 drift warning; moved to two-column design. | Accepted |
+| 7 | Model-selection protocol must protect Y and NatErr from tuning; X-dev must be source-provenance-level; contamination-floor protocol vs values. | All three folded into the Methodology subsection. | Accepted |
 
 ## Remaining Weaknesses (honest)
 
-1. **NatErr yield dependency** (executional). If fewer than 3000 natural errors are harvestable post 2024-10-01 from the fixed project list, the scope narrows per the decision tree. This is principled, not a surprise, but the paper's scale could be smaller than ideal.
-2. **Typed-ID vs structure**. The central causal claim is that typed `diag_id` beats structured-but-untyped feedback. If empirically `DVCR ≈ DVCR − id`, the thesis weakens to "structured inference-time compiler verifier beats stderr-loop and SFT", which is still publishable but one step less novel.
-3. **Single-compiler main scope**. GCC cross-compiler transfer is appendix only; reviewers could push it into the main. Defended by simplicity-first argument, but the community's tolerance for single-compiler main results at NeurIPS 2026 is uncertain.
-4. **Single-base-model main scope**. Same argument as above; reviewers may want 7B and 70B in main.
+1. **NatErr Stage 2 yield dependency**. If < 100 usable, Column B becomes appendix and the paper rests on Column A alone. Principled, not a surprise.
+2. **Typed-ID vs structure**. If `DVCR ≈ DVCR − id` on Column A, the causal claim weakens to "structured inference-time compiler verifier". Still publishable, one notch weaker.
+3. **Single-compiler main scope**. GCC in appendix only. Reviewers might push for parity.
+4. **DrRepair reproducibility**. MACER fallback ready; BIFI third-resort.
+5. **Frontier-scale effect compression**. If 70B or frontier closes the gap, framing pivots to "small-model enabler".
 
 ## Raw Reviewer Responses
-See `refine-logs/round-{1..4}-review.md` for full verbatim responses inside `<details>` blocks.
+
+<details>
+<summary>Round 1 Review</summary>
+
+See `round-1-review.md` for full verbatim response.
+
+</details>
+
+<details>
+<summary>Round 2 Review</summary>
+
+See `round-2-review.md`.
+
+</details>
+
+<details>
+<summary>Round 3 Review</summary>
+
+See `round-3-review.md`.
+
+</details>
+
+<details>
+<summary>Round 4 Review</summary>
+
+See `round-4-review.md`.
+
+</details>
+
+<details>
+<summary>Round 5 Sanity Check</summary>
+
+See `round-5-sanity-check.md`.
+
+</details>
+
+<details>
+<summary>Round 6 Review (v2 reopen)</summary>
+
+See `round-6-review.md`.
+
+</details>
+
+<details>
+<summary>Round 7 Review (v2 final)</summary>
+
+See `round-7-review.md`.
+
+</details>
 
 ## Next Steps
 
-Verdict READY. Recommended handoff per the research-refine skill:
+Verdict READY at 9.3. Recommended handoff:
 
-1. **`/experiment-plan`** — turn this FINAL_PROPOSAL into a claim-by-claim experiment roadmap with concrete runs, seeds, compute requests, and gating criteria.
-2. **`/experiment-bridge`** then **`/run-experiment`** — implement the DVCR scaffolding + NatErr pipeline on Polaris under project `diomp`.
-3. **`/auto-review-loop`** — iterate once results are in.
-4. **`/paper-writing`** — produce the NeurIPS 2026 PDF when experiments converge.
-
-Before handoff: user confirmed (2026-04-23) the four decision points as follows:
-- (a) Project list: **confirmed** {LLVM, Chromium, FFmpeg, LibreOffice, PostgreSQL, Blender, Qt, Bitcoin Core}.
-- (b) Calendar cut: **pushed to 2025-06-01** (was 2024-10-01). Prior date sat on Qwen2.5-Coder's training-cutoff border; later date gives an 8+ month contamination buffer while leaving 10+ months of natural-error commit history through 2026-04-23.
-- (c) Base model: **Qwen2.5-Coder-7B-Instruct for main table and all causal ablations; Qwen2.5-Coder-32B-Instruct moves to appendix scale-robustness row**. Rationale: Polaris 4×A100-40GB has tooling risk for 32B LoRA (needed only for B2/B3 SFT baselines); mechanism is not scale-dependent; 7B is a same-scale successor to Fuzzlang v1's Llama-3-8B headline and enables multi-seed variance reporting.
-- (d) DTFT: **remain in appendix, do not escalate**. R1 reviewer's "second paper inside the first" critique stands; one dominant contribution.
-
-Round 5 (post-READY sanity check on (b) and (c)) confirmed READY verdict preserved with both changes. See `round-5-sanity-check.md`.
+1. **Update `refine-logs/EXPERIMENT_PLAN.md` and `refine-logs/EXPERIMENT_TRACKER.md`** to match the v2 two-column design. This is the next concrete action.
+2. **Implement the X-train / X-dev source-provenance carve** for Fuzzlang-Transformer mutations (~1 day of eng).
+3. **Integrate DrRepair (or MACER fallback)** into the baseline registry (~2–3 days).
+4. **Write `scripts/run_natErr_stage2_llvm.py`** per the LLVM Stage 2 plan from the earlier session (already scaffolded in `scripts/run_natErr_stage2_llvm.py`).
+5. **Freeze Model Selection Protocol** — document which Xdev subset + which prompt variants + which hyperparameters were chosen, archive alongside audit manifest.

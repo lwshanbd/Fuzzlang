@@ -43,10 +43,24 @@ The compiler's own **diagnostic output (diagnostic ID + message + location)** is
 Reviewers of NeurIPS 2026 would be convinced that:
 
 1. **Mechanism claim**: Using the compiler's own diagnostic ID as an inference-time verifier and (optionally) reward signal yields a measurable, decisive improvement over both (a) static fine-tuned repair and (b) generic test-feedback agents, on code-repair tasks where the compiler is the natural oracle.
-2. **Evidence claim**: The improvement survives rigorous data isolation (project-level held-out, diagnostic-family held-out) and is not an artifact of train/test leakage or LLM-judge bias.
+2. **Evidence claim (revised 2026-04-23 after reviewing the actual OOPSLA reports)**: The improvement holds **under both rigorous mutation-based evaluation and natural-error evaluation**, and survives full data isolation (project-level holdout, temporal holdout, AST-hash dedup, diagnostic-family stratification, compiler-only oracle, no LLM judge). "Real-world" per OOPSLA Reviewer C = "not just injected" — mutations may appear in evaluation if they use disjoint projects and strict dedup; naturals must also appear to directly address the "scores well on synthetic but fails on real" concern.
 3. **Domain claim (optional but valuable)**: For HPC / directive-based parallel code (OpenMP/OpenACC) — a setting where Fuzzlang's compiler-native infrastructure is uniquely positioned — the approach enables practically useful repair at a quality level reachable nowhere else.
 
 The paper is successful only if it passes those three tests.
+
+## Evidence standard (added 2026-04-23)
+
+Based on verbatim OOPSLA reviewer text in `OOPSLA_REVIEWS.md`, the following are **required** (not optional) ingredients of the evaluation protocol:
+
+- **Two evaluation regimes in the main table**: mutation (Fuzzlang-Transformer, with strict project-level holdout) AND natural (NatErr). The "natural-only" position from Rounds 3-4 was a reading of the old paraphrased critique; the real reviewers want to see robustness across both.
+- **Cross-codebase evaluation**: train on project set X, evaluate on project set Y (disjoint). Same-codebase eval is insufficient per Reviewer C explicit ask.
+- **Classical-repair baseline**: at least one method from the BIFI / DrRepair / LaMirage family, per Reviewer B.
+- **Stronger-model calibration row**: at least one frontier-scale (70B open or closed-API frontier) evaluation in the appendix, per Reviewer B.
+- **No LLM-as-judge anywhere**: compiler verifies. Any secondary check (e.g., tests) is a real executor, not an LLM. Per Reviewer B and C.
+- **Diagnostic-ID ablation is load-bearing**: Reviewer C asked for this directly. Already in DVCR − id. Must be in main table, not appendix.
+- **Explicit split mechanics**: subsection of methodology must answer "how is contamination avoided across functions/modules" per Reviewer A and C.
+- **Explicit limitations section**: verified_fix_rate measures compile success, not semantic correctness. Report (compile_ok ∧ tests_pass) as a secondary metric on the test-covered subset. Per Reviewer B.
+- **Data + code availability statement**: commit to HuggingFace dataset URL + GitHub code URL + NatErr audit manifest. Per Reviewer A and C.
 
 ## Drift detectors (to catch in later rounds)
 The following would each indicate silent drift from this anchor:
