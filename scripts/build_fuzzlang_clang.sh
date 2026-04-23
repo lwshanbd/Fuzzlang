@@ -72,7 +72,10 @@ ninja -j"$JOBS" clang diagtool
 
 echo "[build_fuzzlang_clang] installing to $PREFIX"
 cmake --install . --component clang
-cmake --install . --component diagtool || true  # diagtool may not have its own install component; fall through
+# diagtool is not part of clang's install component in upstream LLVM — just
+# copy the built binary into $PREFIX/bin alongside clang.
+mkdir -p "$PREFIX/bin"
+cp -f "$BUILD_DIR/bin/diagtool" "$PREFIX/bin/diagtool"
 
 echo "[build_fuzzlang_clang] smoke test: patched clang should emit DiagID"
 cat > /tmp/fuzzlang_smoke.c <<'EOF'
