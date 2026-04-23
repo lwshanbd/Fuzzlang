@@ -1,33 +1,9 @@
-From 0000000000000000000000000000000000000001 Mon Sep 17 00:00:00 2001
-Subject: [PATCH 1/2] Fuzzlang: emit internal diagnostic ID on stderr
-
-After TextDiagnosticPrinter renders each diagnostic, emit an extra line
-
-    DiagID: <N>
-
-carrying the internal diagnostic enum value (Info.getID()). This lets
-downstream tools classify diagnostics unambiguously without string-matching
-on the localized message text.
-
-In recent LLVM (17+), `TextDiagnosticPrinter::OS` is a `raw_ostream &`, not
-a pointer — we use `OS << ...` and `OS.flush()` accordingly. Two emission
-points are patched:
-
-  - the invalid-location branch (command-line diagnostics);
-  - the primary post-emitDiagnostic path.
-
-Developed against LLVM 19.1.7. See scripts/patches/README.md for manual
-derivation notes if the anchor lines have drifted in your checkout.
-
----
- clang/lib/Frontend/TextDiagnosticPrinter.cpp | 10 ++++++++++
- 1 file changed, 10 insertions(+)
-
 diff --git a/clang/lib/Frontend/TextDiagnosticPrinter.cpp b/clang/lib/Frontend/TextDiagnosticPrinter.cpp
+index b2fb76253..76481f3b9 100644
 --- a/clang/lib/Frontend/TextDiagnosticPrinter.cpp
 +++ b/clang/lib/Frontend/TextDiagnosticPrinter.cpp
-@@ -124,6 +124,10 @@ void TextDiagnosticPrinter::HandleDiagnostic(DiagnosticsEngine::Level Level,
-         /*IsSupplemental=*/Level == DiagnosticsEngine::Note,
+@@ -138,6 +138,10 @@ void TextDiagnosticPrinter::HandleDiagnostic(DiagnosticsEngine::Level Level,
+         OS, /*IsSupplemental=*/Level == DiagnosticsEngine::Note,
          DiagMessageStream.str(), OS.tell() - StartOfLocationInfo,
          DiagOpts->MessageLength, DiagOpts->ShowColors);
 +    // Fuzzlang: emit the internal diagnostic ID even for command-line /
@@ -37,10 +13,10 @@ diff --git a/clang/lib/Frontend/TextDiagnosticPrinter.cpp b/clang/lib/Frontend/T
      OS.flush();
      return;
    }
-@@ -144,6 +148,12 @@ void TextDiagnosticPrinter::HandleDiagnostic(DiagnosticsEngine::Level Level,
-                              DiagMessageStream.str(), Info.getRanges(),
-                              Info.getFixItHints());
-
+@@ -152,5 +156,11 @@ void TextDiagnosticPrinter::HandleDiagnostic(DiagnosticsEngine::Level Level,
+       FullSourceLoc(Info.getLocation(), Info.getSourceManager()), Level,
+       DiagMessageStream.str(), Info.getRanges(), Info.getFixItHints());
+ 
 +  // Fuzzlang: emit the internal diagnostic ID for programmatic classification.
 +  // Placed after the rendered diagnostic body so existing parsers continue to
 +  // see the unchanged header/body; the DiagID line follows as extra info and
@@ -49,5 +25,3 @@ diff --git a/clang/lib/Frontend/TextDiagnosticPrinter.cpp b/clang/lib/Frontend/T
 +
    OS.flush();
  }
---
-2.34.1

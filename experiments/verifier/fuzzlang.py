@@ -1,8 +1,9 @@
 """Fuzzlang-modified Clang verifier. Reads the "DiagID: N" line the patch emits.
 
 Requires:
-  - clang binary built from stock llvm-project + scripts/patches/fuzzlang-*.patch,
-  - diagtool binary from the same build (has the new find-diagnostic-name subcommand),
+  - clang binary built from stock llvm-project + scripts/patches/0001-*.patch,
+  - stock diagtool from the same build (no patch needed — stock diagtool's
+    `find-diagnostic-id <int>` already falls back to id-to-name lookup).
   - both on PATH or given explicitly.
 """
 from __future__ import annotations
@@ -87,9 +88,11 @@ class FuzzlangClangVerifier(BaseVerifier):
 
     @functools.lru_cache(maxsize=2048)
     def _lookup_name(self, diag_id: int) -> Optional[str]:
+        # Stock `diagtool find-diagnostic-id <int>` reverses to the name. See
+        # clang/tools/diagtool/FindDiagnosticID.cpp in LLVM 19; no patch needed.
         try:
             r = subprocess.run(
-                [self.diagtool_bin, "find-diagnostic-name", str(diag_id)],
+                [self.diagtool_bin, "find-diagnostic-id", str(diag_id)],
                 capture_output=True, text=True, timeout=5.0,
             )
             if r.returncode == 0:

@@ -32,11 +32,16 @@ if [ ! -d "$SRC_DIR" ]; then
         https://github.com/llvm/llvm-project.git "$SRC_DIR"
 fi
 
-echo "[build_fuzzlang_clang] applying Fuzzlang patches"
+echo "[build_fuzzlang_clang] applying Fuzzlang patch"
 (
     cd "$SRC_DIR"
-    for p in "$PATCH_DIR"/0001-*.patch "$PATCH_DIR"/0002-*.patch; do
+    for p in "$PATCH_DIR"/0001-*.patch; do
         echo "  - applying $(basename "$p")"
+        # Idempotent apply: skip if already applied.
+        if git apply --reverse --check "$p" 2>/dev/null; then
+            echo "    already applied, skipping"
+            continue
+        fi
         if git apply --check "$p" 2>/dev/null; then
             git apply "$p"
         else
@@ -81,10 +86,11 @@ else
 fi
 
 DIAG_ID=$("$PREFIX/bin/clang" -c /tmp/fuzzlang_smoke.c 2>&1 | grep -oE 'DiagID: [0-9]+' | head -1 | awk '{print $2}')
-if "$PREFIX/bin/diagtool" find-diagnostic-name "$DIAG_ID" 2>&1 | grep -q '^err_'; then
-    echo "  OK: diagtool find-diagnostic-name resolves ID $DIAG_ID"
+if "$PREFIX/bin/diagtool" find-diagnostic-id "$DIAG_ID" 2>&1 | grep -q '^err_'; then
+    echo "  OK: diagtool find-diagnostic-id $DIAG_ID resolves to an err_* name"
 else
-    echo "  FAIL: diagtool find-diagnostic-name subcommand missing or broken. Inspect Patch 2."
+    echo "  FAIL: stock diagtool reverse-lookup did not return a name for $DIAG_ID."
+    echo "       (If this is LLVM < 17, the stock fallback may not exist; restore Patch 2.)"
     exit 1
 fi
 
