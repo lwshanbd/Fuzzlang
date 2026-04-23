@@ -1,0 +1,108 @@
+{
+  "audit": {
+    "extensions": [
+      ".c",
+      ".c++",
+      ".cc",
+      ".cpp",
+      ".cxx",
+      ".h",
+      ".hh",
+      ".hpp",
+      ".hxx",
+      ".inc",
+      ".m",
+      ".mm"
+    ],
+    "overlap_count": 0,
+    "overlap_ok": true,
+    "skipped_path_fragments": [
+      "/test/",
+      "/tests/",
+      "/unittests/",
+      "/third-party/",
+      "/utils/UpdateTestChecks/"
+    ]
+  },
+  "dev_fraction_actual": 0.1975,
+  "dev_fraction_target": 0.2,
+  "granularity": "file",
+  "llvm_head": "6fe957a8423f847a913b60f2c9004ef9ea9b3ca7",
+  "llvm_src": "/shared/scratch1/Users/l1065028/Fuzzlang/natErr/cks_3/llvm",
+  "n_dev": 4942,
+  "n_total": 25026,
+  "n_train": 20084,
+  "outputs": {
+    "dev": "data/splits/llvm_x_dev_files.txt",
+    "train": "data/splits/llvm_x_train_files.txt"
+  },
+  "per_subsystem": {
+    "bolt/": {
+      "dev": 41,
+      "train": 180
+    },
+    "clang-tools-extra/": {
+      "dev": 251,
+      "train": 1007
+    },
+    "clang/": {
+      "dev": 500,
+      "train": 2068
+    },
+    "compiler-rt/": {
+      "dev": 229,
+      "train": 896
+    },
+    "flang/": {
+      "dev": 141,
+      "train": 581
+    },
+    "libc/": {
+      "dev": 870,
+      "train": 3491
+    },
+    "libcxx/": {
+      "dev": 305,
+      "train": 1385
+    },
+    "libcxxabi/": {
+      "dev": 13,
+      "train": 21
+    },
+    "libunwind/": {
+      "dev": 4,
+      "train": 25
+    },
+    "lld/": {
+      "dev": 48,
+      "train": 177
+    },
+    "lldb/": {
+      "dev": 488,
+      "train": 1949
+    },
+    "llvm/": {
+      "dev": 1371,
+      "train": 5595
+    },
+    "mlir/": {
+      "dev": 444,
+      "train": 1811
+    },
+    "offload/": {
+      "dev": 25,
+      "train": 78
+    },
+    "openmp/": {
+      "dev": 31,
+      "train": 115
+    },
+    "polly/": {
+      "dev": 181,
+      "train": 705
+    }
+  },
+  "salt": "fuzzlang-v2-2026-04-23",
+  "schema_version": 1,
+  "task": "P011 source-provenance X-train/X-dev carve"
+}
