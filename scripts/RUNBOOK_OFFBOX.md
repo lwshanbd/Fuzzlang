@@ -52,14 +52,26 @@ pytest tests/ --ignore=tests/test_verifier_fuzzlang_integration.py -q
 
 ## 3. Build Fuzzlang-modified Clang
 
+On the Pine cluster, write the LLVM source + build trees to `/shared/scratch1/Users/$USER/`
+(per-user 50 TB quota, files older than 14 days auto-cleaned — exactly what
+build trees want). The installed clang stays in `$HOME` since it's small (~155 MB)
+and persistent.
+
 ```bash
-# Choose install prefix (anywhere convenient):
+# Choose install prefix (anywhere convenient — ~155 MB, keep persistent):
 export PREFIX=$HOME/fuzzlang-clang
 export JOBS=16            # bump as your CPU count allows; 32 is fine
-export SRC_DIR=$PWD/llvm-project-fuzzlang
-export BUILD_DIR=$PWD/llvm-build
 
-bash scripts/build_fuzzlang_clang.sh
+# Heavy transient trees go on scratch (Pine: /shared/scratch1/Users/$USER):
+export SCRATCH=/shared/scratch1/Users/$USER/Fuzzlang
+mkdir -p $SCRATCH
+export SRC_DIR=$SCRATCH/llvm-project-fuzzlang
+export BUILD_DIR=$SCRATCH/llvm-build
+
+# Send the build itself to a SLURM compute node (login node is too small):
+srun -p pine --account=app -N 1 -c 32 -t 2:00:00 \
+    bash -lc 'module load anaconda3/2024.02 cmake/3.27.9 ninja/x86 && \
+              bash scripts/build_fuzzlang_clang.sh'
 ```
 
 The script:
@@ -86,10 +98,14 @@ This clones the 8 candidate projects and scans their git log for "fix-build"
 commits on or after the calendar cutoff (default: 2025-06-01).
 
 ```bash
+# Heavy harvest checkouts go on scratch (Pine: /shared/scratch1/Users/$USER):
+export SCRATCH=/shared/scratch1/Users/$USER/Fuzzlang
+mkdir -p $SCRATCH/natErr
+
 # Smoke first — only 2 projects, cap candidates to 20 each:
 PYTHONPATH=. python scripts/run_natErr_stage1.py \
-    --checkout-root ./scratch/natErr/checkouts \
-    --manifest-out  ./scratch/natErr/manifest_raw_smoke.jsonl \
+    --checkout-root $SCRATCH/natErr/checkouts \
+    --manifest-out  $SCRATCH/natErr/manifest_raw_smoke.jsonl \
     --only bitcoin,postgresql \
     --max-per-project 20 \
     --shallow
@@ -105,13 +121,17 @@ Expected output (example):
 {"total": ..., "per_project": {...}, "manifest": ..., "since": "2025-06-01"}
 ```
 
-Full 8-project run (disk-heavy, can be overnight):
+Full 8-project run (disk-heavy, can be overnight) — submit to a compute node:
 
 ```bash
-PYTHONPATH=. python scripts/run_natErr_stage1.py \
-    --checkout-root ./scratch/natErr/checkouts \
-    --manifest-out  ./scratch/natErr/manifest_raw.jsonl \
-    --shallow
+export SCRATCH=/shared/scratch1/Users/$USER/Fuzzlang
+srun -p pine --account=app -N 1 -c 4 -t 12:00:00 \
+    bash -lc "module load anaconda3/2024.02 && \
+              source $PWD/.venv/bin/activate && \
+              PYTHONPATH=. python scripts/run_natErr_stage1.py \
+                  --checkout-root $SCRATCH/natErr/checkouts \
+                  --manifest-out  $SCRATCH/natErr/manifest_raw.jsonl \
+                  --shallow"
 ```
 
 Disk estimate per project (shallow clone since 2025-06-01):
