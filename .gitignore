@@ -4,3 +4,12 @@ total-jsons/
 *.ipynb_checkpoints
 tmp/
 __pycache__/
+
+# Claude Code session state: ARIS skills + agent logs. Not part of the paper.
+.claude/
+
+# Test / tooling caches
+.pytest_cache/
+*.egg-info/
+.venv/
+venv/

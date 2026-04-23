@@ -1,0 +1,111 @@
+From 0000000000000000000000000000000000000002 Mon Sep 17 00:00:00 2001
+Subject: [PATCH 2/2] Fuzzlang: add diagtool subcommand `find-diagnostic-name`
+
+Reverses the existing `find-diagnostic-id <NAME>` lookup: given a diagnostic
+ID (the integer Fuzzlang patch #1 emits on stderr), print the diagnostic's
+internal name (e.g. err_expected_semi).
+
+The subcommand mirrors the structure of `FindDiagnosticID.cpp` — it uses the
+same `llvm::cl` positional-argument pattern and the shared `getBuiltinDiagnosticsByName()`
+table, so it integrates with the standard diagtool dispatch / help flow.
+
+Usage:
+    $ diagtool find-diagnostic-name 1234
+    err_expected_semi
+
+---
+ clang/tools/diagtool/CMakeLists.txt          |  1 +
+ clang/tools/diagtool/FindDiagnosticName.cpp  | 75 ++++++++++++++++++++
+ 2 files changed, 76 insertions(+)
+ create mode 100644 clang/tools/diagtool/FindDiagnosticName.cpp
+
+diff --git a/clang/tools/diagtool/CMakeLists.txt b/clang/tools/diagtool/CMakeLists.txt
+--- a/clang/tools/diagtool/CMakeLists.txt
++++ b/clang/tools/diagtool/CMakeLists.txt
+@@ -12,6 +12,7 @@ add_clang_tool(diagtool
+   DiagnosticNames.cpp
+   ListWarnings.cpp
+   FindDiagnosticID.cpp
++  FindDiagnosticName.cpp
+   ShowEnabledWarnings.cpp
+   TreeView.cpp
+ )
+
+diff --git a/clang/tools/diagtool/FindDiagnosticName.cpp b/clang/tools/diagtool/FindDiagnosticName.cpp
+new file mode 100644
+--- /dev/null
++++ b/clang/tools/diagtool/FindDiagnosticName.cpp
+@@ -0,0 +1,75 @@
++//===- FindDiagnosticName.cpp - diagtool subcommand -----------------------===//
++//
++// Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
++// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
++//
++//===----------------------------------------------------------------------===//
++//
++// Fuzzlang: reverses FindDiagnosticID. Given an integer diagnostic ID (the
++// value Fuzzlang patch #1 emits on stderr as "DiagID: <N>"), print the
++// corresponding internal diagnostic name (e.g. err_expected_semi).
++//
++// The implementation mirrors FindDiagnosticID.cpp: it uses the same
++// `llvm::cl` positional-argument handling and the shared
++// `getBuiltinDiagnosticsByName()` table, scanned linearly by DiagID. The
++// builtin table has on the order of a few thousand entries so a linear
++// scan is trivially fast and avoids building an extra reverse index.
++//
++//===----------------------------------------------------------------------===//
++
++#include "DiagTool.h"
++#include "DiagnosticNames.h"
++#include "clang/Basic/AllDiagnostics.h"
++#include "llvm/ADT/ArrayRef.h"
++#include "llvm/ADT/StringRef.h"
++#include "llvm/Support/CommandLine.h"
++#include "llvm/Support/raw_ostream.h"
++
++#include <vector>
++
++DEF_DIAGTOOL("find-diagnostic-name",
++             "Print the internal name of the diagnostic with the given ID",
++             FindDiagnosticName)
++
++using namespace clang;
++using namespace diagtool;
++
++int FindDiagnosticName::run(unsigned int argc, char **argv,
++                            llvm::raw_ostream &OS) {
++  // Match FindDiagnosticID's argv-rewrapping pattern so the cl-parser sees a
++  // proper argv[0] program name followed by the caller's args.
++  static llvm::cl::OptionCategory FindDiagnosticNameOptions(
++      "diagtool-find-diagnostic-name options");
++
++  static llvm::cl::opt<unsigned> DiagnosticID(
++      llvm::cl::Positional, llvm::cl::desc("<diagnostic-id>"),
++      llvm::cl::Required, llvm::cl::cat(FindDiagnosticNameOptions));
++
++  std::vector<const char *> Args;
++  Args.reserve(argc + 1);
++  Args.push_back("diagtool find-diagnostic-name");
++  for (unsigned i = 0; i < argc; ++i)
++    Args.push_back(argv[i]);
++
++  llvm::cl::HideUnrelatedOptions(FindDiagnosticNameOptions);
++  llvm::cl::ParseCommandLineOptions(
++      static_cast<int>(Args.size()), Args.data(),
++      "Reverse diagnostic-ID mapping utility");
++
++  // DiagnosticNames.h exposes the builtin table via a name-sorted array; we
++  // scan linearly because the table is small and we index by ID, not name.
++  llvm::ArrayRef<DiagnosticRecord> AllRecords = getBuiltinDiagnosticsByName();
++  for (const DiagnosticRecord &R : AllRecords) {
++    if (R.DiagID == DiagnosticID) {
++      OS << R.getName() << "\n";
++      return 0;
++    }
++  }
++
++  llvm::errs() << "error: no diagnostic has ID " << DiagnosticID << "\n";
++  return 1;
++}
+--
+2.34.1
