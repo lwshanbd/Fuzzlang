@@ -20,3 +20,6 @@ llvm-build/
 
 # NatErr harvest scratch (data, not source-tracked)
 scratch/
+
+# Build / harvest run logs
+logs/

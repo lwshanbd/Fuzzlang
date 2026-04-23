@@ -81,19 +81,29 @@ echo "[build_fuzzlang_clang] smoke test: patched clang should emit DiagID"
 cat > /tmp/fuzzlang_smoke.c <<'EOF'
 int main() { int x = 1 }
 EOF
-if "$PREFIX/bin/clang" -c /tmp/fuzzlang_smoke.c 2>&1 | grep -q '^DiagID:'; then
+# clang exits non-zero on the syntax error and `grep -q` closes the pipe
+# early, so under `set -euo pipefail` a direct `clang | grep -q` pipeline
+# falsely reports failure even when DiagID is present. Capture stderr to a
+# variable first (with `|| true`) and grep that.
+SMOKE_OUT=$("$PREFIX/bin/clang" -c /tmp/fuzzlang_smoke.c 2>&1 || true)
+if echo "$SMOKE_OUT" | grep -q '^DiagID:'; then
     echo "  OK: patched clang emits DiagID"
 else
     echo "  FAIL: patched clang did NOT emit DiagID. Inspect Patch 1."
+    echo "  --- clang stderr ---"
+    echo "$SMOKE_OUT"
     exit 1
 fi
 
-DIAG_ID=$("$PREFIX/bin/clang" -c /tmp/fuzzlang_smoke.c 2>&1 | grep -oE 'DiagID: [0-9]+' | head -1 | awk '{print $2}')
-if "$PREFIX/bin/diagtool" find-diagnostic-id "$DIAG_ID" 2>&1 | grep -q '^err_'; then
+DIAG_ID=$(echo "$SMOKE_OUT" | grep -oE 'DiagID: [0-9]+' | head -1 | awk '{print $2}')
+DIAG_LOOKUP=$("$PREFIX/bin/diagtool" find-diagnostic-id "$DIAG_ID" 2>&1 || true)
+if echo "$DIAG_LOOKUP" | grep -q '^err_'; then
     echo "  OK: diagtool find-diagnostic-id $DIAG_ID resolves to an err_* name"
 else
     echo "  FAIL: stock diagtool reverse-lookup did not return a name for $DIAG_ID."
     echo "       (If this is LLVM < 17, the stock fallback may not exist; restore Patch 2.)"
+    echo "  --- diagtool output ---"
+    echo "$DIAG_LOOKUP"
     exit 1
 fi
 
