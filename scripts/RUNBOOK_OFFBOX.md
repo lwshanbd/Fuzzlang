@@ -134,6 +134,23 @@ srun -p pine --account=app -N 1 -c 4 -t 12:00:00 \
                   --shallow"
 ```
 
+**Faster: 4-node parallel via `scripts/run_natErr_stage1_parallel.sh`.**
+Spreads the 8 projects across 4 SLURM nodes (each gets a whole 64-core node
+so they don't contend on a shared NIC). Wall-clock collapses from
+~chromium-time-serial to ~chromium-time-alone. Wall-time observed on Pine:
+3 of 4 nodes finished in 3-16 min; chromium is the long pole at ~1-2 h.
+
+```bash
+bash scripts/run_natErr_stage1_parallel.sh
+# When all done, merge per-node manifests:
+cat $SCRATCH/natErr/manifest_node_*.jsonl > data/natErr/manifest_full.jsonl
+```
+
+**Reference partial harvest** (7 of 8 projects, smoke + parallel run from
+2026-04-23) is committed at `data/natErr/manifest_partial_7projects.jsonl`
+(873 candidates: llvm 488, blender 153, libreoffice 94, qt 91, ffmpeg 30,
+postgresql 15, bitcoin 2). chromium pending.
+
 Disk estimate per project (shallow clone since 2025-06-01):
 - llvm: 3 GB
 - chromium: ~20 GB
@@ -170,16 +187,52 @@ python scripts/run_natErr_stage1.py \
 This honors the NatErr purity rule (paper authors must not have contributed
 to the eval split).
 
-## 5. Stage 2 (compile reproduction) — TODO
+## 5. Stage 2 (compile reproduction) — partial: postgres prototype works
 
 Stage 2 takes each `predecessor_sha` from the manifest, checks it out, runs
 the project's build, and — if compile fails — records the primary diagnostic
 using the Fuzzlang-modified Clang. Output: the NatErr eval split
 (`data/natErr/main.jsonl`) that `scripts/polaris_qsub_sweep.sh` consumes.
 
-**This stage is not yet scripted.** Each project has a different build
-system (CMake / autotools / meson / ninja / custom) and a different way to
-injec `$FUZZLANG_CLANG_BIN` as `CC`. A per-project driver is needed.
+### End-to-end smoke (postgres, 1 instance)
+
+`scripts/run_natErr_stage2_smoke.py` codifies a verified end-to-end run for
+ONE instance: the postgres `9c9d41af...` predecessor SHA fails to compile
+`src/tutorial/funcs.c` (missing `#include "varatt.h"`) with diag_id 5191
+(`ext_implicit_function_decl_c99`). Round-trips cleanly through
+`FuzzlangClangVerifier`.
+
+```bash
+export SCRATCH=/shared/scratch1/Users/$USER/Fuzzlang
+srun -p pine --account=app -N 1 -c 16 -t 01:00:00 \
+    bash -lc "module load anaconda3/2024.02 && \
+              source $PWD/.venv/bin/activate && \
+              PYTHONPATH=. python scripts/run_natErr_stage2_smoke.py \
+                  --postgres-checkout $SCRATCH/natErr/cks_4/postgresql \
+                  --out data/natErr/main_smoke.jsonl"
+```
+
+The committed `data/natErr/main_smoke.jsonl` is the output from this run.
+
+### Generalizing to a real Stage 2 driver — still TODO
+
+Each project has a different build system (CMake / autotools / meson /
+ninja / custom) and a different way to inject `$FUZZLANG_CLANG_BIN` as `CC`.
+A per-project driver is needed. The smoke script above is a template for
+the postgres path; ffmpeg / llvm-self / qt are good next targets.
+
+**Yield-rate caveat**: manual subject inspection of ~30 ffmpeg/postgres/
+bitcoin candidates suggests ~30-50% are not Linux-x86 + compile-time
+reproducible (rest are macOS/MSVC/aarch64/mips/build-system-only). Plan for
+a fractional yield, not 1:1.
+
+**Sample-size context**: the paper's `refine-logs/FINAL_PROPOSAL.md` targets
+N≥3000 main + 500 HPC, with a scope decision tree at <300 / 300-999 /
+1000-2999 / ≥3000 cutoffs. The committed 7-project partial harvest gives
+873 raw candidates → projected 260-540 usable → "narrow to LLVM
+self-hosting depth study" tier per the tree. To reach 1k+ scale, see
+`scripts/run_natErr_stage2_smoke.py` followups and `refine-logs/`'s S2
+(CI failure log) source which is documented but not yet scripted.
 
 Rough protocol (per project):
 ```bash

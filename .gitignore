@@ -5,6 +5,9 @@ total-jsons/
 tmp/
 __pycache__/
 
+# Carve out: NatErr eval data is the paper's evidence and IS source-tracked.
+!data/natErr/*.jsonl
+
 # Claude Code session state: ARIS skills + agent logs. Not part of the paper.
 .claude/
 

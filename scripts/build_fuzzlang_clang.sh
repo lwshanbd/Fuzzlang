@@ -72,6 +72,25 @@ ninja -j"$JOBS" clang diagtool
 
 echo "[build_fuzzlang_clang] installing to $PREFIX"
 cmake --install . --component clang
+# clang-resource-headers ships clang's own builtin headers (stddef.h,
+# stdint.h, etc.). Without them the installed clang fails on any non-trivial
+# C/C++ source with `fatal error: 'stddef.h' file not found`. The clang
+# component does not include them, so install them explicitly.
+cmake --install . --component clang-resource-headers || {
+    echo "[build_fuzzlang_clang] clang-resource-headers install via cmake failed"
+    echo "  (likely cmake_install.cmake has stale absolute paths from a moved"
+    echo "  build tree). Falling back to manual copy from build dir."
+    HEADERS_SRC="$BUILD_DIR/lib/clang"
+    HEADERS_DST="$PREFIX/lib/clang"
+    if [ -d "$HEADERS_SRC" ]; then
+        mkdir -p "$HEADERS_DST"
+        cp -r "$HEADERS_SRC"/. "$HEADERS_DST"/
+        echo "  copied $HEADERS_SRC -> $HEADERS_DST"
+    else
+        echo "  ERROR: $HEADERS_SRC missing too. Clang will be broken."
+        exit 1
+    fi
+}
 # diagtool is not part of clang's install component in upstream LLVM — just
 # copy the built binary into $PREFIX/bin alongside clang.
 mkdir -p "$PREFIX/bin"
@@ -106,6 +125,24 @@ else
     echo "$DIAG_LOOKUP"
     exit 1
 fi
+
+# Verify clang's resource headers are reachable. Compiling something that
+# pulls <stddef.h> indirectly catches the "missing clang-resource-headers"
+# install bug that bit us once.
+cat > /tmp/fuzzlang_resource_smoke.c <<'EOF'
+#include <stddef.h>
+size_t whatever(void) { return sizeof(int); }
+EOF
+RES_OUT=$("$PREFIX/bin/clang" -c -o /dev/null /tmp/fuzzlang_resource_smoke.c 2>&1 || true)
+if [ -z "$RES_OUT" ]; then
+    echo "  OK: patched clang resolves <stddef.h> (resource headers installed)"
+else
+    echo "  FAIL: patched clang cannot find its own resource headers."
+    echo "  --- clang stderr ---"
+    echo "$RES_OUT"
+    exit 1
+fi
+rm -f /tmp/fuzzlang_resource_smoke.c
 
 rm -f /tmp/fuzzlang_smoke.c /tmp/fuzzlang_smoke.o
 echo "[build_fuzzlang_clang] DONE. clang: $PREFIX/bin/clang"
