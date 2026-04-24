@@ -243,6 +243,10 @@ def _build_clang_argv(entry: dict, clang_bin: str, src_tmpfile: str) -> list[str
 
     if "-fsyntax-only" not in out:
         out.append("-fsyntax-only")
+    # clang's terminal-default color escapes (\e[0;34m etc.) break the
+    # `file:line:col: error:` regex. Force monochrome.
+    if "-fno-color-diagnostics" not in out:
+        out.append("-fno-color-diagnostics")
     out.append(src_tmpfile)
     return out
 
@@ -306,21 +310,20 @@ def _attempt_reproduce(
             diagtool_bin, diag_id, diag_name_cache,
         )
 
-        # Guard: reject "multi-error" explosions — if more than 5 error: lines,
-        # predecessor is genuinely broken in many places (mid-refactor); not a
-        # clean reproduction target.
+        # Count cascade errors. We RELAX the previous "n_errors > 5 ⇒ reject"
+        # rule because legitimate compile failures (missing #include,
+        # missing type declaration) routinely cascade into 10-30 follow-up
+        # errors — Reviewer-C-style "primary diagnostic" is exactly the
+        # FIRST one, which we already captured. Tag cascade size for
+        # downstream filtering instead.
         n_errors = len(list(_ERROR_LINE.finditer(stderr)))
-        if n_errors > 5:
-            return StageResult(kind="multi_error", candidate=candidate,
-                               modified_file=modified_rel,
-                               detail=f"{n_errors} error: lines; "
-                                      f"predecessor mid-refactor")
 
         return StageResult(
             kind="reproduced", candidate=candidate, modified_file=modified_rel,
             diag_id=diag_id, diag_name=diag_name,
             line=int(m.group("line")), col=int(m.group("col")),
             msg=m.group("msg").strip(),
+            detail=f"n_cascade_errors={n_errors}",
         )
     finally:
         try:
@@ -487,9 +490,13 @@ def main() -> int:
              for c in candidates]
 
     all_rows: list[dict] = []
+    # Always load compile_db in main process — needed for the emit phase
+    # below (build the placeholdered compile_cmd from the canonical entry).
+    # Workers ALSO load their own copy when forked, but the main process's
+    # copy is what the emit loop uses.
+    global _CDB_CACHE
+    _CDB_CACHE = _load_compile_db(ccdb_path)
     if args.jobs <= 1:
-        global _CDB_CACHE
-        _CDB_CACHE = _load_compile_db(ccdb_path)
         for i, task in enumerate(tasks):
             all_rows.extend(_worker(task))
             if (i + 1) % 20 == 0:

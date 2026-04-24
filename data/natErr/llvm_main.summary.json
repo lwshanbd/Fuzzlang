@@ -1,17 +1,18 @@
 {
   "by_kind": {
-    "clang_crash": 37,
-    "file_not_in_db": 238,
-    "no_error": 18,
-    "no_modified_sources": 287
+    "clang_timeout": 1,
+    "file_not_in_db": 166,
+    "no_error": 40,
+    "no_modified_sources": 41,
+    "reproduced": 86
   },
-  "elapsed_sec": 24.24,
+  "elapsed_sec": 62.15,
   "llvm_src": "/shared/scratch1/Users/l1065028/Fuzzlang/natErr/cks_3/llvm",
-  "manifest": "data/natErr/manifest_full_8projects.jsonl",
-  "n_candidates_attempted": 488,
-  "n_candidates_with_any_repro": 0,
-  "n_emitted_rows": 0,
-  "n_reproduced_files": 0,
-  "n_result_rows": 580,
-  "reproduction_rate_by_candidate": 0.0
+  "manifest": "data/natErr/manifest_llvm_source_only.jsonl",
+  "n_candidates_attempted": 242,
+  "n_candidates_with_any_repro": 75,
+  "n_emitted_rows": 86,
+  "n_reproduced_files": 86,
+  "n_result_rows": 334,
+  "reproduction_rate_by_candidate": 0.30991735537190085
 }

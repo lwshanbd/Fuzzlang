@@ -104,7 +104,21 @@ class FuzzlangClangVerifier(BaseVerifier):
 
 
 def _guess_suffix(compile_cmd: list[str]) -> str:
+    # 1) Explicit C++ source file path in args.
     for a in compile_cmd:
         if a.endswith((".cpp", ".cc", ".cxx", ".c++")):
+            return ".cpp"
+    # 2) -std=c++... or -std=gnu++... implies C++. Stage 2 emits
+    #    compile_cmds with __SRC__ placeholder so the source path is
+    #    absent; the std flag is the next-best signal.
+    for a in compile_cmd:
+        if a.startswith(("-std=c++", "-std=gnu++")):
+            return ".cpp"
+    # 3) Explicit -x c++ language flag.
+    for i, a in enumerate(compile_cmd):
+        if (a == "-x" and i + 1 < len(compile_cmd)
+                and compile_cmd[i + 1] in ("c++", "objective-c++")):
+            return ".cpp"
+        if a in ("-xc++", "-xobjective-c++"):
             return ".cpp"
     return ".c"
