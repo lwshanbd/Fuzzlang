@@ -1,0 +1,67 @@
+{
+  "drop_examples": [
+    {
+      "fix_sha": "d7d2c0ca6afd1b5fa58c9dbae943c0508a5bf7c9",
+      "subject": "[bazel][clang] Fix build for #191932 (#193337)"
+    },
+    {
+      "fix_sha": "8d488fcd6f7c35b3d256feb0554fd885a9f5ce10",
+      "subject": "[bazel] Fix nanobind header build (#192627)"
+    },
+    {
+      "fix_sha": "a7883e5b944c6ee1299eeaa4747ec71353de2b95",
+      "subject": "[bazel] Fix Bazel build issue with #190862 (#191420)"
+    },
+    {
+      "fix_sha": "6cbae7b8b5e5805b70256737929a9683afecb57f",
+      "subject": "[llvm] Fix: DebuginfodTests must link libHTTP after 789f30c73ef4 (#192225)"
+    },
+    {
+      "fix_sha": "20b6ec66967ac2a8f932863c1abf251e5b17a843",
+      "subject": "[clang][ssaf] Fix CLANG_PLUGIN_SUPPORT=OFF SSAFExamplePlugin cmake errors (#191229)"
+    },
+    {
+      "fix_sha": "2244ccb244affa5d291f63f6f1c17b98358cb89b",
+      "subject": "[bazel][mlir] Fix OpenMP compilation. (#191866)"
+    },
+    {
+      "fix_sha": "f2b5dc225889df4ca368db0f481c67dddf19c471",
+      "subject": "[lldb] Fix: Disable shared build dir when testing with PDB (#190991)"
+    },
+    {
+      "fix_sha": "b75222caf3e3247f6cfa5b243619d776dd5b5863",
+      "subject": "[clang][Driver][CMake] Link pthread when available to fix shared-lib link errors."
+    },
+    {
+      "fix_sha": "bae6a2a76b632fa5fa4f103bb7aaff067c19c949",
+      "subject": "[Runtimes] Fix Unix Makefiles race between runtimes-build and EXTRA_TARGETS (#187634)"
+    },
+    {
+      "fix_sha": "3b9106149c6867494049d7af4958eebeec5e2393",
+      "subject": "[lldb] Fix linking liblldb in a dylib build after 39d6bb21804d21ab"
+    }
+  ],
+  "drop_rate_for_project": 0.5041,
+  "dropped_rows_for_project": 246,
+  "input": "data/natErr/manifest_full_8projects.jsonl",
+  "input_rows_for_project": 488,
+  "kept_rows_for_project": 242,
+  "output": "data/natErr/manifest_llvm_source_only.jsonl",
+  "passthrough_other_project_rows": 614,
+  "project_filtered": "llvm",
+  "source_extensions": [
+    ".c",
+    ".c++",
+    ".cc",
+    ".cpp",
+    ".cxx",
+    ".h",
+    ".hh",
+    ".hpp",
+    ".hxx",
+    ".inc",
+    ".m",
+    ".mm"
+  ],
+  "task": "P012 root-cause filter (source-touch on fix commit)"
+}

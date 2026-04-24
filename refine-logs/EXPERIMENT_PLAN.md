@@ -12,7 +12,7 @@
 
 | ID | Claim | Why It Matters | Minimum Convincing Evidence | Linked Blocks |
 |---|---|---|---|---|
-| **C1-A** | **DVCR > B0/B1/B2/B3/B_classical on Column A (mutation eval with project-level holdout + AST-dedup)**, N = 3000, Qwen2.5-Coder-7B matched budget. | Primary statistical claim. Addresses Reviewer C's same-codebase objection directly. | Main table, 3 seeds, non-overlapping 95% bootstrap CIs between DVCR and B1. Absolute gap ≥ 5 pp. | B1, B2 |
+| **C1-A** | **DVCR > B0/B1/B2/B3 on Column A (mutation eval with project-level holdout + AST-dedup)**, N = 3000, Qwen2.5-Coder-7B matched budget. | Primary statistical claim. Addresses Reviewer C's same-codebase objection directly. | Main table, 3 seeds, non-overlapping 95% bootstrap CIs between DVCR and B1. Absolute gap ≥ 5 pp. | B1, B2 |
 | **C1-B** | **DVCR > B1 (stderr-loop) on Column B (NatErr, real developer errors)** at matched budget. | External-validity check. Directly answers Reviewer B's "entirely on synthetic errors" concern. | Directional (positive, same sign on both columns). CI can be looser given smaller N. | B1, B2 |
 | **C2** | **DVCR > DVCR − id** on Column A at matched budget. | Typed categorical ID causally isolable from structure in general. Answers Reviewer C's direct ask about diagnostic-ID contribution. | 3-way signal ablation (DVCR / DVCR−id / DVCR−structure), 3 seeds, gap ≥ 3 pp with non-overlapping CI. | B2 |
 | **C3** (appendix) | DVCR's lift persists under scale calibration (32B, 70B, optional frontier API) and on HPC directive-parallel subset. | Robustness. Addresses Reviewer B's "stronger models" ask without making scale the headline. | Appendix table showing consistent-direction gains. | B3 |
@@ -62,17 +62,22 @@
 ### Block B1 — Main two-column table (MUST-RUN, primary)
 
 - **Claims tested**: C1-A and C1-B.
-- **Why this block exists**: the 6×2 table is the paper's headline. Without this there is no paper.
+- **Why this block exists**: the 5×2 table is the paper's headline. Without this there is no paper.
 - **Dataset / split**:
   - **Column A (Mutation, primary)**: Fuzzlang-Transformer mutations on Y = {PostgreSQL, FFmpeg, Qt, Blender}. N = 3000. Training set is X = {LLVM}, 50k filtered mutations. X-dev carved at source-provenance level (file/function/commit) BEFORE mutation generation. AST-hash dedup across X↔Y.
   - **Column B (Natural)**: NatErr Stage 2 reproductions from 8 projects, commits ≥ 2025-06-01. Eval-only; never in training. N ≈ 100–500 (Stage 2 yield projected).
-- **6 methods per column, all Qwen2.5-Coder-7B, matched token envelope** (E_tokens = T×K×256 = 5120):
+- **5 methods per column, all Qwen2.5-Coder-7B, matched token envelope** (E_tokens = T×K×256 = 5120):
   - **B0** zero-shot: one LLM call, stderr observation, no loop, no SFT.
   - **B1** stderr-loop: T=5 K=4, stderr text only observation.
   - **B2** static SFT: LoRA on X mutations, single-shot inference.
   - **B3** SFT + stderr-loop: B2 policy + B1's loop.
-  - **B_classical** DrRepair (Yasunaga & Liang 2020): prior-era compile-error repair comparator. MACER (Pu et al. 2019) fallback if DrRepair unmaintainable.
   - **DVCR (ours)**: loop + typed diag-ID + JSON edits.
+- **B_classical removed 2026-04-23**: DrRepair has no pretrained checkpoint
+  and a 2020-stack training requirement (torch 1.0.1, python-clang 8.0.1,
+  DeepFix data, CUDA 9/10 GPU); the gate-fallback chain MACER → BIFI is
+  broken (MACER's GitHub is 404, BIFI is same-author/same-cost as DrRepair).
+  Reviewer B's "compare against existing methods" concern is now addressed
+  by the LLM-era B0/B1/B2/B3 spread + appendix scale calibration.
 - **Metrics**:
   - Primary: `verified_fix_rate@T=5` (compiler-verified OK under original compile_cmd, whole-file no-regression, trivial-deletion guard), 95% bootstrap CI, 3 seeds.
   - Reported both micro and macro-avg-over-diagnostic-family.
@@ -182,9 +187,9 @@
 | Component | GPU-hours | Node-hours |
 |---|---|---|
 | B2 LoRA SFT on X-train (one run) | ~30 | 8 |
-| Column A sweep: 6 methods × 3 seeds × 3000 instances × 5 turns × 4 branches (for loop methods) / 1 shot (for B0/B2) | ~320 | 80 |
+| Column A sweep: 5 methods × 3 seeds × 3000 instances × 5 turns × 4 branches (for loop methods) / 1 shot (for B0/B2) | ~270 | 67 |
 | Column A ablations: 3 × 3 seeds × 3000 × 5×4 | ~200 | 50 |
-| Column B sweep: 6 methods × 3 seeds × ~500 instances × loop | ~60 | 15 |
+| Column B sweep: 5 methods × 3 seeds × ~500 instances × loop | ~50 | 13 |
 | Limitations subset: re-run existing configs on test-covered slice | ~25 | 7 |
 | **Main subtotal** | **~635 GPU-hours** | **~160 node-hours** |
 
@@ -259,7 +264,7 @@ Audit trail archived; frozen configs hash-committed before eval numbers are gene
 | Risk | Impact | Mitigation |
 |---|---|---|
 | **NatErr Stage 2 yield < 100** | Column B underpowered. | Demote Column B to appendix (already in plan); paper rests on Column A with explicit "natural external-validity reported at honest scale". |
-| **DrRepair unmaintainable in 2026** | B_classical row empty. | MACER (2019) fallback ready. BIFI third-resort. |
+| **DrRepair unmaintainable in 2026** | RESOLVED 2026-04-23 | B_classical removed from main table; Reviewer B's "compare against existing methods" addressed by LLM-era B0/B1/B2/B3 spread + appendix scale calibration. See FINAL_PROPOSAL §Evaluation rationale. |
 | **Qwen2.5-Coder cutoff undocumented → contamination concern** | Reviewer skepticism on Column B. | Contamination floor measurement supplies ground truth independent of cutoff documentation. |
 | **DVCR ≈ DVCR − id** | Typed-ID causal claim collapses. | Thesis weakens to "structured inference-time compiler verifier". Anchor still solved; publishable. |
 | **70B / frontier closes the gap** | Robustness claim in reverse. | Honest finding; paper framing pivots to "small-model enabler" — still a meaningful result. |

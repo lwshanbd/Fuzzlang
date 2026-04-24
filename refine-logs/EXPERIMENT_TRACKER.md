@@ -24,9 +24,10 @@
 | P007 | M2 | Paper-author blocklist hashes (NatErr purity rule) | — | sha256(email)[:16] for each co-author | MUST | TODO | |
 | P008 | M3 | B2 LoRA SFT training (Qwen2.5-Coder-7B on X-train only) | LoRA rank 16, 1 epoch | adapter weights at `$ADAPTER_OUT` | MUST | TODO | must use X-train only, not full X |
 | **P009** | **M2** | **Fuzzlang-Transformer X/Y mutation split pipeline** | Fuzzlang wrapper + split infra | Column A training set (X-train mutations) + Column A eval set (Y mutations) + AST-hash dedup audit | MUST | **TODO (NEW)** | **source-provenance X-dev carve before generation**; Y = {PG, FFmpeg, Qt, Blender} |
-| P010 | M5 | DrRepair (or MACER fallback) install + smoke | DrRepair | 10-instance smoke | MUST | TODO (NEW) | 2020 codebase; containerize for reproducibility |
+| ~~P010~~ | ~~M5~~ | ~~DrRepair / MACER install~~ | — | — | **DROPPED 2026-04-23** | DrRepair has no pretrained ckpt + 2020 stack; MACER GitHub 404; BIFI same problem. B_classical removed from main table per FINAL_PROPOSAL §Evaluation rationale. |
 | **P011** | **M2** | **X-dev source-provenance carve on LLVM** | pre-mutation split | X-train.json / X-dev.json with file/function/commit manifests; dedup audit | MUST | **TODO (NEW)** | **load-bearing for the Model Selection Protocol** |
-| P012 | M4 | NatErr Stage 2 LLVM driver (`scripts/run_natErr_stage2_llvm.py`) | FuzzlangClangVerifier + compile_commands.json | Column B LLVM subset + reproduction_rate statistic | MUST | TODO | script already committed |
+| P012 | M4 | NatErr Stage 2 LLVM driver (`scripts/run_natErr_stage2_llvm.py`) | FuzzlangClangVerifier + compile_commands.json | Column B LLVM subset + reproduction_rate statistic | MUST | **REDO IN PROGRESS 2026-04-23** | First attempt: 0/488 reproduced (G-M4 fail); root cause was clang-only build (mlir/lld/lldb/etc TUs missing) + Stage-1 included bazel/td-only fixes. Redo: (a) `scripts/filter_manifest_source_changes.py` keeps only fix_sha that touched ≥1 C/C++ file → 242/488 kept (49.6%); (b) full subprojects build (clang;lld;lldb;mlir;flang;polly;clang-tools-extra) at `$SCRATCH/p012-full-build`. |
+| **P012b** | **M4** | **Stage-1 source-touch filter** | post-process | filtered manifest at `data/natErr/manifest_llvm_source_only.jsonl` | MUST | **DONE 2026-04-23** | 242/488 LLVM kept; report: `data/natErr/manifest_llvm_source_only.filter_report.json` |
 | P013 | M4b | NatErr Stage 2 postgres driver (beyond smoke) | per-project | Column B postgres subset | MUST | TODO | smoke already works |
 | P014 | M4b | NatErr Stage 2 ffmpeg driver | per-project | Column B ffmpeg subset | MUST | TODO (NEW) | |
 | P015 | M4b | NatErr Stage 2 qt driver | per-project | Column B qt subset | MUST | TODO (NEW) | |
@@ -34,7 +35,7 @@
 
 ---
 
-## Block B1 — Main two-column table (MUST-RUN) · 6 methods × 3 seeds × 2 columns = 36 headline runs
+## Block B1 — Main two-column table (MUST-RUN) · 5 methods × 3 seeds × 2 columns = 30 headline runs (was 6×3×2=36 before B_classical was dropped 2026-04-23)
 
 ### Column A (Mutation on Y, N = 3000)
 
@@ -50,8 +51,8 @@
 | RA008 | M6 | B2 static SFT | 42 | — | TODO | 2 seeds per budget-trim rule |
 | RA009 | M6 | B3 SFT+stderr-loop | 17 | primary | TODO | B2 adapter + B1 loop |
 | RA010 | M6 | B3 SFT+stderr-loop | 42 | — | TODO | |
-| RA011 | M6 | **B_classical DrRepair** | 17 | primary | TODO (NEW) | per Reviewer B |
-| RA012 | M6 | **B_classical DrRepair** | 42 | — | TODO (NEW) | |
+| ~~RA011~~ | ~~M6~~ | ~~B_classical DrRepair~~ | — | — | **DROPPED** | see P010 |
+| ~~RA012~~ | ~~M6~~ | ~~B_classical DrRepair~~ | — | — | **DROPPED** | |
 | **RA013** | **M6** | **DVCR (ours)** | **17** | all primary + secondary | **TODO** | **headline cell** |
 | RA014 | M6 | DVCR (ours) | 23 | — | TODO | |
 | RA015 | M6 | DVCR (ours) | 42 | — | TODO | |
@@ -72,8 +73,8 @@
 | RB008 | M8 | B2 static SFT | 42 | — | TODO | 2 seeds |
 | RB009 | M8 | B3 SFT+stderr-loop | 17 | primary | TODO | |
 | RB010 | M8 | B3 SFT+stderr-loop | 42 | — | TODO | |
-| RB011 | M8 | B_classical DrRepair | 17 | primary | TODO (NEW) | |
-| RB012 | M8 | B_classical DrRepair | 42 | — | TODO (NEW) | |
+| ~~RB011~~ | ~~M8~~ | ~~B_classical DrRepair~~ | — | — | **DROPPED** | see P010 |
+| ~~RB012~~ | ~~M8~~ | ~~B_classical DrRepair~~ | — | — | **DROPPED** | |
 | **RB013** | **M8** | **DVCR (ours)** | **17** | all primary + secondary | **TODO** | **headline cell** |
 | RB014 | M8 | DVCR (ours) | 23 | — | TODO | |
 | RB015 | M8 | DVCR (ours) | 42 | — | TODO | |
@@ -190,7 +191,7 @@
 | **G-M0** | P001, P002 green | → M1 | fix scaffolding bugs |
 | **G-M2** | AST-hash dedup audit passes on X-train / X-dev and X / Y | → M3 (SFT can start) | **halt**, debug split infra |
 | **G-M4** | NatErr Stage 2 LLVM reproduction rate measured | → M4b for other projects OR demote Column B if rate < 10% | — |
-| **G-M5** | DrRepair smoke produces ≥ 1 valid fix | → M6 | switch to MACER fallback |
+| ~~G-M5~~ | ~~DrRepair smoke~~ | — | **DROPPED** 2026-04-23 — see P010 |
 | **G-C1-A** (headline) | DVCR − B1 ≥ 5 pp non-overlapping CI on Column A | → M7 ablations | **halt**, diagnose DVCR scaffolding |
 | **G-C2** (causal) | DVCR − DVCR-id ≥ 3 pp non-overlapping CI on Column A | → paper claim 2 stands | honest-report path: thesis weakens to "structured verifier" |
 | **G-C1-B** | DVCR > B1 directionally on Column B | → paper claim 1-B stands | Column B → appendix; paper on Column A alone |

@@ -8,6 +8,7 @@ __pycache__/
 # Carve out: NatErr eval data is the paper's evidence and IS source-tracked.
 !data/natErr/*.jsonl
 !data/natErr/*.summary.json
+!data/natErr/*.filter_report.json
 
 # Carve out: X-train/X-dev split + audit manifests are paper-evidence; tracked.
 !data/splits/*.json

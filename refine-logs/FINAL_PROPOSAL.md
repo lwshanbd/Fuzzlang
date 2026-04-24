@@ -126,7 +126,7 @@ This protocol is in §Methodology (not appendix) because contamination concerns 
 
 ## Evaluation
 
-### Main table — two columns × six rows
+### Main table — two columns × five rows
 
 Column A = Fuzzlang-Transformer mutations on Y (N = 3000); Column B = NatErr naturals (N = whatever Stage 2 yields).
 Both columns use Qwen2.5-Coder-7B-Instruct and matched output-token envelope (`E_tokens = T × K × 256 = 5120`). Three seeds.
@@ -137,8 +137,23 @@ Both columns use Qwen2.5-Coder-7B-Instruct and matched output-token envelope (`E
 | B1 stderr-loop | — | — | matched | Self-Debug style; T=5 K=4; stderr text observation. |
 | B2 static SFT | — | — | matched | LoRA on X mutations; single shot. |
 | B3 SFT + stderr-loop | — | — | matched | B2's model with B1's loop. |
-| **B_classical** (DrRepair) | — | — | matched | Prior-era compile-error repair (Yasunaga & Liang 2020); MACER as fallback if DrRepair unmaintainable in 2026 env. |
 | **DVCR (ours)** | — | — | matched | Loop + typed diag-ID + JSON edits. |
+
+**`B_classical` (DrRepair / MACER) was removed from the main table on 2026-04-23.**
+Three reasons: (1) DrRepair (Yasunaga & Liang 2020) ships no pretrained
+checkpoint and re-training requires a 2020-era stack (Python 3.6.8 +
+torch 1.0.1 + python-clang 8.0.1 + DeepFix data + CUDA 9/10 GPU),
+unmaintainable in our 2026 Pine + Polaris environment; (2) the gate-fallback
+chain MACER → BIFI is broken — MACER's three commonly cited GitHub repos
+are all 404, BIFI is the same author / same training-cost story as DrRepair;
+(3) Reviewer B's specific concern #5 ("compare against existing methods")
+was framed in 2025 against pre-LLM-era classical repair, but in 2026 the
+same family of comparison is now redundant with the LLM-era B0/B1/B2/B3
+baselines that already span no-loop, stderr-loop, static-SFT, and
+SFT+loop. Scale calibration in appendix (32B / 70B / optional frontier
+API) supplies the LLM-vs-LLM frontier comparator that is the relevant
+contemporary check. The paper will explicitly note this scope decision
+in §Limitations to address Reviewer B directly.
 
 Metric: `verified_fix_rate@T=5` — compiler-verified success under the original compile command with no new regressions, within budget T = 5 turns. 95% bootstrap CI (10k resamples) reported on both columns.
 
@@ -184,7 +199,7 @@ At camera-ready:
 
 ## Claims
 
-**Claim 1 (MAIN, cross-regime)**: At matched Qwen2.5-Coder-7B + matched token budget, DVCR beats all baselines (B0/B1/B2/B3/B_classical) on **Column A** (non-overlapping 95% bootstrap CI, ≥ 5 pp absolute gap over B1) and directionally on **Column B**.
+**Claim 1 (MAIN, cross-regime)**: At matched Qwen2.5-Coder-7B + matched token budget, DVCR beats all LLM-era baselines (B0/B1/B2/B3) on **Column A** (non-overlapping 95% bootstrap CI, ≥ 5 pp absolute gap over B1) and directionally on **Column B**.
 
 **Claim 2 (CAUSAL)**: DVCR > DVCR − id ≥ 3 pp with non-overlapping CI on Column A. The typed-ID signal is causally load-bearing beyond structured-but-untyped feedback.
 
@@ -218,7 +233,7 @@ At camera-ready:
 ## Highest Risks (unchanged from Round 6)
 
 1. **NatErr Stage 2 yield < 100 usable instances**. Mitigation: Column B becomes appendix; paper rests on Column A (mutation with rigorous project holdout). Paper explicitly frames naturals as "external validity at whatever scale is honest" and does not hide the small N.
-2. **DrRepair unmaintainable in 2026**. Mitigation: MACER fallback (same family, more recent). BIFI third-resort. All three from the compile-error-repair lineage Reviewer B cited.
+2. **DrRepair unmaintainable in 2026** — RESOLVED 2026-04-23. After empirically confirming DrRepair has no pretrained checkpoint and the MACER fallback's GitHub repos are all 404, B_classical was removed from the main table per the in-text rationale above. Reviewer B's concern is now addressed via §Limitations + LLM-era baseline coverage (B0/B1/B2/B3) + appendix scale calibration (32B/70B/frontier).
 3. **Scale calibration (70B or frontier) shrinks the DVCR effect**. Mitigation: this is legitimate empirical finding; paper's Claim 3 would move from "effect persists across scales" to "DVCR is particularly helpful at open-small-model scale, and the effect compresses at frontier-scale models that already internalize some diagnostic reasoning". Still publishable.
 4. **DVCR ≈ DVCR − id on Column A**. Mitigation: Claim 2 weakens to "structured inference-time compiler verifier" rather than "typed categorical ID is the causal factor". Claim 1 survives. Anchor still solved.
 
@@ -227,7 +242,7 @@ At camera-ready:
 ## Handoff Must-Prove
 
 1. DVCR > B1 on Column A at matched budget with non-overlapping 95% CI.
-2. DVCR > B_classical (DrRepair / MACER) on Column A.
-3. DVCR > DVCR − id on Column A (typed-ID causal).
-4. DVCR > B1 on Column B directionally.
-5. Model-selection protocol adhered to (audit trail archived).
+2. DVCR > DVCR − id on Column A (typed-ID causal).
+3. DVCR > B1 on Column B directionally.
+4. Model-selection protocol adhered to (audit trail archived).
+5. (Was: DVCR > B_classical. Removed 2026-04-23; see §Evaluation rationale.)
