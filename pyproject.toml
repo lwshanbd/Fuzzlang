@@ -1,0 +1,46 @@
+[project]
+name = "fuzzlang-dvcr"
+version = "0.2.0"
+description = "Fuzzlang v2: Diagnostic-Verified Code Repair (NeurIPS 2026)."
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    # Core runtime for scaffolding + tests. No model / GPU deps here.
+    # Add vllm / transformers / accelerate under a [project.optional-dependencies]
+    # when ready to enable real-LLM policies on the Polaris GPU sweep.
+]
+
+[project.optional-dependencies]
+# Install for local CPU-only scaffold testing:
+#   pip install -e ".[dev]"
+dev = [
+    "pytest>=8",
+]
+
+# Install on the GPU machine before running real-LLM inference:
+#   pip install -e ".[llm]"
+llm = [
+    "torch>=2.4",
+    "transformers>=4.46",
+    "vllm>=0.6.3",
+    "accelerate>=1.0",
+    "peft>=0.13",
+]
+
+# Install on the CPU machine that runs the NatErr harvest + verifier farm:
+#   pip install -e ".[harvest]"
+harvest = [
+    "requests>=2.32",
+    "gitpython>=3.1",
+]
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
+testpaths = ["tests"]
+
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+include = ["experiments*"]
