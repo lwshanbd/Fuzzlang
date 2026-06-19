@@ -4,3 +4,4 @@ total-jsons/
 *.ipynb_checkpoints
 tmp/
 __pycache__/
+new-docs/
