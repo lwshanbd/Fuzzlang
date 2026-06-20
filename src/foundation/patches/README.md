@@ -35,8 +35,8 @@ One binary, both directions. The FuzzLang verifier (`src/foundation/verifier/fuz
 
 ```bash
 cd llvm-project/
-git apply --check scripts/patches/0001-clang-emit-diag-id-on-stderr.patch
-git apply scripts/patches/0001-clang-emit-diag-id-on-stderr.patch
+git apply --check src/foundation/patches/0001-clang-emit-diag-id-on-stderr.patch
+git apply src/foundation/patches/0001-clang-emit-diag-id-on-stderr.patch
 ```
 
 If `git apply --check` fails, the surrounding lines in `TextDiagnosticPrinter.cpp` have drifted from LLVM 22.1.8. Manual re-derivation takes two minutes: in `HandleDiagnostic(...)`, add

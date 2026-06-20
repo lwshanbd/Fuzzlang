@@ -1,11 +1,11 @@
 diff --git a/clang/lib/Frontend/TextDiagnosticPrinter.cpp b/clang/lib/Frontend/TextDiagnosticPrinter.cpp
-index b2fb76253..76481f3b9 100644
+index 83fd70e5f99f..a4e2f7a0b4f3 100644
 --- a/clang/lib/Frontend/TextDiagnosticPrinter.cpp
 +++ b/clang/lib/Frontend/TextDiagnosticPrinter.cpp
 @@ -138,6 +138,10 @@ void TextDiagnosticPrinter::HandleDiagnostic(DiagnosticsEngine::Level Level,
          OS, /*IsSupplemental=*/Level == DiagnosticsEngine::Note,
          DiagMessageStream.str(), OS.tell() - StartOfLocationInfo,
-         DiagOpts->MessageLength, DiagOpts->ShowColors);
+         DiagOpts.MessageLength, DiagOpts.ShowColors);
 +    // Fuzzlang: emit the internal diagnostic ID even for command-line /
 +    // invalid-location diagnostics so downstream parsers can classify them
 +    // unambiguously without string-matching the localized message.
@@ -13,7 +13,7 @@ index b2fb76253..76481f3b9 100644
      OS.flush();
      return;
    }
-@@ -152,5 +156,11 @@ void TextDiagnosticPrinter::HandleDiagnostic(DiagnosticsEngine::Level Level,
+@@ -151,5 +155,11 @@ void TextDiagnosticPrinter::HandleDiagnostic(DiagnosticsEngine::Level Level,
        FullSourceLoc(Info.getLocation(), Info.getSourceManager()), Level,
        DiagMessageStream.str(), Info.getRanges(), Info.getFixItHints());
  
