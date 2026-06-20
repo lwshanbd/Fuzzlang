@@ -22,7 +22,7 @@ already at $HOME/fuzzlang-clang):
     srun -p pine --account=app -N 1 -c 16 -t 01:00:00 \\
         bash -lc "module load anaconda3/2024.02 && \\
                   source .venv/bin/activate && \\
-                  PYTHONPATH=. python scripts/run_natErr_stage2_smoke.py \\
+                  PYTHONPATH=. python scripts/reproduce_stage2_smoke.py \\
                       --postgres-checkout /shared/scratch1/Users/$USER/Fuzzlang/natErr/cks_4/postgresql \\
                       --out data/natErr/main_smoke.jsonl"
 

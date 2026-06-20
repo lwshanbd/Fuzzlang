@@ -25,7 +25,7 @@ Output (under --out-dir, default `data/splits/`):
                                 per-subsystem breakdown, dedup audit verdict
 
 Usage (login-node OK; small Python, just walks files + sha256):
-  PYTHONPATH=. python scripts/carve_x_train_xdev.py \\
+  PYTHONPATH=. python scripts/split_llvm_train_dev.py \\
       --llvm-src /shared/scratch1/Users/$USER/Fuzzlang/natErr/cks_3/llvm \\
       --out-dir data/splits \\
       --salt fuzzlang-v2-2026-04-23 \\

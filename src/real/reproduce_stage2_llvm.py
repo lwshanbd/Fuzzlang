@@ -400,7 +400,7 @@ _CDB_CACHE: dict[str, dict]  # type: ignore[misc]
 def _parse_args() -> argparse.Namespace:
     p = argparse.ArgumentParser()
     p.add_argument("--manifest", type=Path, required=True,
-                   help="Stage 1 manifest JSONL (from run_natErr_stage1.py).")
+                   help="Stage 1 manifest JSONL (from harvest_stage1.py).")
     p.add_argument("--llvm-src", type=Path, required=True,
                    help="LLVM checkout (preferably the Stage 1 one; this "
                         "script does NOT clone if missing — clone ahead).")

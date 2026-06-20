@@ -11,7 +11,7 @@
 # to spread to 4 distinct nodes — chromium alone saturates a NIC.
 #
 # Usage (from repo root):
-#   bash scripts/run_natErr_stage1_parallel.sh
+#   bash scripts/harvest_stage1_parallel.sh
 #
 # Env overrides:
 #   REPO     — path to repo (default: $PWD)
@@ -51,7 +51,7 @@ run_node() {
             mkdir -p $SCRATCH/natErr/cks_${NID}
             echo \"[node-${NID}] hostname: \$(hostname)  start: \$(date)\"
             echo \"[node-${NID}] projects: ${PROJECTS}\"
-            PYTHONPATH=. python scripts/run_natErr_stage1.py \\
+            PYTHONPATH=. python scripts/harvest_stage1.py \\
                 --only ${PROJECTS} \\
                 --shallow \\
                 --checkout-root $SCRATCH/natErr/cks_${NID} \\

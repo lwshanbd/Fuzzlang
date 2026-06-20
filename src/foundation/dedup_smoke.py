@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""P009 smoke: exercise the X/Y split pipeline end-to-end on a tiny sample.
+"""dedup smoke: exercise the X/Y split pipeline end-to-end on a tiny sample.
 
 This does NOT generate real Fuzzlang-Transformer mutations (that requires
 running the v1 wrapper as CC during real LLVM/Postgres/FFmpeg/Qt/Blender
@@ -23,13 +23,13 @@ This proves:
 
 Real mutation generation (the production pipeline) plugs into the same
 JSONL schema (`file_path`, `line`, `mutated_src`/`snippet`) so the audit
-script (`scripts/run_p009_dedup_audit.py`) can be re-run unchanged.
+script (`scripts/dedup_audit.py`) can be re-run unchanged.
 
 Usage:
-  PYTHONPATH=. python scripts/run_p009_smoke.py \\
+  PYTHONPATH=. python scripts/dedup_smoke.py \\
       --llvm-src /shared/scratch1/Users/$USER/Fuzzlang/natErr/cks_3/llvm \\
       --y-src    /shared/scratch1/Users/$USER/Fuzzlang/natErr/cks_4/postgresql \\
-      --out-dir  data/splits/p009_smoke/ \\
+      --out-dir  data/splits/dedup_smoke/ \\
       --n-train 50 --n-dev 50 --n-eval 50 \\
       --hash-mode text
 """
@@ -114,7 +114,7 @@ def main() -> int:
     p.add_argument("--carve-dir", type=Path, default=Path("data/splits"),
                    help="P011 output dir.")
     p.add_argument("--out-dir", type=Path,
-                   default=Path("data/splits/p009_smoke"))
+                   default=Path("data/splits/dedup_smoke"))
     p.add_argument("--n-train", type=int, default=50)
     p.add_argument("--n-dev", type=int, default=50)
     p.add_argument("--n-eval", type=int, default=50)
@@ -126,14 +126,14 @@ def main() -> int:
 
     train_files = _read_file_list(args.carve_dir / "llvm_x_train_files.txt")
     dev_files = _read_file_list(args.carve_dir / "llvm_x_dev_files.txt")
-    print(f"[p009-smoke] X-train files = {len(train_files)}", flush=True)
-    print(f"[p009-smoke] X-dev files   = {len(dev_files)}", flush=True)
+    print(f"[dedup-smoke] X-train files = {len(train_files)}", flush=True)
+    print(f"[dedup-smoke] X-dev files   = {len(dev_files)}", flush=True)
 
-    print(f"[p009-smoke] walking Y src {args.y_src} ...", flush=True)
+    print(f"[dedup-smoke] walking Y src {args.y_src} ...", flush=True)
     y_files = _walk_y_sources(args.y_src)
-    print(f"[p009-smoke] Y files       = {len(y_files)}", flush=True)
+    print(f"[dedup-smoke] Y files       = {len(y_files)}", flush=True)
     if not y_files:
-        print("[p009-smoke] FAIL: Y project has no source files", file=sys.stderr)
+        print("[dedup-smoke] FAIL: Y project has no source files", file=sys.stderr)
         return 2
 
     train_path = args.out_dir / "x_train_smoke.jsonl"
@@ -145,13 +145,13 @@ def main() -> int:
                 dev_path)
     n_e = _emit(rng, args.y_src, y_files, args.n_eval, args.y_label,
                 eval_path)
-    print(f"[p009-smoke] emitted: train={n_t}  dev={n_d}  eval={n_e}",
+    print(f"[dedup-smoke] emitted: train={n_t}  dev={n_d}  eval={n_e}",
           flush=True)
 
     # Run the audit.
-    audit_out = args.out_dir / "p009_smoke_audit.json"
+    audit_out = args.out_dir / "dedup_smoke_audit.json"
     cmd = [
-        sys.executable, "scripts/run_p009_dedup_audit.py",
+        sys.executable, str(Path(__file__).resolve().parent / "dedup_audit.py"),
         "--train", str(train_path),
         "--dev", str(dev_path),
         "--eval", str(eval_path),
@@ -159,18 +159,18 @@ def main() -> int:
         "--report-out", str(audit_out),
         "--no-fail-on-collision",                # smoke; report but don't exit-code
     ]
-    print(f"[p009-smoke] running audit: {' '.join(cmd)}", flush=True)
-    cp = subprocess.run(cmd, env={"PYTHONPATH": ".", **__import__("os").environ},
+    print(f"[dedup-smoke] running audit: {' '.join(cmd)}", flush=True)
+    cp = subprocess.run(cmd, env={"PYTHONPATH": "src", **__import__("os").environ},
                         capture_output=False)
     if cp.returncode not in (0, 1):
-        print(f"[p009-smoke] audit failed with rc={cp.returncode}",
+        print(f"[dedup-smoke] audit failed with rc={cp.returncode}",
               file=sys.stderr)
         return 3
 
     report = json.loads(audit_out.read_text())
-    print(f"[p009-smoke] audit verdict: "
+    print(f"[dedup-smoke] audit verdict: "
           f"{'GREEN' if report['overall_ok'] else 'RED'}", flush=True)
-    print(f"[p009-smoke] artifacts:")
+    print(f"[dedup-smoke] artifacts:")
     print(f"  {train_path}")
     print(f"  {dev_path}")
     print(f"  {eval_path}")

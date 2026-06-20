@@ -10,18 +10,18 @@ specific and not run by this script.
 
 Usage:
 
-    python scripts/run_natErr_stage1.py \\
+    python scripts/harvest_stage1.py \\
         --checkout-root /scratch/natErr/checkouts \\
         --manifest-out  /scratch/natErr/manifest_raw.jsonl
 
     # Run against a subset of projects:
-    python scripts/run_natErr_stage1.py \\
+    python scripts/harvest_stage1.py \\
         --checkout-root /scratch/natErr/checkouts \\
         --manifest-out  /scratch/natErr/llvm_only.jsonl \\
         --only llvm,bitcoin
 
     # Use a different calendar cutoff:
-    python scripts/run_natErr_stage1.py \\
+    python scripts/harvest_stage1.py \\
         --checkout-root /scratch/natErr/checkouts \\
         --manifest-out  /scratch/natErr/manifest_raw.jsonl \\
         --since 2025-07-01

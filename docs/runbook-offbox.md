@@ -12,7 +12,7 @@ Step-by-step for running the CPU-heavy work away from Polaris. Covers:
 2. Install Python deps.
 3. Build Fuzzlang-modified Clang.
 4. Run NatErr Stage 1 (fix-build commit harvest). **v2 update: Column B use only; not the headline source anymore.**
-5. Stage 2 (compile reproduction). **v2 update: LLVM driver already scaffolded at `scripts/run_natErr_stage2_llvm.py`. Per-project drivers for PostgreSQL/FFmpeg/Qt remain TODO.**
+5. Stage 2 (compile reproduction). **v2 update: LLVM driver already scaffolded at `scripts/reproduce_stage2_llvm.py`. Per-project drivers for PostgreSQL/FFmpeg/Qt remain TODO.**
 6. **v2 NEW: Fuzzlang-Transformer X/Y split pipeline** — generates Column A training set (X-train = LLVM) and Column A eval set (Y = {PostgreSQL, FFmpeg, Qt, Blender}) with AST-hash dedup across X↔Y.
 7. **v2 NEW: Source-provenance X-train / X-dev carve on LLVM** — required for the Model Selection Protocol.
 8. **v2 NEW: DrRepair (or MACER fallback)** — classical baseline install + containerization.
@@ -113,7 +113,7 @@ export SCRATCH=/shared/scratch1/Users/$USER/Fuzzlang
 mkdir -p $SCRATCH/natErr
 
 # Smoke first — only 2 projects, cap candidates to 20 each:
-PYTHONPATH=. python scripts/run_natErr_stage1.py \
+PYTHONPATH=. python scripts/harvest_stage1.py \
     --checkout-root $SCRATCH/natErr/checkouts \
     --manifest-out  $SCRATCH/natErr/manifest_raw_smoke.jsonl \
     --only bitcoin,postgresql \
@@ -138,20 +138,20 @@ export SCRATCH=/shared/scratch1/Users/$USER/Fuzzlang
 srun -p pine --account=app -N 1 -c 4 -t 12:00:00 \
     bash -lc "module load anaconda3/2024.02 && \
               source $PWD/.venv/bin/activate && \
-              PYTHONPATH=. python scripts/run_natErr_stage1.py \
+              PYTHONPATH=. python scripts/harvest_stage1.py \
                   --checkout-root $SCRATCH/natErr/checkouts \
                   --manifest-out  $SCRATCH/natErr/manifest_raw.jsonl \
                   --shallow"
 ```
 
-**Faster: 4-node parallel via `scripts/run_natErr_stage1_parallel.sh`.**
+**Faster: 4-node parallel via `scripts/harvest_stage1_parallel.sh`.**
 Spreads the 8 projects across 4 SLURM nodes (each gets a whole 64-core node
 so they don't contend on a shared NIC). Wall-clock collapses from
 ~chromium-time-serial to ~chromium-time-alone. Wall-time observed on Pine:
 3 of 4 nodes finished in 3-16 min; chromium is the long pole at ~1-2 h.
 
 ```bash
-bash scripts/run_natErr_stage1_parallel.sh
+bash scripts/harvest_stage1_parallel.sh
 # When all done, merge per-node manifests:
 cat $SCRATCH/natErr/manifest_node_*.jsonl > data/natErr/manifest_full.jsonl
 ```
@@ -188,7 +188,7 @@ Compute sha256(email)[:16] for each paper author and pass them via
 python -c "import hashlib; print(hashlib.sha256(b'you@example.com').hexdigest()[:16])"
 # ab12cd34ef...
 
-python scripts/run_natErr_stage1.py \
+python scripts/harvest_stage1.py \
     --checkout-root ./scratch/natErr/checkouts \
     --manifest-out ./scratch/natErr/manifest_raw.jsonl \
     --author-blocklist-hashes ab12cd34ef...,ff99ee88dd...
@@ -206,7 +206,7 @@ using the Fuzzlang-modified Clang. Output: the NatErr eval split
 
 ### End-to-end smoke (postgres, 1 instance)
 
-`scripts/run_natErr_stage2_smoke.py` codifies a verified end-to-end run for
+`scripts/reproduce_stage2_smoke.py` codifies a verified end-to-end run for
 ONE instance: the postgres `9c9d41af...` predecessor SHA fails to compile
 `src/tutorial/funcs.c` (missing `#include "varatt.h"`) with diag_id 5191
 (`ext_implicit_function_decl_c99`). Round-trips cleanly through
@@ -217,7 +217,7 @@ export SCRATCH=/shared/scratch1/Users/$USER/Fuzzlang
 srun -p pine --account=app -N 1 -c 16 -t 01:00:00 \
     bash -lc "module load anaconda3/2024.02 && \
               source $PWD/.venv/bin/activate && \
-              PYTHONPATH=. python scripts/run_natErr_stage2_smoke.py \
+              PYTHONPATH=. python scripts/reproduce_stage2_smoke.py \
                   --postgres-checkout $SCRATCH/natErr/cks_4/postgresql \
                   --out data/natErr/main_smoke.jsonl"
 ```
@@ -241,7 +241,7 @@ N≥3000 main + 500 HPC, with a scope decision tree at <300 / 300-999 /
 1000-2999 / ≥3000 cutoffs. The committed 7-project partial harvest gives
 873 raw candidates → projected 260-540 usable → "narrow to LLVM
 self-hosting depth study" tier per the tree. To reach 1k+ scale, see
-`scripts/run_natErr_stage2_smoke.py` followups and `refine-logs/`'s S2
+`scripts/reproduce_stage2_smoke.py` followups and `refine-logs/`'s S2
 (CI failure log) source which is documented but not yet scripted.
 
 Rough protocol (per project):

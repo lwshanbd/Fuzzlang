@@ -1,16 +1,16 @@
 #!/usr/bin/env python3
-"""P009 dedup audit: pairwise AST-hash collision check between manifests.
+"""dedup audit: pairwise AST-hash collision check between manifests.
 
 Implements gate G-M2's hard half:
   "AST-hash dedup audit passes on X-train ↔ X-dev AND X ↔ Y"
 
 Usage:
-  PYTHONPATH=. python scripts/run_p009_dedup_audit.py \\
+  PYTHONPATH=. python scripts/dedup_audit.py \\
       --train data/splits/x_train_mutations.jsonl \\
       --dev   data/splits/x_dev_mutations.jsonl \\
       --eval  data/natErr/y_eval_mutations.jsonl \\
       --hash-mode ast \\
-      --report-out data/splits/p009_dedup_audit.json
+      --report-out data/splits/dedup_audit.json
 
 Each input JSONL row must have at minimum:
   {"file_path": "...", "line": <int>,
@@ -142,7 +142,7 @@ def main() -> int:
     overall_ok = all(p["ok"] for p in pairs)
     report = {
         "schema_version": 1,
-        "task": "P009 dedup audit (G-M2 second half)",
+        "task": "dedup audit",
         "hash_mode": args.hash_mode,
         "inputs": {
             "train": str(args.train),
