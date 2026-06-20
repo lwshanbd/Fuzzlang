@@ -20,7 +20,7 @@ index b2fb76253..76481f3b9 100644
 +  // Fuzzlang: emit the internal diagnostic ID for programmatic classification.
 +  // Placed after the rendered diagnostic body so existing parsers continue to
 +  // see the unchanged header/body; the DiagID line follows as extra info and
-+  // the DVCR verifier's regex `^DiagID:\s*(\d+)\s*$` picks it up.
++  // the FuzzLang verifier's regex `^DiagID:\s*(\d+)\s*$` picks it up.
 +  OS << "DiagID: " << Info.getID() << "\n";
 +
    OS.flush();

@@ -1,9 +1,9 @@
 """B0: zero-shot single-shot baseline.
 
 One LLM call with (buggy_src, compile_cmd, stderr) → full patched source.
-No loop, no SFT. Token budget matched to DVCR's envelope in a single call.
+No loop, no SFT. Token budget matched to diagnostic repair's envelope in a single call.
 
-Implemented as DVCR with T=1, K=1, SIGNAL_NO_STRUCT. Same scaffold, no
+Implemented as diagnostic repair with T=1, K=1, SIGNAL_NO_STRUCT. Same scaffold, no
 special code path. Matched-budget enforcement uses the same mechanism.
 """
 from __future__ import annotations
@@ -11,8 +11,8 @@ from __future__ import annotations
 from collections.abc import Callable
 
 from repair.agent.policy_base import Policy
-from repair.loop.search import RunResult, run_dvcr
-from repair.methods.dvcr import make_dvcr_runner
+from repair.loop.search import RunResult, run_repair_loop
+from repair.methods.diag import make_diag_runner
 from foundation.types import SIGNAL_NO_STRUCT
 from foundation.verifier.base import BaseVerifier
 
@@ -29,7 +29,7 @@ def make_b0_runner(
 
     Budget is spent in one call; the envelope is the envelope.
     """
-    runner = make_dvcr_runner(
+    runner = make_diag_runner(
         verifier, policy,
         signal_mode=SIGNAL_NO_STRUCT,
         T=1, K=1,
@@ -40,7 +40,7 @@ def make_b0_runner(
     )
 
     def run(source: str, compile_cmd: list[str]) -> RunResult:
-        return run_dvcr(
+        return run_repair_loop(
             source, compile_cmd, verifier, policy,
             ctx=_ctx_like(runner, max_tokens_per_call, temperature),
             T=1, K=1, token_envelope=token_envelope,
@@ -50,7 +50,7 @@ def make_b0_runner(
 
 
 def _ctx_like(_runner, max_tokens_per_call, temperature):
-    """Build a PolicyContext mirroring what make_dvcr_runner produced."""
+    """Build a PolicyContext mirroring what make_diag_runner produced."""
     from repair.agent.policy_base import PolicyContext
     return PolicyContext(
         signal_mode=SIGNAL_NO_STRUCT,

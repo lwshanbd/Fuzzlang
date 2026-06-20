@@ -9,7 +9,7 @@ from repair.agent.policy_base import (
     PolicyContext,
     PolicyResult,
 )
-from repair.loop.search import run_dvcr
+from repair.loop.search import run_repair_loop
 from repair.loop.terminal import TerminalReason
 from foundation.types import Action, DiagInfo, VerifierResult
 from foundation.verifier.mock import MockVerifier, ok_result
@@ -47,7 +47,7 @@ def test_token_envelope_aborts_on_first_policy_call_that_exceeds_cap():
     """Envelope=50 means the FIRST policy call (100 tokens) immediately over-budgets."""
     v = MockVerifier(lambda src, cmd, logical_path: _err_on_line_2())
     ctx = PolicyContext(signal_mode="full", k_proposals=2)
-    result = run_dvcr(
+    result = run_repair_loop(
         "line1\nint x\nline3\n", ["clang"],
         v, HeavyPolicy(), ctx, T=10, K=4,
         logical_path="/proj/a.c",
@@ -85,7 +85,7 @@ def test_token_envelope_does_not_trip_when_under_cap():
 
     v = MockVerifier(vpolicy)
     ctx = PolicyContext(signal_mode="full", k_proposals=2)
-    result = run_dvcr(
+    result = run_repair_loop(
         "line1\nint x\nline3\n", ["clang"],
         v, OnceThenSuccess(), ctx, T=10, K=4,
         logical_path="/proj/a.c",

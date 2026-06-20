@@ -1,9 +1,9 @@
-"""P002 end-to-end smoke test for DVCR via MockVerifier + StubSemicolonPolicy."""
+"""P002 end-to-end smoke test for diagnostic repair via MockVerifier + StubSemicolonPolicy."""
 from __future__ import annotations
 
 from repair.agent.policy_base import PolicyContext
 from repair.agent.policy_stub import NoOpPolicy, StubSemicolonPolicy
-from repair.loop.search import run_dvcr
+from repair.loop.search import run_repair_loop
 from repair.loop.terminal import TerminalReason
 from foundation.types import DiagInfo, VerifierResult
 from foundation.verifier.mock import MockVerifier, ok_result
@@ -41,7 +41,7 @@ def _make_verifier() -> MockVerifier:
 def test_smoke_semicolon_fix_succeeds_in_one_turn():
     v = _make_verifier()
     ctx = PolicyContext(signal_mode="full", k_proposals=4)
-    result = run_dvcr(
+    result = run_repair_loop(
         BUGGY, ["clang", "-c", "__SRC__"],
         v, StubSemicolonPolicy(), ctx, T=5, K=4,
         logical_path="/proj/smoke.c",
@@ -59,7 +59,7 @@ def test_smoke_no_op_policy_returns_no_proposals():
     """Policy that never proposes should terminate with NO_PROPOSALS on turn 0."""
     v = _make_verifier()
     ctx = PolicyContext(signal_mode="full", k_proposals=4)
-    result = run_dvcr(
+    result = run_repair_loop(
         BUGGY, ["clang", "-c", "__SRC__"],
         v, NoOpPolicy(), ctx, T=3, K=4,
         logical_path="/proj/smoke.c",
@@ -73,7 +73,7 @@ def test_smoke_no_op_policy_returns_no_proposals():
 def test_smoke_initial_clean_source_is_trivial_success():
     v = _make_verifier()
     ctx = PolicyContext(signal_mode="full", k_proposals=4)
-    result = run_dvcr(
+    result = run_repair_loop(
         FIXED, ["clang", "-c", "__SRC__"],
         v, StubSemicolonPolicy(), ctx, T=5, K=4,
         logical_path="/proj/smoke.c",
@@ -88,7 +88,7 @@ def test_smoke_signal_mode_no_struct_also_works_with_stub():
     present in every signal mode — so SIGNAL_NO_STRUCT must still succeed."""
     v = _make_verifier()
     ctx = PolicyContext(signal_mode="no_structure", k_proposals=4)
-    result = run_dvcr(
+    result = run_repair_loop(
         BUGGY, ["clang", "-c", "__SRC__"],
         v, StubSemicolonPolicy(), ctx, T=5, K=4,
         logical_path="/proj/smoke.c",

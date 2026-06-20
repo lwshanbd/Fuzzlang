@@ -2,7 +2,7 @@
 
 ## Environment
 
-- **`activate_dvcr.sh`** — sources the conda env + sets `LD_LIBRARY_PATH`, `PATH`, `PYTHONPATH`, and `FUZZLANG_{CLANG,DIAGTOOL}_BIN`. Source this at the top of every job.
+- **`activate_FuzzLang.sh`** — sources the conda env + sets `LD_LIBRARY_PATH`, `PATH`, `PYTHONPATH`, and `FUZZLANG_{CLANG,DIAGTOOL}_BIN`. Source this at the top of every job.
 
 ## Build
 
@@ -12,12 +12,12 @@
 ## Polaris PBS templates
 
 - **`polaris_qsub_sft.sh`** — submits B2 LoRA SFT as a 1-node 4-GPU job. Outputs a LoRA adapter to `$ADAPTER_OUT`. Budget: ~8 node-hours for one run.
-- **`polaris_qsub_sweep.sh`** — submits ONE (method, seed) cell of the main sweep. Launches a vLLM server bound to one A100, runs the DVCR harness against the eval split, writes `results/<stamp>.json`. Typical budget: ~2 node-hours per job.
+- **`polaris_qsub_sweep.sh`** — submits ONE (method, seed) cell of the main sweep. Launches a vLLM server bound to one A100, runs the diagnostic repair harness against the eval split, writes `results/<stamp>.json`. Typical budget: ~2 node-hours per job.
 
 Submission example for the full main-table row set:
 
 ```bash
-for METHOD in b0_zero_shot b1_stderr_loop b2_static_sft dvcr dvcr_no_id dvcr_no_structure dvcr_no_loop; do
+for METHOD in b0_zero_shot b1_stderr_loop b2_static_sft FuzzLang FuzzLang_no_id FuzzLang_no_structure FuzzLang_no_loop; do
     for SEED in 17 23 42; do
         qsub -v "METHOD=$METHOD,SEED=$SEED" scripts/polaris_qsub_sweep.sh
     done

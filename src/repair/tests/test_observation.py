@@ -1,6 +1,6 @@
 """Signal-mode observation redaction tests.
 
-Ensures DVCR−id cannot see diag_id; DVCR−structure cannot see DiagID lines
+Ensures diagnostic repair−id cannot see diag_id; diagnostic repair−structure cannot see DiagID lines
 AND cannot see any parsed structured field (e.g. `line`).
 """
 from __future__ import annotations

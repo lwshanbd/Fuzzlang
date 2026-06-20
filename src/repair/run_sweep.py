@@ -2,7 +2,7 @@
 """Inference-side driver for one (method, seed) cell of the main sweep.
 
 Loads the NatErr eval split, instantiates the named method from
-`repair.methods`, runs each instance through the DVCR harness with a
+`repair.methods`, runs each instance through the diagnostic repair harness with a
 vLLM-backed policy pointing at `--base-url`, collects per-instance
 VerifiedResult records, writes a summary JSON.
 
@@ -33,10 +33,10 @@ from repair.methods import (
     make_b1_runner,
     make_b2_runner,
     make_b3_runner,
-    make_dvcr_no_id_runner,
-    make_dvcr_no_loop_runner,
-    make_dvcr_no_structure_runner,
-    make_dvcr_runner,
+    make_no_id_runner,
+    make_no_loop_runner,
+    make_no_structure_runner,
+    make_diag_runner,
 )
 from foundation.verifier import FuzzlangClangVerifier
 
@@ -46,10 +46,10 @@ _METHOD_FACTORIES = {
     "b1_stderr_loop": make_b1_runner,
     "b2_static_sft": make_b2_runner,
     "b3_sft_stderr_loop": make_b3_runner,
-    "dvcr": make_dvcr_runner,
-    "dvcr_no_id": make_dvcr_no_id_runner,
-    "dvcr_no_structure": make_dvcr_no_structure_runner,
-    "dvcr_no_loop": make_dvcr_no_loop_runner,
+    "diag": make_diag_runner,
+    "diag_no_id": make_no_id_runner,
+    "diag_no_structure": make_no_structure_runner,
+    "diag_no_loop": make_no_loop_runner,
 }
 
 
@@ -99,7 +99,7 @@ def _make_runner(args, verifier, policy):
     factory = _METHOD_FACTORIES[args.method]
     kwargs: dict = {"token_envelope": args.token_envelope}
     sig = getattr(factory, "__annotations__", {})
-    # b0/b2 single-shot don't take T/K; the DVCR family does.
+    # b0/b2 single-shot don't take T/K; the diagnostic repair family does.
     if args.method not in ("b0_zero_shot", "b2_static_sft"):
         kwargs["T"] = args.T
         kwargs["K"] = args.K

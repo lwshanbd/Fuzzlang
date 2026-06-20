@@ -11,7 +11,7 @@ class MockVerifier(BaseVerifier):
     """A verifier whose behavior is a pure function `(source, cmd, logical_path) -> VerifierResult`.
 
     The test writer supplies `policy`. This enables deterministic end-to-end
-    tests of search/terminal/dvcr without requiring a real compiler.
+    tests of search/terminal/diag without requiring a real compiler.
     """
 
     def __init__(self, policy: Callable[[str, list[str], str], VerifierResult]):

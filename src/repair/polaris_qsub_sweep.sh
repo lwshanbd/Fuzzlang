@@ -1,5 +1,5 @@
 #!/bin/bash
-#PBS -N dvcr_sweep
+#PBS -N fuzzlang_sweep
 #PBS -A diomp
 #PBS -q prod
 #PBS -l select=1:system=polaris
@@ -12,14 +12,14 @@
 # 4-row main table × 3 seeds, or use an array job).
 #
 # Strategy: run a single vLLM server bound to one A100 per job, feed the
-# eval split through the DVCR harness, write a JSON result file.
+# eval split through the diagnostic repair harness, write a JSON result file.
 #
 # Submit with:
-#   qsub -v METHOD=dvcr,SEED=17 scripts/polaris_qsub_sweep.sh
+#   qsub -v METHOD=diag,SEED=17 scripts/polaris_qsub_sweep.sh
 #   qsub -v METHOD=b0_zero_shot,SEED=17 scripts/polaris_qsub_sweep.sh
-#   qsub -v METHOD=dvcr_no_id,SEED=42 scripts/polaris_qsub_sweep.sh
+#   qsub -v METHOD=diag_no_id,SEED=42 scripts/polaris_qsub_sweep.sh
 #
-# Budget per job: ~2 node-hours for DVCR at 3000 instances × T=5 × K=4 on 7B.
+# Budget per job: ~2 node-hours for diagnostic repair at 3000 instances × T=5 × K=4 on 7B.
 # 12 jobs × ~2 hours = ~25 node-hours total for the main table.
 
 set -euo pipefail
@@ -27,9 +27,9 @@ cd "${PBS_O_WORKDIR:-/lus/eagle/projects/diomp/baodi/Fuzzlang}"
 mkdir -p logs results
 
 # shellcheck source=/dev/null
-source scripts/activate_dvcr.sh
+source scripts/activate_diag.sh
 
-METHOD="${METHOD:?must be one of b0_zero_shot,b1_stderr_loop,b2_static_sft,b3_sft_stderr_loop,dvcr,dvcr_no_id,dvcr_no_structure,dvcr_no_loop}"
+METHOD="${METHOD:?must be one of b0_zero_shot,b1_stderr_loop,b2_static_sft,b3_sft_stderr_loop,diag,diag_no_id,diag_no_structure,diag_no_loop}"
 SEED="${SEED:?must specify seed (int)}"
 SPLIT="${SPLIT:-/lus/eagle/projects/diomp/baodi/Fuzzlang/data/natErr/main.jsonl}"
 MODEL="${MODEL:-/lus/eagle/projects/diomp/baodi/softwares/models/hf-cache/hub/models--Qwen--Qwen2.5-Coder-7B-Instruct}"

@@ -30,11 +30,11 @@ You need on the CPU-rich machine:
 ## 1. Clone the repo
 
 ```bash
-git clone -b feat/dvcr-scaffolding git@github.com:lwshanbd/Fuzzlang.git
+git clone -b the old scaffolding branch git@github.com:lwshanbd/Fuzzlang.git
 cd Fuzzlang
 ```
 
-Or if you already have a clone, `git fetch origin && git checkout feat/dvcr-scaffolding && git pull`.
+Or if you already have a clone, `git fetch origin && git checkout the old scaffolding branch && git pull`.
 
 ## 2. Install the Python env
 
@@ -307,12 +307,12 @@ already installed.)
 Back on Polaris, in the repo:
 
 ```bash
-source scripts/activate_dvcr.sh
+source scripts/activate_FuzzLang.sh
 # Smoke:
 qsub -v METHOD=b0_zero_shot,SEED=17 scripts/polaris_qsub_sweep.sh
 
 # Full main table (21 jobs):
-for METHOD in b0_zero_shot b1_stderr_loop b2_static_sft dvcr dvcr_no_id dvcr_no_structure dvcr_no_loop; do
+for METHOD in b0_zero_shot b1_stderr_loop b2_static_sft FuzzLang FuzzLang_no_id FuzzLang_no_structure FuzzLang_no_loop; do
     for SEED in 17 23 42; do
         qsub -v "METHOD=$METHOD,SEED=$SEED" scripts/polaris_qsub_sweep.sh
     done

@@ -26,7 +26,7 @@ Public API:
     span_hash(diag_id, file, line, col,
               snippet)                     -> the dead-end span_hash from
                                               FINAL_PROPOSAL §Method (used
-                                              independently by DVCR; kept
+                                              independently by diagnostic repair; kept
                                               here so all hashes live in
                                               one module).
 """
@@ -156,7 +156,7 @@ def ast_normalized_hash(
 def span_hash(
     diag_id: int, file: str, line: int, col: int, snippet: str,
 ) -> str:
-    """The DVCR dead-end detection span_hash. From FINAL_PROPOSAL §Method:
+    """The diagnostic repair dead-end detection span_hash. From FINAL_PROPOSAL §Method:
 
         sha256(diag_id || "|" || normalized_file_path || "|" ||
                start_byte || "|" || end_byte || "|" ||

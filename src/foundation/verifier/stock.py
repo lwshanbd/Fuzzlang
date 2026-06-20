@@ -4,9 +4,9 @@ Stock Clang does NOT emit the internal diagnostic ID or name. This backend
 therefore leaves DiagInfo.diag_id and DiagInfo.diag_name as None. It is
 sufficient for:
   - the B1 stderr-loop baseline,
-  - the DVCR − structure ablation (raw-stderr observation),
+  - the diagnostic repair − structure ablation (raw-stderr observation),
   - CPU-only development before the Fuzzlang-modified Clang is built.
-It is NOT sufficient for the DVCR full observation or the DVCR − id ablation,
+It is NOT sufficient for the diagnostic repair full observation or the diagnostic repair − id ablation,
 which require the typed diagnostic ID.
 """
 from __future__ import annotations

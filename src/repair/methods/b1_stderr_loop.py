@@ -1,8 +1,8 @@
 """B1: Self-Debug-style iterative repair with raw-stderr feedback.
 
-Same loop shape as DVCR (K=4, T=5, parallel sampling, verifier selection),
+Same loop shape as diagnostic repair (K=4, T=5, parallel sampling, verifier selection),
 but the policy observation is SIGNAL_NO_STRUCT — raw stderr only, no typed
-diagnostic fields. This is the headline baseline: the DVCR ↔ B1 gap is the
+diagnostic fields. This is the headline baseline: the diagnostic repair ↔ B1 gap is the
 paper's main effect size.
 """
 from __future__ import annotations
@@ -10,7 +10,7 @@ from __future__ import annotations
 from collections.abc import Callable
 
 from repair.agent.policy_base import Policy
-from repair.loop.search import RunResult, run_dvcr
+from repair.loop.search import RunResult, run_repair_loop
 from foundation.types import SIGNAL_NO_STRUCT
 from foundation.verifier.base import BaseVerifier
 
@@ -36,7 +36,7 @@ def make_b1_runner(
     )
 
     def run(source: str, compile_cmd: list[str]) -> RunResult:
-        return run_dvcr(
+        return run_repair_loop(
             source, compile_cmd, verifier, policy, ctx,
             T=T, K=K, token_envelope=token_envelope,
         )

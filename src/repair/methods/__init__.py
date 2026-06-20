@@ -7,12 +7,12 @@ from repair.methods.b0_zero_shot import make_b0_runner
 from repair.methods.b1_stderr_loop import make_b1_runner
 from repair.methods.b2_static_sft import make_b2_runner
 from repair.methods.b3_sft_stderr_loop import make_b3_runner
-from repair.methods.dvcr import make_dvcr_runner
-from repair.methods.dvcr_ablations import (
-    make_dvcr_no_id_runner,
-    make_dvcr_no_loop_runner,
-    make_dvcr_no_structure_runner,
-    make_dvcr_strict_zero_shot_runner,
+from repair.methods.diag import make_diag_runner
+from repair.methods.ablations import (
+    make_no_id_runner,
+    make_no_loop_runner,
+    make_no_structure_runner,
+    make_strict_zero_shot_runner,
 )
 
 __all__ = [
@@ -20,9 +20,9 @@ __all__ = [
     "make_b1_runner",
     "make_b2_runner",
     "make_b3_runner",
-    "make_dvcr_runner",
-    "make_dvcr_no_id_runner",
-    "make_dvcr_no_loop_runner",
-    "make_dvcr_no_structure_runner",
-    "make_dvcr_strict_zero_shot_runner",
+    "make_diag_runner",
+    "make_no_id_runner",
+    "make_no_loop_runner",
+    "make_no_structure_runner",
+    "make_strict_zero_shot_runner",
 ]

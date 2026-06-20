@@ -1,4 +1,4 @@
-"""Core dataclasses for DVCR: state, action, diagnostic, verifier result.
+"""Core dataclasses for diagnostic repair: state, action, diagnostic, verifier result.
 
 Every component of the method (verifier, policy, search, terminal) communicates
 through these types. Keep this file small and stable — other modules depend on
@@ -85,7 +85,7 @@ class AgentState:
 
 
 # ---- Signal modes for the causal ablation ----
-# DVCR paper's three-way verifier-signal ablation lives here. See FINAL_PROPOSAL Block B2.
+# diagnostic repair paper's three-way verifier-signal ablation lives here. See FINAL_PROPOSAL Block B2.
 
 SIGNAL_FULL = "full"                # {diag_id, diag_name, diag_msg, span}
 SIGNAL_NO_ID = "no_id"              # {diag_name, diag_msg, span}  — structure without ID

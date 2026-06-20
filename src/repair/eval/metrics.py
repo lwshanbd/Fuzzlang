@@ -1,4 +1,4 @@
-"""Evaluation metrics for DVCR and baselines.
+"""Evaluation metrics for diagnostic repair and baselines.
 
 Primary: verified_fix_rate@T=K (compiler-verified SUCCESS within T turns).
 Reporting: 95% bootstrap CI with 10k resamples, macro-vs-micro, per-family.

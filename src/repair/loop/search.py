@@ -1,4 +1,4 @@
-"""DVCR's parallel-sample + verifier-select loop.
+"""diagnostic repair's parallel-sample + verifier-select loop.
 
 Semantics (FINAL_PROPOSAL):
 - Start with one branch: the original buggy source.
@@ -65,7 +65,7 @@ class RunResult:
     output_tokens_used: int = 0
 
 
-def run_dvcr(
+def run_repair_loop(
     initial_src: str,
     compile_cmd: list[str],
     verifier: BaseVerifier,
@@ -77,7 +77,7 @@ def run_dvcr(
     logical_path: str = "<instance>",
     token_envelope: Optional[int] = None,
 ) -> RunResult:
-    """Run DVCR search on one instance. See module docstring for semantics.
+    """Run diagnostic repair search on one instance. See module docstring for semantics.
 
     `token_envelope`: if set, the loop terminates with BUDGET_EXHAUSTED when
     the cumulative policy-reported output tokens exceed this number. Used by

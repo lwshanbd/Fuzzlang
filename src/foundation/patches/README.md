@@ -29,7 +29,7 @@ $ diagtool find-diagnostic-id <number>
 err_expected_semi
 ```
 
-One binary, both directions. The DVCR verifier (`src/foundation/verifier/fuzzlang.py`) calls `diagtool find-diagnostic-id <integer>` to recover the diag name from the ID printed by Patch 1.
+One binary, both directions. The FuzzLang verifier (`src/foundation/verifier/fuzzlang.py`) calls `diagtool find-diagnostic-id <integer>` to recover the diag name from the ID printed by Patch 1.
 
 ## Applying
 

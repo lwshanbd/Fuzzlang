@@ -11,7 +11,7 @@ from repair.agent.policy_base import (
     PolicyContext,
     PolicyResult,
 )
-from repair.loop.search import run_dvcr
+from repair.loop.search import run_repair_loop
 from repair.loop.terminal import TerminalReason
 from foundation.types import Action, DiagInfo, VerifierResult
 from foundation.verifier.mock import MockVerifier
@@ -59,7 +59,7 @@ def test_dead_end_triggers_after_two_consecutive_same_hash_turns():
     the single permitted respawn also dead-ends, terminate ALL_BRANCHES_DEAD_END."""
     v = MockVerifier(lambda src, cmd, logical_path: _unchanging_err())
     ctx = PolicyContext(signal_mode="full", k_proposals=2)
-    result = run_dvcr(
+    result = run_repair_loop(
         "static int x\n", ["clang"],
         v, MutatingNoProgressPolicy(), ctx, T=10, K=2,
         logical_path="/proj/stuck.c",
@@ -72,7 +72,7 @@ def test_token_envelope_terminates_with_budget_exhausted():
     v = MockVerifier(lambda src, cmd, logical_path: _unchanging_err())
     ctx = PolicyContext(signal_mode="full", k_proposals=2)
     policy = MutatingNoProgressPolicy(tokens_per_call=100)
-    result = run_dvcr(
+    result = run_repair_loop(
         "static int x\n", ["clang"],
         v, policy, ctx, T=50, K=2,
         logical_path="/proj/stuck.c",

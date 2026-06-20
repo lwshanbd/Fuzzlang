@@ -1,5 +1,5 @@
 #!/bin/bash
-#PBS -N dvcr_sft
+#PBS -N fuzzlang_sft
 #PBS -A diomp
 #PBS -q prod
 #PBS -l select=1:system=polaris
@@ -27,7 +27,7 @@ cd "${PBS_O_WORKDIR:-/lus/eagle/projects/diomp/baodi/Fuzzlang}"
 mkdir -p logs
 
 # shellcheck source=/dev/null
-source scripts/activate_dvcr.sh
+source scripts/activate_diag.sh
 
 # Override via -v:
 CONFIG="${CONFIG:-configs/sft_default.yaml}"

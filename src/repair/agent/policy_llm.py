@@ -46,7 +46,7 @@ _EDIT_SCHEMA: dict[str, Any] = {
 _RESPONSE_FORMAT: dict[str, Any] = {
     "type": "json_schema",
     "json_schema": {
-        "name": "dvcr_edit",
+        "name": "diag_edit",
         "schema": _EDIT_SCHEMA,
         "strict": True,
     },

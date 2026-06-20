@@ -3,7 +3,7 @@
 Signal-mode-aware: observation redaction is enforced UPSTREAM of the policy
 by `build_observation` (see observation.py). Policies are passed only the
 redacted observation; they do not access `AgentState.diag` directly.
-This is load-bearing: without it, the DVCR−id / DVCR−structure ablations
+This is load-bearing: without it, the diagnostic repair−id / diagnostic repair−structure ablations
 could silently receive the stronger full signal.
 """
 from __future__ import annotations
