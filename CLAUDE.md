@@ -40,7 +40,7 @@ Development is **test-first** (TDD): write a failing test, watch it fail, then i
 
 Implemented + tested this cycle: `foundation` (catalog, record, matcher) and `coverage` (tracker, report, CLI). Reused production-grade-and-tested from the prior scaffold: `repair` (verifier/agent/loop/methods/eval), `real` (harvest + LLVM stage-2), the SFT/sweep scripts. `gen/` is not built yet.
 
-**Gating dependency — build the Fuzzlang-patched clang at 22.1.8.** Almost everything downstream (Gen validation, Real reproduction, Repair sweeps, the verifier emitting `DiagID`) needs it. `src/foundation/build_fuzzlang_clang.sh` still defaults to `llvmorg-19.1.7`; building at 22.1.8 means **rebasing `patches/0001-clang-emit-diag-id-on-stderr.patch` across 3 major versions** (expect conflicts), then `LLVM_VERSION=llvmorg-22.1.8 src/foundation/build_fuzzlang_clang.sh`. Building clang is CPU-bound (no GPU needed). Tests that require the patched binary skip until it exists.
+**Gating dependency — build the Fuzzlang-patched clang at 22.1.8.** Almost everything downstream (Gen validation, Real reproduction, Repair sweeps, the verifier emitting `DiagID`) needs it. `src/foundation/build_fuzzlang_clang.sh` now defaults to `llvmorg-22.1.8`, but `patches/0001-clang-emit-diag-id-on-stderr.patch` was derived on 19.1.7 and still needs **rebasing across 3 major versions** (expect conflicts) before the build succeeds — then just run `src/foundation/build_fuzzlang_clang.sh`. Building clang is CPU-bound (no GPU needed). Tests that require the patched binary skip until it exists.
 
 Compute note: SFT must be pinned to a single machine (the available clusters exchange data only over the internet); the build/SFT machine choice (GH200 vs MI250X vs Polaris) is still open.
 

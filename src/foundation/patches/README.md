@@ -10,7 +10,7 @@ One small modification to stock LLVM/Clang.
 
 ## Why no second patch?
 
-The original Fuzzlang paper (Section 3.1.2) mentions adding a `find-diagnostic-name` subcommand to `diagtool`. This turns out to be unnecessary in stock **LLVM ≥ 17**: the existing `find-diagnostic-id` already falls back to reverse-lookup when given an integer argument. See `clang/tools/diagtool/FindDiagnosticID.cpp` lines 22-28 + 62-67 in LLVM 19.1.7:
+The original Fuzzlang paper (Section 3.1.2) mentions adding a `find-diagnostic-name` subcommand to `diagtool`. This turns out to be unnecessary in stock **LLVM ≥ 17**: the existing `find-diagnostic-id` already falls back to reverse-lookup when given an integer argument. See `clang/tools/diagtool/FindDiagnosticID.cpp` lines 22-28 + 62-67 in LLVM 22.1.8:
 
 ```cpp
 // Name to id failed, so try id to name.
@@ -39,7 +39,7 @@ git apply --check scripts/patches/0001-clang-emit-diag-id-on-stderr.patch
 git apply scripts/patches/0001-clang-emit-diag-id-on-stderr.patch
 ```
 
-If `git apply --check` fails, the surrounding lines in `TextDiagnosticPrinter.cpp` have drifted from LLVM 19.1.7. Manual re-derivation takes two minutes: in `HandleDiagnostic(...)`, add
+If `git apply --check` fails, the surrounding lines in `TextDiagnosticPrinter.cpp` have drifted from LLVM 22.1.8. Manual re-derivation takes two minutes: in `HandleDiagnostic(...)`, add
 ```cpp
 OS << "DiagID: " << Info.getID() << "\n";
 ```

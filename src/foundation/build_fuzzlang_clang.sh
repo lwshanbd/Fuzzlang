@@ -13,7 +13,7 @@
 
 set -euo pipefail
 
-LLVM_VERSION="${LLVM_VERSION:-llvmorg-19.1.7}"
+LLVM_VERSION="${LLVM_VERSION:-llvmorg-22.1.8}"
 JOBS="${JOBS:-4}"                        # default safe for shared login nodes; bump to 16-32 off-Polaris
 PREFIX="${PREFIX:-$HOME/fuzzlang-clang}"
 BUILD_DIR="${BUILD_DIR:-$(pwd)/llvm-build}"

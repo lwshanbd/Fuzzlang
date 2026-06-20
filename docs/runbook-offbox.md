@@ -85,7 +85,7 @@ srun -p pine --account=app -N 1 -c 32 -t 2:00:00 \
 ```
 
 The script:
-- Clones `llvm-project` at tag `llvmorg-19.1.7` into `$SRC_DIR` if not already.
+- Clones `llvm-project` at tag `llvmorg-22.1.8` into `$SRC_DIR` if not already.
 - Applies `scripts/patches/0001-clang-emit-diag-id-on-stderr.patch`.
 - Configures with Ninja + Release + X86-only + clang-only (no other LLVM projects).
 - Builds `clang` + `diagtool`.
