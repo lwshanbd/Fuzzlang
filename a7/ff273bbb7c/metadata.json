@@ -1,0 +1,27 @@
+{
+  "cli_version": "0.7.7",
+  "checkpoint_id": "a7ff273bbb7c",
+  "strategy": "manual-commit",
+  "branch": "dev",
+  "checkpoints_count": 3,
+  "files_touched": [
+    "src/real/mine.py",
+    "src/real/run_mine.py",
+    "src/real/tests/test_mine.py"
+  ],
+  "sessions": [
+    {
+      "metadata": "/a7/ff273bbb7c/0/metadata.json",
+      "transcript": "/a7/ff273bbb7c/0/full.jsonl",
+      "content_hash": "/a7/ff273bbb7c/0/content_hash.txt",
+      "prompt": "/a7/ff273bbb7c/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 28936,
+    "cache_creation_tokens": 2095248,
+    "cache_read_tokens": 80110086,
+    "output_tokens": 437605,
+    "api_call_count": 220
+  }
+}

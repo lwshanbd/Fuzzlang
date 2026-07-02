@@ -1,0 +1,44 @@
+<task-notification>
+<task-id>afork-6db96e4bd7abd648</task-id>
+<output-file>/private/tmp/claude-501/-Users-baodi-Documents-GitHub-nosync-Fuzzlang/0c4a28cb-9710-4e0d-8e13-5caeb2d180d2/tasks/afork-6db96e4bd7abd648.output</output-file>
+<status>completed</status>
+<summary>Agent "你能不能用汉语给我总结一下，我们现在进行到哪一步了，以及下一步要干什么？我现在有点晕" finished</summary>
+<note>A task-notification fires each time this agent stops with no live background children of its own. The user can send it another message and resume it, so the same task-id may notify more than once.</note>
+<result>任务:用汉语总结当前进度和下一步。
+
+## 我们在建什么
+FuzzLang——编译器诊断驱动的框架,同时造"编译错误数据集"和训练模型修错。目标投 **CGO(2026年9月)**,头号卖点是**覆盖率**(覆盖 Clang 全部 **3891** 个错误诊断的百分比)。代码在 `src/` 下按五方向组织:foundation/coverage/gen/real/repair,工作分支 `dev`,LLVM 锁定 22.1.8。
+
+## ✅ 已完成
+- **仓库重构**:干净的 src 五方向布局,清掉了 experiments/scripts/p009/DVCR 这些看不懂的名字。
+- **Foundation**:诊断目录(分母=3891)、记录 schema(钉死"必须有正确版本"约束)、诊断匹配器——TDD,测试绿。
+- **打补丁 clang**(超算):建好了,verifier 能输出 `DiagID`。
+- **Coverage 引擎**:能算覆盖率 + 产 gap list。
+- **Gen 机械变异**:真跑过——832 条记录但只覆盖 **59/3891(1.5%)**,全是删标点的语法错(你觉得"用处不大"是对的:碰不到占 70% 的语义/Sema 错误)。
+- **Gen 引导生成引擎**(刚做完):用 Clang 回归测试当范例,让 LLM 把目标诊断注入到新正确代码里、产出正确/坏配对。代码+测试写好了(全套 120 绿),**但还没真跑**。
+
+## ⬜ 下一步(就一件事)
+**在超算上真跑引导生成**(已给你英文 prompt):用 clang/test 引导 LLM 造配对 → verifier 校验 → 算覆盖率。目的就是把覆盖率**从 1.5% 拉上去**,变成能上论文 headline 的数字。跑前需要一个 LLM 端点(OpenAI API 或本机 vLLM)。
+
+## 一句话
+&gt; 地基和覆盖率引擎都通了;机械变异证明闭环但只有 1.5%;**引导生成是真正的引擎,已建好,就差在超算上跑起来看能冲到多少**——那个数字就是最关键的进展。
+
+(本次为只读总结,未改动文件、无提交。)</result>
+<usage><subagent_tokens>605039</subagent_tokens><tool_uses>0</tool_uses><duration_ms>14393</duration_ms></usage>
+</task-notification>
+
+---
+
+那我的问题就是，你还记得我是在哪台机子上跑的实验吗？
+
+你还记得我跟你说过，或者有记录吗？我已经完全不记得了。因为我有很多机子的权限（你懂我意思吧），我实在想不起上次是在哪一个设备上跑的了。
+
+---
+
+我还有一个问题：我们从真实项目当中找错误（debugging）的那项工作，现在的进度如何了？我们有没有在做这项工作？
+
+---
+
+不是，我先更正一下哈，我跑的机器是 Tioga，在 Lawrence Livermore。不过不重要，我觉得我们能不能在本地，也就是你现在所在的这个设备 Mac Studio 上跑一下？
+
+我们可以 clone 一下这些 project，然后去爬过往的 commit、PR 或者 issue。我觉得这些东西其实没有必要上超算，你只需要记录一下是什么 project 的什么 commit 或者 PR 就可以了，不是吗？因为这样的话我们可以用 DeepSeek 的 API，超算里面是不允许用 DeepSeek 的
