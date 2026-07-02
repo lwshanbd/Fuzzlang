@@ -32,6 +32,22 @@ _SYSTEM = (
 
 _JSON_RE = re.compile(r"\{.*\}", re.DOTALL)
 
+# Cheap pre-filter: only spend an LLM call on text that actually shows a
+# compiler error signature (gcc/clang/msvc). Skips the ~half of "compile error"
+# search hits that are not really compile failures.
+_ERR_SIGNS = re.compile(
+    r"error:|error C\d{4}|undefined reference|no member named|has no member|"
+    r"undeclared identifier|was not declared|expected [`'\"]|cannot convert|"
+    r"incomplete type|redefinition of|conflicting (types|declaration)|"
+    r"no matching function|invalid conversion|ISO C\+\+",
+    re.IGNORECASE,
+)
+
+
+def looks_like_compile_error(text: str) -> bool:
+    """True if the text contains a recognizable compiler-error signature."""
+    return bool(_ERR_SIGNS.search(text or ""))
+
 
 def build_extract_prompt(text: str) -> list[dict]:
     return [

@@ -59,3 +59,16 @@ def test_extract_keeps_real_error_even_if_matcher_finds_no_name():
     rec = extract_from_text("x", _chat(reply), matcher=_MATCHER, project="p", ref="r", url="u")
     assert rec is not None
     assert rec.primary_diagnostic.diag_name is None   # unnamed, but still real Column-B data
+
+
+def test_prefilter_detects_compiler_error_text():
+    from real.mine import looks_like_compile_error
+    assert looks_like_compile_error("build log: error: use of undeclared identifier 'x'")
+    assert looks_like_compile_error("undefined reference to `foo`")
+    assert looks_like_compile_error("'class C' has no member named 'm'")
+
+
+def test_prefilter_rejects_non_compile_text():
+    from real.mine import looks_like_compile_error
+    assert not looks_like_compile_error("Fix a race condition in the scheduler; add a test.")
+    assert not looks_like_compile_error("")
