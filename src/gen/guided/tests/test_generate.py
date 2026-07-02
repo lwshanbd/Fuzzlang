@@ -2,7 +2,7 @@
 from foundation.record import Origin
 from foundation.types import DiagInfo, VerifierResult
 from foundation.verifier.mock import MockVerifier, ok_result
-from gen.guided.generate import generate_pair, parse_pair
+from gen.guided.generate import generate_pair, generate_pairs, parse_pair
 
 GOOD_REPLY = """Sure.
 CORRECT:
@@ -89,3 +89,66 @@ def test_default_keeps_actual_diagnostic_when_not_target():
     assert rec is not None
     assert rec.primary_diagnostic.diag_name == "err_something_else"
     assert rec.provenance.detail["matched_target"] is False
+
+
+# ---- generate_pairs: multiple samples per diagnostic ------------------------
+
+def _reply(correct, broken):
+    return f"CORRECT:\n```cpp\n{correct}\n```\nBROKEN:\n```cpp\n{broken}\n```"
+
+
+def _brk_policy(diag):
+    """Sources containing the /*BRK*/ marker error with `diag`; others compile."""
+    def policy(source, cmd, logical_path):
+        if "/*BRK*/" in source:
+            return VerifierResult(ok=False, diag=diag, raw_stderr="error")
+        return ok_result()
+    return policy
+
+
+def _seq_chat(replies):
+    it = iter(replies)
+    return lambda messages: next(it)
+
+
+def test_generate_pairs_produces_multiple_distinct_records():
+    diag = _diag()
+    replies = [_reply("int main(){return 0;}", f"int a=0 /*BRK*/{k};") for k in range(3)]
+    recs = generate_pairs("err_expected_semi_after_expr", "m", ["ex"],
+                          _seq_chat(replies), MockVerifier(_brk_policy(diag)),
+                          source="ex:t", samples=3)
+    assert len(recs) == 3
+    assert len({r.erroneous_src for r in recs}) == 3
+    assert all(r.provenance.origin is Origin.GUIDED for r in recs)
+
+
+def test_generate_pairs_dedups_identical_broken():
+    diag = _diag()
+    same = _reply("int main(){return 0;}", "int a=0 /*BRK*/;")
+    recs = generate_pairs("err_x", "m", ["ex"], _chat(same),
+                          MockVerifier(_brk_policy(diag)), source="s", samples=3)
+    assert len(recs) == 1
+
+
+def test_generate_pairs_samples_one_matches_single():
+    diag = _diag()
+    recs = generate_pairs("err_x", "m", ["ex"],
+                          _chat(_reply("int main(){return 0;}", "int a=0 /*BRK*/;")),
+                          MockVerifier(_brk_policy(diag)), source="s", samples=1)
+    assert len(recs) == 1
+
+
+def test_generate_pairs_cycles_through_examples():
+    diag = _diag()
+    seen = []
+
+    def chat(messages):
+        content = messages[-1]["content"]
+        mark = "EXA" if "EXA" in content else "EXB"
+        seen.append(mark)
+        return _reply("int main(){return 0;}", f"int x=0 /*BRK*/{mark};")
+
+    recs = generate_pairs("err_x", "m", ["EXA", "EXB"], chat,
+                          MockVerifier(_brk_policy(diag)), source="s", samples=2)
+    assert set(seen) == {"EXA", "EXB"}   # both mined examples were used
+    assert len(recs) == 2

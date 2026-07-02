@@ -23,7 +23,7 @@ from pathlib import Path
 from foundation.diagnostics.catalog import load_catalog
 from foundation.verifier.fuzzlang import FuzzlangClangVerifier
 from gen.guided.examples import mine_examples
-from gen.guided.generate import generate_pair
+from gen.guided.generate import generate_pairs
 
 _EXTS = (".c", ".cpp", ".cc", ".cxx", ".m", ".mm")
 
@@ -69,7 +69,10 @@ def main() -> None:
     ap.add_argument("--gaps", type=Path, default=None,
                     help="optional gap-list JSONL; restrict targets to these diagnostics")
     ap.add_argument("--language", default="c++")
-    ap.add_argument("--max-per-diag", type=int, default=3)
+    ap.add_argument("--max-per-diag", type=int, default=3,
+                    help="cap on mined examples kept per diagnostic")
+    ap.add_argument("--samples-per-diag", type=int, default=1,
+                    help="LLM attempts per target diagnostic (raises multiplicity)")
     ap.add_argument("--limit-tests", type=int, default=None)
     ap.add_argument("--limit-diags", type=int, default=None)
     ap.add_argument("--max-tokens", type=int, default=1024)
@@ -102,12 +105,12 @@ def main() -> None:
     chat = _build_chat(args.base_url, args.model, args.max_tokens, args.temperature)
     records = []
     for diag in targets:
-        rec = generate_pair(diag, msg_of.get(diag, ""), index[diag][0], chat, verifier,
-                            source=f"guided:{diag}", language=args.language,
-                            target_required=args.target_required)
-        if rec is not None:
-            records.append(rec)
-        print(f"  [{diag}] {'ok' if rec else 'miss'}")
+        recs = generate_pairs(diag, msg_of.get(diag, ""), index[diag], chat, verifier,
+                              source=f"guided:{diag}", language=args.language,
+                              target_required=args.target_required,
+                              samples=args.samples_per_diag)
+        records.extend(recs)
+        print(f"  [{diag}] {len(recs)}")
 
     args.out.parent.mkdir(parents=True, exist_ok=True)
     with args.out.open("w", encoding="utf-8") as f:

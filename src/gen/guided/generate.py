@@ -10,7 +10,7 @@ from __future__ import annotations
 
 import hashlib
 import re
-from typing import Callable, Optional
+from typing import Callable, Optional, Sequence
 
 from foundation.record import Origin, Provenance, Record, Split
 from foundation.verifier.base import BaseVerifier
@@ -87,3 +87,41 @@ def generate_pair(
         split=split,
         language=language,
     )
+
+
+def generate_pairs(
+    diag_name: str,
+    msg_template: str,
+    examples: Sequence[str],
+    chat: ChatFn,
+    verifier: BaseVerifier,
+    *,
+    source: str,
+    language: str = "c++",
+    split: Split = Split.TRAIN,
+    compile_cmd: Optional[list[str]] = None,
+    logical_path: Optional[str] = None,
+    target_required: bool = False,
+    samples: int = 1,
+) -> list[Record]:
+    """Make up to `samples` distinct verified pairs for one diagnostic.
+
+    Each attempt cycles through `examples` (temperature diversity in `chat`
+    supplies the variety) and calls :func:`generate_pair`. Records with an
+    erroneous source already produced for this diagnostic are dropped, so the
+    result raises multiplicity without emitting duplicate broken programs.
+    """
+    out: list[Record] = []
+    seen: set[str] = set()
+    for k in range(max(1, samples)):
+        example = examples[k % len(examples)] if examples else ""
+        rec = generate_pair(
+            diag_name, msg_template, example, chat, verifier,
+            source=source, language=language, split=split,
+            compile_cmd=compile_cmd, logical_path=logical_path,
+            target_required=target_required,
+        )
+        if rec is not None and rec.erroneous_src not in seen:
+            seen.add(rec.erroneous_src)
+            out.append(rec)
+    return out
