@@ -42,3 +42,27 @@ FuzzLang——编译器诊断驱动的框架,同时造"编译错误数据集"和
 不是，我先更正一下哈，我跑的机器是 Tioga，在 Lawrence Livermore。不过不重要，我觉得我们能不能在本地，也就是你现在所在的这个设备 Mac Studio 上跑一下？
 
 我们可以 clone 一下这些 project，然后去爬过往的 commit、PR 或者 issue。我觉得这些东西其实没有必要上超算，你只需要记录一下是什么 project 的什么 commit 或者 PR 就可以了，不是吗？因为这样的话我们可以用 DeepSeek 的 API，超算里面是不允许用 DeepSeek 的
+
+---
+
+这样吧，我们先不用 DeepSeek，先用 OpenAI 好吧？OpenAI 的 key 我先给你一下。它在~/.envs，里面是OPENAI_KEY
+
+---
+
+1
+
+---
+
+我其实还有一个问题，就是你说的这个数量是不是有点太少了？
+
+为什么会只有 15 个，加起来不才 45 个吗？难道你不应该跑成百上千个吗？是我的理解有问题吗？
+
+---
+
+<task-notification>
+<task-id>bid2uhz0e</task-id>
+<tool-use-id>REDACTED</tool-use-id>
+<output-file>/private/tmp/claude-501/-Users-baodi-Documents-GitHub-nosync-Fuzzlang/0c4a28cb-9710-4e0d-8e13-5caeb2d180d2/tasks/bid2uhz0e.output</output-file>
+<status>completed</status>
+<summary>Background command "Background batch: mine 3 repos via OpenAI" completed (exit code 0)</summary>
+</task-notification>
