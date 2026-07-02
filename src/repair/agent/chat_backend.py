@@ -50,6 +50,39 @@ class MockChatBackend:
         return self._queue.pop(0)
 
 
+_REASONING_PREFIXES = ("gpt-5", "o1", "o3", "o4")
+
+
+def build_chat_kwargs(
+    model: str,
+    messages: list[dict[str, str]],
+    *,
+    temperature: float,
+    max_tokens: int,
+    n: int = 1,
+    response_format: Optional[dict[str, Any]] = None,
+) -> dict[str, Any]:
+    """Assemble chat.completions kwargs, picking the right token-limit param.
+
+    OpenAI reasoning models (gpt-5.x, o-series) reject `max_tokens` and require
+    `max_completion_tokens`; vLLM and other OpenAI-compatible servers use the
+    classic `max_tokens`. Select by model name.
+    """
+    kwargs: dict[str, Any] = {
+        "model": model,
+        "messages": messages,
+        "temperature": temperature,
+        "n": n,
+    }
+    if model.lower().startswith(_REASONING_PREFIXES):
+        kwargs["max_completion_tokens"] = max_tokens
+    else:
+        kwargs["max_tokens"] = max_tokens
+    if response_format is not None:
+        kwargs["response_format"] = response_format
+    return kwargs
+
+
 class OpenAIChatBackend:
     """Real backend. Lazy-imports `openai` so unit tests need not install it."""
 
@@ -76,15 +109,10 @@ class OpenAIChatBackend:
 
     def chat(self, *, messages, temperature, max_tokens, n=1, response_format=None):
         client = self._ensure_client()
-        kwargs: dict[str, Any] = {
-            "model": self.model_name,
-            "messages": messages,
-            "temperature": temperature,
-            "max_tokens": max_tokens,
-            "n": n,
-        }
-        if response_format is not None:
-            kwargs["response_format"] = response_format
+        kwargs = build_chat_kwargs(
+            self.model_name, messages, temperature=temperature,
+            max_tokens=max_tokens, n=n, response_format=response_format,
+        )
         resp = client.chat.completions.create(**kwargs)
         out: list[ChatResponse] = []
         # vLLM reports usage at the response level (sum over all choices);
