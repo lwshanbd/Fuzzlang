@@ -136,7 +136,7 @@ def main() -> None:
     with args.out.open("w", encoding="utf-8") as f:
         for r in records:
             f.write(json.dumps(r.to_dict()) + "\n")
-    print(f"[run_mine] wrote {len(records)}/{len(prs)} records -> {args.out}")
+    print(f"[run_mine] wrote {len(records)}/{len(candidates)} records -> {args.out}")
 
 
 if __name__ == "__main__":
