@@ -49,14 +49,28 @@ def fetch_pr_text(repo: str, number: int) -> str:
 
 
 def _build_chat(base_url: str, model: str, max_tokens: int, temperature: float):
-    from repair.agent.chat_backend import OpenAIChatBackend
-    backend = OpenAIChatBackend(model, base_url=base_url,
-                                api_key=os.environ.get("OPENAI_API_KEY", "EMPTY"))
+    """A minimal OpenAI-compatible chat client using only the stdlib (no openai pkg).
+
+    Reads the API key from DEEPSEEK_API_KEY or OPENAI_API_KEY. Works against
+    DeepSeek (https://api.deepseek.com) or any OpenAI-compatible endpoint.
+    """
+    import urllib.request
+
+    api_key = os.environ.get("DEEPSEEK_API_KEY") or os.environ.get("OPENAI_API_KEY", "EMPTY")
+    url = base_url.rstrip("/") + "/chat/completions"
 
     def chat(messages):
-        resp = backend.chat(messages=messages, temperature=temperature,
-                            max_tokens=max_tokens, n=1)
-        return resp[0].text if resp else ""
+        body = json.dumps({
+            "model": model, "messages": messages,
+            "temperature": temperature, "max_tokens": max_tokens,
+        }).encode()
+        req = urllib.request.Request(
+            url, data=body,
+            headers={"Content-Type": "application/json",
+                     "Authorization": f"Bearer {api_key}"})
+        with urllib.request.urlopen(req, timeout=180) as resp:
+            data = json.loads(resp.read())
+        return data["choices"][0]["message"]["content"]
 
     return chat
 
