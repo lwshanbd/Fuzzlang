@@ -35,6 +35,13 @@ def _record_id(source: str, diag_name: str, broken: str) -> str:
     return f"guided-{h[:12]}"
 
 
+def _lang_of_cmd(cmd: list[str]) -> Optional[str]:
+    for i, tok in enumerate(cmd):
+        if tok == "-x" and i + 1 < len(cmd):
+            return cmd[i + 1]
+    return None
+
+
 def generate_pair(
     diag_name: str,
     msg_template: str,
@@ -46,47 +53,56 @@ def generate_pair(
     language: str = "c++",
     split: Split = Split.TRAIN,
     compile_cmd: Optional[list[str]] = None,
+    compile_cmds: Optional[list[list[str]]] = None,
     logical_path: Optional[str] = None,
     target_required: bool = False,
 ) -> Optional[Record]:
     """Ask the LLM for a correct/broken pair for `diag_name`; verify; return a Record.
 
-    Returns None if the reply is unparseable, the correct version does not
-    compile, the broken version does not trigger an error, or (when
-    `target_required`) the broken version triggers a different diagnostic.
+    Verification tries each config in `compile_cmds` (defaults to a single
+    `compile_cmd`/language) and keeps the pair under the first config where the
+    correct version compiles and the broken version triggers an error — so a
+    C/Objective-C diagnostic is verified under the right language. The record's
+    `language` is taken from the winning config.
+
+    Returns None if the reply is unparseable, or no config yields a
+    correct-compiles + broken-errors pair (respecting `target_required`).
     """
     pair = parse_pair(chat(build_pair_prompt(diag_name, msg_template, example, language)))
     if pair is None:
         return None
     correct_src, broken_src = pair
 
-    cmd = compile_cmd if compile_cmd is not None else default_compile_cmd(language)
+    cmds = compile_cmds if compile_cmds is not None else [
+        compile_cmd if compile_cmd is not None else default_compile_cmd(language)
+    ]
     lpath = logical_path if logical_path is not None else source
 
-    if not verifier.verify(correct_src, cmd, logical_path=lpath).ok:
-        return None
-    result = verifier.verify(broken_src, cmd, logical_path=lpath)
-    if result.ok or result.diag is None:
-        return None
-    if target_required and result.diag.diag_name != diag_name:
-        return None
-
-    return Record(
-        record_id=_record_id(source, result.diag.diag_name or diag_name, broken_src),
-        erroneous_src=broken_src,
-        corrected_src=correct_src,
-        diagnostics=(result.diag,),
-        provenance=Provenance(
-            origin=Origin.GUIDED,
-            source=source,
-            detail={
-                "target_diag": diag_name,
-                "matched_target": result.diag.diag_name == diag_name,
-            },
-        ),
-        split=split,
-        language=language,
-    )
+    for cmd in cmds:
+        if not verifier.verify(correct_src, cmd, logical_path=lpath).ok:
+            continue
+        result = verifier.verify(broken_src, cmd, logical_path=lpath)
+        if result.ok or result.diag is None:
+            continue
+        if target_required and result.diag.diag_name != diag_name:
+            continue
+        return Record(
+            record_id=_record_id(source, result.diag.diag_name or diag_name, broken_src),
+            erroneous_src=broken_src,
+            corrected_src=correct_src,
+            diagnostics=(result.diag,),
+            provenance=Provenance(
+                origin=Origin.GUIDED,
+                source=source,
+                detail={
+                    "target_diag": diag_name,
+                    "matched_target": result.diag.diag_name == diag_name,
+                },
+            ),
+            split=split,
+            language=_lang_of_cmd(cmd) or language,
+        )
+    return None
 
 
 def generate_pairs(
@@ -100,6 +116,7 @@ def generate_pairs(
     language: str = "c++",
     split: Split = Split.TRAIN,
     compile_cmd: Optional[list[str]] = None,
+    compile_cmds: Optional[list[list[str]]] = None,
     logical_path: Optional[str] = None,
     target_required: bool = False,
     samples: int = 1,
@@ -118,8 +135,8 @@ def generate_pairs(
         rec = generate_pair(
             diag_name, msg_template, example, chat, verifier,
             source=source, language=language, split=split,
-            compile_cmd=compile_cmd, logical_path=logical_path,
-            target_required=target_required,
+            compile_cmd=compile_cmd, compile_cmds=compile_cmds,
+            logical_path=logical_path, target_required=target_required,
         )
         if rec is not None and rec.erroneous_src not in seen:
             seen.add(rec.erroneous_src)

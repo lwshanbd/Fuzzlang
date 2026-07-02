@@ -1,7 +1,8 @@
 """Tests for mining example snippets per diagnostic from a corpus."""
 from foundation.types import DiagInfo, VerifierResult
+from foundation.verifier.base import PLACEHOLDER
 from foundation.verifier.mock import MockVerifier, ok_result
-from gen.guided.examples import mine_examples
+from gen.guided.examples import mine_examples, sweep_configs
 
 
 def _err(name):
@@ -42,3 +43,44 @@ def test_max_per_diag_caps_examples():
     idx = mine_examples([("x1", "a"), ("x2", "b"), ("x3", "c")],
                         MockVerifier(lambda s, c, l: _err("err_x")), max_per_diag=2)
     assert idx == {"err_x": ["x1", "x2"]}
+
+
+# ---- multi-config sweep (breadth) -------------------------------------------
+
+def _cfg_policy(s, cmd, l):
+    """Different configs trigger different diagnostics for the same source."""
+    flat = " ".join(cmd)
+    if "c89" in flat:
+        return _err("err_c89_only")
+    if "c++2b" in flat:
+        return _err("err_cxx2b_only")
+    return ok_result()
+
+
+def test_sweep_unions_diagnostics_across_configs():
+    cfgs = [["clang", "-std=c89", PLACEHOLDER], ["clang", "-std=c++2b", PLACEHOLDER]]
+    idx = mine_examples([("S", "s1")], MockVerifier(_cfg_policy), compile_cmds=cfgs)
+    assert idx == {"err_c89_only": ["S"], "err_cxx2b_only": ["S"]}
+
+
+def test_sweep_same_diag_across_configs_kept_once():
+    cfgs = [["a", PLACEHOLDER], ["b", PLACEHOLDER]]
+    idx = mine_examples([("S", "s1")], MockVerifier(lambda s, c, l: _err("err_x")),
+                        compile_cmds=cfgs)
+    assert idx == {"err_x": ["S"]}
+
+
+def test_parallel_workers_match_sequential():
+    def policy(s, c, l):
+        return ok_result() if s == "clean" else _err("err_" + s)
+    src = [(f"S{i}", f"id{i}") for i in range(25)] + [("clean", "idc")]
+    seq = mine_examples(src, MockVerifier(policy))
+    par = mine_examples(src, MockVerifier(policy), workers=4)
+    assert seq == par
+
+
+def test_sweep_configs_cover_c_cxx_objc_and_use_placeholders():
+    cfgs = sweep_configs()
+    flat = " ".join(t for cfg in cfgs for t in cfg)
+    assert "c++" in flat and "objective-c" in flat and "-std=c" in flat
+    assert all(cfg[0] == "__CLANG__" and cfg[-1] == PLACEHOLDER for cfg in cfgs)

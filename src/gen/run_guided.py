@@ -22,10 +22,24 @@ from pathlib import Path
 
 from foundation.diagnostics.catalog import load_catalog
 from foundation.verifier.fuzzlang import FuzzlangClangVerifier
-from gen.guided.examples import mine_examples
+from gen.guided.examples import mine_examples, sweep_configs
 from gen.guided.generate import generate_pairs
 
 _EXTS = (".c", ".cpp", ".cc", ".cxx", ".m", ".mm")
+
+
+def _guess_language(snippet: str) -> str:
+    """Cheap language hint for the LLM prompt, from an example snippet.
+
+    Verification still tries every sweep config, so this only nudges the model
+    toward the right language; it does not gate acceptance.
+    """
+    s = snippet
+    if any(t in s for t in ("@interface", "@implementation", "@import", "#import")):
+        return "objective-c++" if any(t in s for t in ("::", "template", "class ")) else "objective-c"
+    if any(t in s for t in ("template", "namespace ", "::", "std::", "public:", "class ")):
+        return "c++"
+    return "c"
 
 
 def _read_tests(tests_dir: str, limit: int | None) -> list[tuple[str, str]]:
@@ -68,7 +82,10 @@ def main() -> None:
     ap.add_argument("--base-url", default="http://localhost:8000/v1")
     ap.add_argument("--gaps", type=Path, default=None,
                     help="optional gap-list JSONL; restrict targets to these diagnostics")
-    ap.add_argument("--language", default="c++")
+    ap.add_argument("--language", default="c++",
+                    help="fallback prompt language (per-diagnostic is auto-guessed)")
+    ap.add_argument("--workers", type=int, default=16,
+                    help="threads for the multi-config mining sweep")
     ap.add_argument("--max-per-diag", type=int, default=3,
                     help="cap on mined examples kept per diagnostic")
     ap.add_argument("--samples-per-diag", type=int, default=1,
@@ -87,11 +104,13 @@ def main() -> None:
     verifier = FuzzlangClangVerifier(args.clang, args.diagtool, timeout_s=15.0)
     msg_of = {e.name: e.message for e in load_catalog().errors()}
 
-    print(f"[run_guided] mining examples from {args.tests} ...")
+    configs = sweep_configs()
     tests = _read_tests(args.tests, args.limit_tests)
-    index = mine_examples(tests, verifier, language=args.language,
-                          max_per_diag=args.max_per_diag)
-    print(f"[run_guided] examples for {len(index)} diagnostics from {len(tests)} test files")
+    print(f"[run_guided] mining {len(tests)} test files x {len(configs)} configs "
+          f"({args.workers} workers) ...")
+    index = mine_examples(tests, verifier, compile_cmds=configs,
+                          max_per_diag=args.max_per_diag, workers=args.workers)
+    print(f"[run_guided] examples for {len(index)} distinct diagnostics")
 
     targets = list(index)
     if args.gaps:
@@ -105,8 +124,10 @@ def main() -> None:
     chat = _build_chat(args.base_url, args.model, args.max_tokens, args.temperature)
     records = []
     for diag in targets:
+        lang = _guess_language(index[diag][0]) if index[diag] else args.language
         recs = generate_pairs(diag, msg_of.get(diag, ""), index[diag], chat, verifier,
-                              source=f"guided:{diag}", language=args.language,
+                              source=f"guided:{diag}", language=lang,
+                              compile_cmds=configs,
                               target_required=args.target_required,
                               samples=args.samples_per_diag)
         records.extend(recs)

@@ -138,6 +138,29 @@ def test_generate_pairs_samples_one_matches_single():
     assert len(recs) == 1
 
 
+def test_generate_pair_multi_config_picks_working_language():
+    """With several configs, keep the pair under the one where correct compiles
+    and broken errors; record that config's language."""
+    diag = _diag()
+
+    def policy(source, cmd, l):
+        flat = " ".join(cmd)
+        if "c++" in flat:
+            return (VerifierResult(ok=False, diag=diag, raw_stderr="e")
+                    if "/*BRK*/" in source else ok_result())
+        # the C config: even the correct version fails to compile here
+        return VerifierResult(ok=False, diag=_diag("err_c_noise"), raw_stderr="e")
+
+    cfgs = [["clang", "-x", "c", "__SRC__"], ["clang", "-x", "c++", "__SRC__"]]
+    recs = generate_pairs(
+        "err_expected_semi_after_expr", "m", ["ex"],
+        _chat(_reply("int main(){return 0;}", "int a=0 /*BRK*/;")),
+        MockVerifier(policy), source="s", compile_cmds=cfgs, samples=1)
+    assert len(recs) == 1
+    assert recs[0].language == "c++"
+    assert recs[0].primary_diagnostic.diag_name == "err_expected_semi_after_expr"
+
+
 def test_generate_pairs_cycles_through_examples():
     diag = _diag()
     seen = []
