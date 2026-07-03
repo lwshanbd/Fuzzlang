@@ -104,7 +104,8 @@ def test_mine_tracks_the_config_that_triggered_each_diagnostic():
 def test_feature_configs_cover_major_feature_flags_and_use_placeholders():
     cfgs = feature_configs("/RES")
     flat = " ".join(t for cfg in cfgs for t in cfg)
-    for needed in ("-fopenmp", "-fobjc-arc", "hlsl", "-fblocks", "-fmodules",
+    for needed in ("-fopenmp", "-fopenacc", "-fobjc-arc", "hlsl", "-fblocks",
+                   "-fmodules", "-fms-extensions", "-fsycl-is-device",
                    "-target-feature"):
         assert needed in flat, needed
     assert all(cfg[0] == "__CLANG__" and cfg[-1] == PLACEHOLDER for cfg in cfgs)

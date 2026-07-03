@@ -14,6 +14,12 @@ _SYSTEM = (
 
 _FEATURE_HINTS = [
     (("omp",), "This is an OpenMP diagnostic — use OpenMP directives (#pragma omp)."),
+    (("acc_", "openacc"), "This is an OpenACC diagnostic — use #pragma acc directives."),
+    (("sycl",), "This is a SYCL diagnostic — write SYCL device code."),
+    (("cuda", "hip", "__global__"),
+     "This is a CUDA/HIP diagnostic — use __global__/__device__ kernels."),
+    (("declspec", "dllimport", "dllexport", "uuidof", "ms_"),
+     "This is an MSVC-extension diagnostic — use __declspec/__uuidof/etc."),
     (("arc",), "This is an Objective-C ARC diagnostic — write Objective-C under ARC."),
     (("objc",), "This is an Objective-C diagnostic — write Objective-C."),
     (("hlsl",), "This is an HLSL diagnostic — write HLSL shader code."),

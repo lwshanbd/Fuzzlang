@@ -62,18 +62,28 @@ def feature_configs(resource_dir: str) -> list[list[str]]:
     return [
         drv("-fopenmp", "-x", "c++", "-std=c++17"),
         drv("-fopenmp", "-x", "c"),
+        drv("-fopenacc", "-x", "c++"),
+        drv("-fopenacc", "-x", "c"),
         drv("-fobjc-arc", "-x", "objective-c"),
         drv("-fobjc-arc", "-x", "objective-c++"),
+        drv("-x", "objective-c"),              # ObjC without ARC
         drv("-fblocks", "-x", "c"),
         drv("-fmodules", "-fcxx-modules", "-x", "c++", "-std=c++20"),
         drv("-ffixed-point", "-x", "c"),
         drv("-fenable-matrix", "-x", "c++", "-std=c++17"),
-        drv("-x", "cl"),                      # OpenCL
+        drv("-fenable-matrix", "-x", "c"),
+        drv("-fms-extensions", "-fms-compatibility", "-fdeclspec",
+            "-fdelayed-template-parsing", "-x", "c++"),
+        drv("-fsycl-is-device", "-x", "c++", "-std=c++17"),
+        drv("-x", "c++", "-std=c++2c"),        # newest standard (new consteval/etc.)
+        drv("-x", "cl"),                       # OpenCL
         drv("-x", "cuda", "--cuda-host-only"),
         cc1("-triple", "dxil-pc-shadermodel6.3-library", "-x", "hlsl"),
+        cc1("-triple", "dxil-pc-shadermodel6.6-compute", "-x", "hlsl"),
         cc1("-triple", "aarch64", "-target-feature", "+sve", "-target-feature",
             "+sme", "-target-feature", "+neon", "-x", "c"),
         cc1("-triple", "riscv64", "-target-feature", "+v", "-x", "c"),
+        cc1("-triple", "x86_64", "-target-feature", "+avx512f", "-x", "c"),
     ]
 
 
