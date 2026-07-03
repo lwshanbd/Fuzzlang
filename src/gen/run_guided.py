@@ -94,6 +94,9 @@ def main() -> None:
                     help="threads for generation (LLM + verify are I/O-bound)")
     ap.add_argument("--no-runline", action="store_true",
                     help="disable mining each file's own %%clang_cc1 RUN-line flags")
+    ap.add_argument("--skip-mining", action="store_true",
+                    help="skip mining entirely (requires --catalog-targets): generate "
+                         "from catalog name+message with no mined examples/configs")
     ap.add_argument("--max-cc1-per-file", type=int, default=4,
                     help="cap on RUN-line cc1 configs mined per test file")
     ap.add_argument("--max-per-diag", type=int, default=3,
@@ -122,26 +125,32 @@ def main() -> None:
     msg_of = {e.name: e.message for e in load_catalog().errors()}
 
     configs = sweep_configs()
-    tests = _read_tests(args.tests, args.limit_tests)
 
-    per_source_cmds = None
-    if not args.no_runline:
-        resource_dir = subprocess.run(
-            [args.clang, "-print-resource-dir"], capture_output=True, text=True
-        ).stdout.strip()
-        cap = args.max_cc1_per_file
+    if args.skip_mining:
+        if not args.catalog_targets:
+            ap.error("--skip-mining requires --catalog-targets (no mined targets otherwise)")
+        index, diag_configs = {}, {}
+        print("[run_guided] skipping mining (catalog targets, name+message only)")
+    else:
+        tests = _read_tests(args.tests, args.limit_tests)
+        per_source_cmds = None
+        if not args.no_runline:
+            resource_dir = subprocess.run(
+                [args.clang, "-print-resource-dir"], capture_output=True, text=True
+            ).stdout.strip()
+            cap = args.max_cc1_per_file
 
-        def per_source_cmds(snippet, _sid):
-            return parse_cc1_configs(snippet, resource_dir=resource_dir)[:cap]
+            def per_source_cmds(snippet, _sid):
+                return parse_cc1_configs(snippet, resource_dir=resource_dir)[:cap]
 
-    print(f"[run_guided] mining {len(tests)} test files x {len(configs)} sweep configs"
-          f"{'' if args.no_runline else ' + per-file RUN-line cc1 flags'} "
-          f"({args.workers} workers) ...")
-    index, diag_configs = mine(tests, verifier, compile_cmds=configs,
-                               per_source_cmds=per_source_cmds,
-                               max_per_diag=args.max_per_diag,
-                               max_configs_per_diag=3, workers=args.workers)
-    print(f"[run_guided] examples for {len(index)} distinct diagnostics")
+        print(f"[run_guided] mining {len(tests)} test files x {len(configs)} sweep configs"
+              f"{'' if args.no_runline else ' + per-file RUN-line cc1 flags'} "
+              f"({args.workers} workers) ...")
+        index, diag_configs = mine(tests, verifier, compile_cmds=configs,
+                                   per_source_cmds=per_source_cmds,
+                                   max_per_diag=args.max_per_diag,
+                                   max_configs_per_diag=3, workers=args.workers)
+        print(f"[run_guided] examples for {len(index)} distinct diagnostics")
 
     # Targets: the mined diagnostics, or (catalog mode) every error diagnostic in
     # the catalog — including the ~2700 we never mined a snippet for, generated
