@@ -13,7 +13,7 @@ import json
 from pathlib import Path
 
 from coverage.report import format_report
-from coverage.tracker import build_report
+from coverage.tracker import INVOCATION_COMPONENTS, build_report
 from foundation.diagnostics.catalog import load_catalog
 from foundation.record import Record
 
@@ -35,12 +35,20 @@ def main() -> None:
                     help="multiplicity target: examples per diagnostic to count as covered")
     ap.add_argument("--gap-out", type=Path, default=None,
                     help="optional JSONL output of the gap list (diagnostics below target)")
+    ap.add_argument("--code-only", action="store_true",
+                    help="exclude invocation/environment diagnostics (Driver, Frontend, "
+                         "Serialization, InstallAPI, CrossTU, Refactoring) that can't be "
+                         "single-file broken/corrected code pairs")
     args = ap.parse_args()
 
     catalog = load_catalog()
     records = _load_records(args.records)
-    report = build_report(records, catalog, multiplicity_target=args.target)
+    exclude = INVOCATION_COMPONENTS if args.code_only else None
+    report = build_report(records, catalog, multiplicity_target=args.target,
+                          exclude_components=exclude)
 
+    if args.code_only:
+        print(f"[coverage] code-only: excluding {', '.join(sorted(INVOCATION_COMPONENTS))}")
     print(format_report(report))
 
     if args.gap_out:

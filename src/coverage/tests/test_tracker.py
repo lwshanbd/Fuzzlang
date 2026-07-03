@@ -73,3 +73,22 @@ def test_none_diag_name_does_not_crash():
                  split=Split.TRAIN)
     r = build_report([rec], _catalog(), multiplicity_target=2)
     assert r.covered == 0
+
+
+def _catalog_with_invocation():
+    e = lambda n, c: DiagEntry(name=n, severity="Error", message="", component=c)
+    return Catalog([
+        e("err_a", "Sema"), e("err_c", "Parse"),
+        e("err_drv_x", "Driver"), e("err_fe_y", "Frontend"),
+    ])
+
+
+def test_exclude_components_filters_denominator():
+    from coverage.tracker import build_report as br
+    recs = [_rec("err_a", "1"), _rec("err_drv_x", "2")]
+    r = br(recs, _catalog_with_invocation(),
+           multiplicity_target=1, exclude_components=("Driver", "Frontend"))
+    assert r.total == 2                       # only Sema + Parse remain
+    assert "err_drv_x" not in r.counts        # excluded diagnostic not counted
+    assert r.counts == {"err_a": 1}
+    assert set(r.by_component()) == {"Sema", "Parse"}

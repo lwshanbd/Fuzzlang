@@ -14,6 +14,14 @@ from typing import Iterable, Optional
 from foundation.diagnostics.catalog import Catalog
 from foundation.record import Record
 
+# Components whose diagnostics are invocation/environment errors, not
+# single-file *code* errors: the source is correct and only the command line /
+# build setup is wrong, so they can't form a broken-code/corrected-code pair.
+# `--code-only` coverage excludes them so the denominator matches the dataset.
+INVOCATION_COMPONENTS = frozenset(
+    {"Driver", "Frontend", "Serialization", "InstallAPI", "CrossTU", "Refactoring"}
+)
+
 
 @dataclass
 class CoverageReport:
@@ -67,8 +75,10 @@ def build_report(
     records: Iterable[Record],
     catalog: Catalog,
     multiplicity_target: int = 3,
+    exclude_components: Optional[Iterable[str]] = None,
 ) -> CoverageReport:
-    errors = catalog.errors()
+    excluded = frozenset(exclude_components or ())
+    errors = [e for e in catalog.errors() if e.component not in excluded]
     denominator = frozenset(e.name for e in errors)
     component_of = {e.name: e.component for e in errors}
 
