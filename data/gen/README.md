@@ -14,7 +14,7 @@ compiles clean, broken version triggers a real error diagnostic):
 | + catalog-driven (no example needed) | 10542 | 1742 | 1742/3891 (44.8%) |
 | + feature/target-config verify (1 pass) | 12473 | 1921 | 1921/3891 (49.4%) |
 | + feature-verify (2 passes) | 14237 | 1977 | 1977/3891 (50.8%) |
-| **+ expanded features + gpt-5.5 hard tail** | **16660** | **2336** | **2336/3891 (60.0%)** |
+| **+ expanded features + gpt-5.5 (2 passes)** | **17658** | **2432** | **2432/3891 (62.5%)** |
 
 Stage 2 (compiler-guided LLM generation) is the breadth lever. Two mechanisms:
 (a) mine Clang's own tests under a **sweep of language/standard configs** plus
@@ -28,17 +28,18 @@ the model already writes the feature code from the name, so verifying under thos
 configs (and hinting the prompt) keeps the pair. (d) **stronger model on the hard
 tail**: a `gpt-5.5` pass (`--skip-mining` over the still-uncovered diagnostics)
 reproduces templates/attributes/builtins/target-specific errors `gpt-5.4-mini`
-could not — 769/1446 uncovered targets verified, **+293 distinct** in one pass.
-Together, across unioned passes, they reach **60.0%** of all error diagnostics;
-`covered@target` (≥3 examples) is **1663/3891 (42.7%)**.
+could not — 769/1446 verified in one pass (**+293 distinct**), and a second pass on the
+remaining hardest tail added +96 more.
+Together, across unioned passes, they reach **62.5%** of all error diagnostics;
+`covered@target` (≥3 examples) is **1692/3891 (43.5%)**.
 
 **Code vs invocation diagnostics.** 402 of the 3891 error diagnostics
 (Driver/Frontend/Serialization/InstallAPI/CrossTU/Refactoring) are
 invocation/environment errors — the source is *correct* and only the command
 line / build setup is wrong, so they can't be a broken-code/corrected-code pair
 and are structurally uncoverable here. Measured against the **3489 code
-diagnostics** (`run_coverage --code-only`), coverage is **2336/3489 = 67.0%**
-(covered@target 47.7%). Every covered diagnostic is a code diagnostic.
+diagnostics** (`run_coverage --code-only`), coverage is **2432/3489 = 69.7%**
+(covered@target 48.5%). Every covered diagnostic is a code diagnostic.
 
 # Stage 1 — mechanical mutation
 
@@ -166,9 +167,9 @@ PYTHONPATH=src python3 src/coverage/run_coverage.py \
   `--catalog-targets` generates from name + message template alone (no example).
   On a random uncovered sample ~50% produce a verified pair; one full pass added
   **+339 distinct** diagnostics.
-- **Combined coverage:** **2336 / 3891 (60.0%)** — **67.0% of the 3489 code
-  diagnostics** — across 12 unioned passes (**16,660** deduped records); **1663
-  (42.7%)** at multiplicity target ≥3. Generation is thread-parallel
+- **Combined coverage:** **2432 / 3891 (62.5%)** — **69.7% of the 3489 code
+  diagnostics** — across 13 unioned passes (**17,658** records); **1692 (43.5%)**
+  at multiplicity target ≥3. Generation is thread-parallel
   (`--gen-workers`); `--skip-mining` runs a catalog pass in minutes.
   minutes.
 
@@ -211,10 +212,10 @@ PYTHONPATH=src python3 src/gen/run_dataset.py \
     --salt fuzzlang-gen-v1 --dev-fraction 0.1 --eval-fraction 0.1
 ```
 
-Result (`data/gen/splits/manifest.json`): **14,237 → 13,519 records after dedup**
-(718 removed); train 10,682 / dev 1,448 / eval 1,389; provenance isolation OK.
+Result (`data/gen/splits/manifest.json`): **17,658 → 16,787 records after dedup**
+(871 removed); train 13,292 / dev 1,767 / eval 1,728; provenance isolation OK.
 Because isolation is by source (not diagnostic), a diagnostic can recur across
-splits via different sources: **63% of eval diagnostics also appear in train**
-(held-out instances of seen diagnostics) and 141 are eval-only (a
+splits via different sources: **62% of eval diagnostics also appear in train**
+(held-out instances of seen diagnostics) and 176 are eval-only (a
 generalization tail). The split JSONLs and `manifest.json` are gitignored data
 artifacts (regenerate with the command above); the numbers here are the record.
