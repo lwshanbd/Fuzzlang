@@ -103,6 +103,9 @@ def main() -> None:
     ap.add_argument("--temperature", type=float, default=0.8)
     ap.add_argument("--target-required", action="store_true",
                     help="keep a pair only if the broken version hits the target diagnostic")
+    ap.add_argument("--catalog-targets", action="store_true",
+                    help="target every catalog error diagnostic (even ones with no "
+                         "mined example — generated from name + message template)")
     args = ap.parse_args()
 
     if not args.clang or not args.diagtool:
@@ -133,24 +136,30 @@ def main() -> None:
                                max_configs_per_diag=3, workers=args.workers)
     print(f"[run_guided] examples for {len(index)} distinct diagnostics")
 
-    targets = list(index)
+    # Targets: the mined diagnostics, or (catalog mode) every error diagnostic in
+    # the catalog — including the ~2700 we never mined a snippet for, generated
+    # from name + message template alone.
+    targets = sorted(msg_of) if args.catalog_targets else list(index)
     if args.gaps:
         gap_names = {json.loads(l)["diag_name"]
                      for l in args.gaps.read_text(encoding="utf-8").splitlines() if l.strip()}
         targets = [d for d in targets if d in gap_names]
     if args.limit_diags:
         targets = targets[:args.limit_diags]
-    print(f"[run_guided] generating for {len(targets)} target diagnostics")
+    n_with_ex = sum(1 for d in targets if index.get(d))
+    print(f"[run_guided] generating for {len(targets)} target diagnostics "
+          f"({n_with_ex} with a mined example, {len(targets) - n_with_ex} from catalog only)")
 
     chat = _build_chat(args.base_url, args.model, args.max_tokens, args.temperature)
     records = []
     for diag in targets:
-        lang = _guess_language(index[diag][0]) if index[diag] else args.language
+        examples = index.get(diag, [])
+        lang = _guess_language(examples[0]) if examples else args.language
         # Verify generated pairs under the language sweep PLUS the configs that
         # actually triggered this diagnostic (e.g. -fopenmp / -triple from a
         # RUN line), so RUN-line diagnostics can be reproduced and kept.
         gen_cmds = configs + diag_configs.get(diag, [])
-        recs = generate_pairs(diag, msg_of.get(diag, ""), index[diag], chat, verifier,
+        recs = generate_pairs(diag, msg_of.get(diag, ""), examples, chat, verifier,
                               source=f"guided:{diag}", language=lang,
                               compile_cmds=gen_cmds,
                               target_required=args.target_required,

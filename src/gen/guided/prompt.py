@@ -18,13 +18,24 @@ def build_pair_prompt(
     example: str,
     language: str = "c++",
 ) -> list[dict]:
-    """Return chat messages asking for a correct/broken pair for `diag_name`."""
+    """Return chat messages asking for a correct/broken pair for `diag_name`.
+
+    `example` is optional: when empty (e.g. a catalog diagnostic we never mined a
+    snippet for), the model works from the diagnostic name and message template
+    alone.
+    """
+    example_block = (
+        f"Example program that triggers it:\n```\n{example}\n```\n\n"
+        if example.strip() else
+        "No example is provided — infer a triggering construct from the "
+        "diagnostic name and message.\n\n"
+    )
     user = (
         f"Target diagnostic: {diag_name}\n"
         f"Message template: {msg_template}\n"
         f"Language: {language}\n\n"
-        f"Example program that triggers it:\n```\n{example}\n```\n\n"
-        f"Now write a DIFFERENT self-contained {language} program (no #include): "
+        f"{example_block}"
+        f"Now write a self-contained {language} program (no #include): "
         f"first the CORRECT version that compiles cleanly, then the BROKEN "
         f"version that triggers {diag_name}. Label them CORRECT and BROKEN, each "
         f"as a single fenced code block."
