@@ -8,9 +8,12 @@ compiles clean, broken version triggers a real error diagnostic):
 | Stage | Records | Distinct diagnostics | Coverage |
 |---|---:|---:|---|
 | Stage 1 — mechanical mutation | 832 | 59 | 59/3891 (1.5%) |
-| **Stage 1 + 2 (mechanical + guided)** | **1454** | **577** | **577/3891 (14.8%)** |
+| Stage 1 + 2 (single-config guided) | 1454 | 577 | 577/3891 (14.8%) |
+| **Stage 1 + 2 (multi-config sweep guided)** | **3448** | **963** | **963/3891 (24.7%)** |
 
-Stage 2 (compiler-guided LLM generation) lifts coverage ~10× and reaches Sema,
+Stage 2 (compiler-guided LLM generation) is the breadth lever: mining Clang's
+own tests under a **sweep of language/standard configs** exposes many more
+distinct diagnostics, and the LLM turns each into a verified pair — reaching Sema,
 Lex and AST diagnostics that punctuation mutation structurally cannot.
 
 # Stage 1 — mechanical mutation
@@ -93,54 +96,64 @@ Lex/Driver/Frontend/AST. Closing those gaps is the job of Stage 2.
 # Stage 2 — compiler-guided LLM generation
 
 `src/gen/run_guided.py`: mine example snippets per diagnostic from Clang's own
-regression tests (each run through the patched clang to label it), then for each
-diagnostic still below target in `gaps.jsonl`, prompt an LLM for a *fresh*
-correct/broken program pair and keep it only if it verifies. Same correct-code
-invariant as Stage 1, enforced in `gen/guided/generate.py`.
+regression tests (each run through the patched clang to label it), then prompt an
+LLM for a *fresh* correct/broken program pair for each mined diagnostic and keep
+it only if it verifies. Same correct-code invariant as Stage 1, enforced in
+`gen/guided/generate.py`.
+
+**Breadth comes from the multi-config sweep.** A single `-std=c++17` mining
+config mismines most of `clang/test` — a C file even errors on the driver flag
+instead of triggering its intended diagnostic — capping mined diagnostics near
+~839. Mining each file under a sweep of language/standard configs
+(`sweep_configs()`: C89..C++2b, Objective-C/C++) and unioning the diagnostics
+each triggers exposes far more distinct kinds (**1141** from the full tree).
+Generation verifies each pair under the same sweep, so C/Objective-C diagnostics
+are checked under the right language.
 
 ## Run
 
-Model **`gpt-5.4-mini`** via the OpenAI API; mined the full `clang/test` tree.
+Model **`gpt-5.4-mini`** via the OpenAI API; full `clang/test` tree, 9-config
+sweep, 32 mining threads. Two independent generation passes (one at
+`--samples-per-diag 1`, one at `2`) unioned — independent passes convert
+different subsets of the harder diagnostics, so the union grows breadth.
 
 ```bash
 PYTHONPATH=src python3 src/gen/run_guided.py \
-    --tests external/llvm-project/clang/test --gaps data/gen/gaps.jsonl \
-    --out data/gen/guided.jsonl \
-    --model gpt-5.4-mini --base-url https://api.openai.com/v1
-cat data/gen/mechanical.jsonl data/gen/guided.jsonl > data/gen/all.jsonl
+    --tests external/llvm-project/clang/test --out data/gen/guided.jsonl \
+    --model gpt-5.4-mini --base-url https://api.openai.com/v1 \
+    --workers 32 --samples-per-diag 1
+# second pass -> data/gen/guided2.jsonl (--samples-per-diag 2), then union+dedup
+# by record_id into data/gen/all.jsonl and measure:
 PYTHONPATH=src python3 src/coverage/run_coverage.py \
     --records data/gen/all.jsonl --target 3 --gap-out data/gen/gaps.jsonl
 ```
 
 ## Results
 
-- **Mining:** examples for **839** distinct diagnostics from **21,359** test
-  files (that many yielded a named diagnostic under the default
-  `-fsyntax-only -std=c++17`; files needing specific RUN-line flags are
-  mishandled but still often trigger *a* diagnostic — fine for mining).
-- **Generation:** 807 gap diagnostics targeted → **622 verified records
-  (77%)**. Of those, **495 (80%) hit the exact target diagnostic**; the other
-  127 hit a *different* real diagnostic (kept, since `--target-required` was
-  dropped for the scale-up).
-- **Combined coverage:** **577 / 3891 (14.8%)**, up from 59 (1.5%); 48 at
-  multiplicity target ≥3.
+- **Mining:** **1141** distinct diagnostics from **21,359** test files under the
+  9-config sweep (vs ~839 single-config) — mining is no longer the bottleneck.
+- **Generation:** a pair attempted for every mined diagnostic; ~76% of targets
+  per pass yield a verified pair. Two unioned passes → **3448** deduped records.
+- **Combined coverage:** **963 / 3891 (24.7%)** distinct, up from 577 (14.8%
+  single-config) and 59 (1.5% mechanical); **500 (12.9%)** now at multiplicity
+  target ≥3.
 
-| Component | Stage 1 | Stage 1 + 2 |
-|---|---:|---:|
-| Sema | 31 / 2747 | **440 / 2747 (16%)** |
-| Parse | 25 / 420 | 82 / 420 (20%) |
-| Lex | 0 / 191 | **42 / 191 (22%)** |
-| Common | 3 / 85 | 12 / 85 |
-| AST | 0 / 46 | 1 / 46 |
-| Driver / Frontend / Serialization / InstallAPI / Refactoring / CrossTU | 0 | 0 |
+| Component | Stage 1 | + guided (single-config) | + guided (sweep) |
+|---|---:|---:|---:|
+| Sema | 31 / 2747 | 440 | **758 / 2747 (28%)** |
+| Parse | 25 / 420 | 82 | **130 / 420 (31%)** |
+| Lex | 0 / 191 | 42 | **53 / 191 (28%)** |
+| Common | 3 / 85 | 12 | 19 / 85 |
+| AST | 0 / 46 | 1 | 3 / 46 |
+| Driver / Frontend / Serialization / InstallAPI / Refactoring / CrossTU | 0 | 0 | 0 |
 
-Guided generation reached **518 diagnostics mechanical mutation never did**
-(Sema 409, Parse 57, Lex 42, Common 9, AST 1) — e.g. access-control errors
-(`err_access_ctor`, `err_access_friend_function`), `err_abstract_type_in_decl`,
-`err__Pragma_malformed`, static-assert and constexpr failures.
+Guided generation reached **904 diagnostics mechanical mutation never did**.
 
-**Takeaway:** guided LLM generation is the lever for the huge Sema space and for
-Lex; the remaining gaps are Driver/Frontend/Serialization (which need real
-compiler *invocations* / multi-file setups, not single-TU snippets) and the long
-multiplicity tail (most covered diagnostics still have <3 examples). The refined
-`data/gen/gaps.jsonl` (3843 below target) drives the next round.
+**Takeaway & remaining gaps.** Guided sweep generation covers the Sema/Parse/Lex
+space broadly. Two structural gaps remain: (1) **Driver/Frontend/Serialization**
+(0%) need real multi-file compiler *invocations*, not single-TU `-fsyntax-only`
+snippets; (2) the mining ceiling under these driver configs is ~1141 — breaking
+past it means mining Clang's `%clang_cc1` RUN-line flags (`-triple`,
+`-target-feature`, `-fopenmp` — the openmp/target-feature tests alone are tens of
+thousands of files that our language-only sweep never triggers). Those are the
+next breadth tiers, driven by the refined `data/gen/gaps.jsonl`.
