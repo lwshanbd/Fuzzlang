@@ -12,7 +12,8 @@ compiles clean, broken version triggers a real error diagnostic):
 | Stage 1 + 2 (multi-config sweep) | 3448 | 963 | 963/3891 (24.7%) |
 | Stage 1 + 2 (sweep + RUN-line cc1) | 5348 | 1185 | 1185/3891 (30.5%) |
 | + catalog-driven (no example needed) | 10542 | 1742 | 1742/3891 (44.8%) |
-| **+ feature/target-config verify** | **12473** | **1921** | **1921/3891 (49.4%)** |
+| + feature/target-config verify (1 pass) | 12473 | 1921 | 1921/3891 (49.4%) |
+| **+ feature-verify (2 passes)** | **14237** | **1977** | **1977/3891 (50.8%)** |
 
 Stage 2 (compiler-guided LLM generation) is the breadth lever. Two mechanisms:
 (a) mine Clang's own tests under a **sweep of language/standard configs** plus
@@ -24,8 +25,8 @@ verification** (`--feature-verify`): 764 uncovered diagnostics are real code
 errors gated behind a flag (OpenMP, ObjC-ARC, HLSL, OpenCL, modules, SVE/SME…);
 the model already writes the feature code from the name, so verifying under those
 configs (and hinting the prompt) keeps the pair. Together, across unioned passes,
-they reach **49.4%** of all error diagnostics; `covered@target` (≥3 examples) is
-**1450/3891 (37.3%)**.
+they reach **50.8%** of all error diagnostics; `covered@target` (≥3 examples) is
+**1580/3891 (40.6%)**.
 
 # Stage 1 — mechanical mutation
 
@@ -153,17 +154,17 @@ PYTHONPATH=src python3 src/coverage/run_coverage.py \
   `--catalog-targets` generates from name + message template alone (no example).
   On a random uncovered sample ~50% produce a verified pair; one full pass added
   **+339 distinct** diagnostics.
-- **Combined coverage:** **1921 / 3891 (49.4%)** distinct across 9 unioned passes
-  (**12,473** deduped records), up from 1185 (30.5% mining-only), 963 (24.7%),
-  577 (14.8%), 59 (1.5% mechanical); **1450 (37.3%)** at multiplicity target ≥3.
+- **Combined coverage:** **1977 / 3891 (50.8%)** distinct across 10 unioned passes
+  (**14,237** deduped records), up from 1185 (30.5% mining-only), 963 (24.7%),
+  577 (14.8%), 59 (1.5% mechanical); **1580 (40.6%)** at multiplicity target ≥3.
   Generation is thread-parallel (`--gen-workers`); a full catalog pass runs in
   minutes.
 
 | Component | Stage 1 | + sweep | + catalog | + feature-verify |
 |---|---:|---:|---:|---:|
-| Sema | 31 / 2747 | 758 | 1372 | **1522 / 2747 (55%)** |
-| Parse | 25 / 420 | 130 | 230 | **254 / 420 (60%)** |
-| Lex | 0 / 191 | 53 | 106 | **109 / 191 (57%)** |
+| Sema | 31 / 2747 | 758 | 1372 | **1568 / 2747 (57%)** |
+| Parse | 25 / 420 | 130 | 230 | **261 / 420 (62%)** |
+| Lex | 0 / 191 | 53 | 106 | **111 / 191 (58%)** |
 | Common | 3 / 85 | 19 | 26 | 29 / 85 |
 | AST | 0 / 46 | 3 | 6 | 7 / 46 |
 | Driver / Frontend / Serialization / InstallAPI / Refactoring / CrossTU | 0 | 0 | 0 | 0 |
