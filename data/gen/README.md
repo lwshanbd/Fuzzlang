@@ -28,6 +28,14 @@ configs (and hinting the prompt) keeps the pair. Together, across unioned passes
 they reach **50.8%** of all error diagnostics; `covered@target` (≥3 examples) is
 **1580/3891 (40.6%)**.
 
+**Code vs invocation diagnostics.** 402 of the 3891 error diagnostics
+(Driver/Frontend/Serialization/InstallAPI/CrossTU/Refactoring) are
+invocation/environment errors — the source is *correct* and only the command
+line / build setup is wrong, so they can't be a broken-code/corrected-code pair
+and are structurally uncoverable here. Measured against the **3489 code
+diagnostics** (`run_coverage --code-only`), coverage is **1977/3489 = 56.7%**
+(covered@target 45.3%). Every covered diagnostic is a code diagnostic.
+
 # Stage 1 — mechanical mutation
 
 ## Corpus
@@ -181,3 +189,27 @@ snippets; and the residual Sema/Parse tail is diagnostics needing specific
 targets/flags or contexts the LLM can't synthesize hermetically. More
 independent catalog passes still convert new diagnostics (diminishing). The
 refined `data/gen/gaps.jsonl` (2948 below target) drives the next round.
+
+# Dataset assembly (dedup + splits)
+
+`src/gen/run_dataset.py` turns the unioned records into a usable dataset:
+
+- **Dedup** (`dedup_records`): drop cosmetic duplicates — records sharing a
+  diagnostic and a whitespace-normalized 5-line window around the error line —
+  keeping genuinely distinct programs so multiplicity stays honest.
+- **Splits** (`split_records`): train/dev/eval, **isolated by
+  `provenance.source`** (deterministic salted hash; all records of one source
+  land in one split, so no program's variants leak across splits).
+
+```bash
+PYTHONPATH=src python3 src/gen/run_dataset.py \
+    --records data/gen/all.jsonl --out-dir data/gen/splits \
+    --salt fuzzlang-gen-v1 --dev-fraction 0.1 --eval-fraction 0.1
+```
+
+Result (`data/gen/splits/manifest.json`): **14,237 → 13,519 records after dedup**
+(718 removed); train 10,682 / dev 1,448 / eval 1,389; provenance isolation OK.
+Because isolation is by source (not diagnostic), a diagnostic can recur across
+splits via different sources: **63% of eval diagnostics also appear in train**
+(held-out instances of seen diagnostics) and 141 are eval-only (a
+generalization tail). The split JSONLs are gitignored; the manifest is tracked.
