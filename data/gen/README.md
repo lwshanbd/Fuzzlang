@@ -212,4 +212,5 @@ Result (`data/gen/splits/manifest.json`): **14,237 → 13,519 records after dedu
 Because isolation is by source (not diagnostic), a diagnostic can recur across
 splits via different sources: **63% of eval diagnostics also appear in train**
 (held-out instances of seen diagnostics) and 141 are eval-only (a
-generalization tail). The split JSONLs are gitignored; the manifest is tracked.
+generalization tail). The split JSONLs and `manifest.json` are gitignored data
+artifacts (regenerate with the command above); the numbers here are the record.
