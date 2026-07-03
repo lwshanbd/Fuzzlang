@@ -45,8 +45,11 @@ class FuzzlangClangVerifier(BaseVerifier):
                    tmp_path if a == PLACEHOLDER else a
                    for a in compile_cmd]
             try:
+                # errors="replace": some frontend configs emit non-UTF-8 bytes
+                # in a diagnostic; strict decoding would crash the run.
                 result = subprocess.run(
-                    cmd, capture_output=True, text=True, timeout=self.timeout_s
+                    cmd, capture_output=True, text=True, errors="replace",
+                    timeout=self.timeout_s,
                 )
             except subprocess.TimeoutExpired:
                 return VerifierResult(ok=False, diag=None, raw_stderr="__TIMEOUT__")
@@ -93,7 +96,7 @@ class FuzzlangClangVerifier(BaseVerifier):
         try:
             r = subprocess.run(
                 [self.diagtool_bin, "find-diagnostic-id", str(diag_id)],
-                capture_output=True, text=True, timeout=5.0,
+                capture_output=True, text=True, errors="replace", timeout=5.0,
             )
             if r.returncode == 0:
                 name = r.stdout.strip().split("\n", 1)[0]
