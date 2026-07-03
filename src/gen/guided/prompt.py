@@ -12,11 +12,38 @@ _SYSTEM = (
 )
 
 
+_FEATURE_HINTS = [
+    (("omp",), "This is an OpenMP diagnostic — use OpenMP directives (#pragma omp)."),
+    (("arc",), "This is an Objective-C ARC diagnostic — write Objective-C under ARC."),
+    (("objc",), "This is an Objective-C diagnostic — write Objective-C."),
+    (("hlsl",), "This is an HLSL diagnostic — write HLSL shader code."),
+    (("opencl", "ocl"), "This is an OpenCL diagnostic — write an OpenCL kernel."),
+    (("coro",), "This is a C++20 coroutines diagnostic — use co_await/co_yield/co_return."),
+    (("block",), "This is a Clang blocks diagnostic — use a ^{ } block."),
+    (("module",), "This is a modules diagnostic — use import/module declarations."),
+    (("matrix",), "This is a matrix-types diagnostic — use __attribute__((matrix_type))."),
+    (("fixed_point", "fixedpoint"), "This is a fixed-point diagnostic — use _Accum/_Fract types."),
+    (("sve", "sme", "neon", "riscv", "altivec", "wasm"),
+     "This is a target-feature diagnostic — use the relevant target intrinsics/attributes."),
+]
+
+
+def feature_hint(diag_name: str) -> str:
+    """Return an instruction to steer the model toward a feature-gated diagnostic,
+    or "" if the name implies no particular feature."""
+    nl = diag_name.lower()
+    for keys, hint in _FEATURE_HINTS:
+        if any(k in nl for k in keys):
+            return hint
+    return ""
+
+
 def build_pair_prompt(
     diag_name: str,
     msg_template: str,
     example: str,
     language: str = "c++",
+    extra: str = "",
 ) -> list[dict]:
     """Return chat messages asking for a correct/broken pair for `diag_name`.
 
@@ -35,6 +62,7 @@ def build_pair_prompt(
         f"Message template: {msg_template}\n"
         f"Language: {language}\n\n"
         f"{example_block}"
+        f"{extra + chr(10) + chr(10) if extra else ''}"
         f"Now write a self-contained {language} program (no #include): "
         f"first the CORRECT version that compiles cleanly, then the BROKEN "
         f"version that triggers {diag_name}. Label them CORRECT and BROKEN, each "

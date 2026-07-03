@@ -1,5 +1,17 @@
 """Tests for the guided-generation prompt builder."""
-from gen.guided.prompt import build_pair_prompt
+from gen.guided.prompt import build_pair_prompt, feature_hint
+
+
+def test_feature_hint_detects_openmp_and_objc():
+    assert "openmp" in feature_hint("err_omp_no_dsa_for_variable").lower()
+    assert "arc" in feature_hint("err_arc_may_not_respond").lower()
+    assert feature_hint("err_typecheck_invalid_operands") == ""   # no feature
+
+
+def test_prompt_includes_extra_instruction():
+    msgs = build_pair_prompt("err_omp_x", "msg", "", extra="Use #pragma omp.")
+    blob = "\n".join(m["content"] for m in msgs)
+    assert "Use #pragma omp." in blob
 
 
 def test_prompt_includes_target_example_and_roles():

@@ -56,6 +56,7 @@ def generate_pair(
     compile_cmds: Optional[list[list[str]]] = None,
     logical_path: Optional[str] = None,
     target_required: bool = False,
+    extra: str = "",
 ) -> Optional[Record]:
     """Ask the LLM for a correct/broken pair for `diag_name`; verify; return a Record.
 
@@ -68,7 +69,8 @@ def generate_pair(
     Returns None if the reply is unparseable, or no config yields a
     correct-compiles + broken-errors pair (respecting `target_required`).
     """
-    pair = parse_pair(chat(build_pair_prompt(diag_name, msg_template, example, language)))
+    pair = parse_pair(chat(build_pair_prompt(diag_name, msg_template, example,
+                                             language, extra=extra)))
     if pair is None:
         return None
     correct_src, broken_src = pair
@@ -120,6 +122,7 @@ def generate_pairs(
     logical_path: Optional[str] = None,
     target_required: bool = False,
     samples: int = 1,
+    extra: str = "",
 ) -> list[Record]:
     """Make up to `samples` distinct verified pairs for one diagnostic.
 
@@ -137,6 +140,7 @@ def generate_pairs(
             source=source, language=language, split=split,
             compile_cmd=compile_cmd, compile_cmds=compile_cmds,
             logical_path=logical_path, target_required=target_required,
+            extra=extra,
         )
         if rec is not None and rec.erroneous_src not in seen:
             seen.add(rec.erroneous_src)

@@ -24,8 +24,9 @@ from foundation.diagnostics.catalog import load_catalog
 from foundation.verifier.fuzzlang import FuzzlangClangVerifier
 import subprocess
 
-from gen.guided.examples import mine, sweep_configs
+from gen.guided.examples import feature_configs, mine, sweep_configs
 from gen.guided.generate import generate_pairs
+from gen.guided.prompt import feature_hint
 from gen.guided.runline import parse_cc1_configs
 
 _EXTS = (".c", ".cpp", ".cc", ".cxx", ".m", ".mm")
@@ -108,6 +109,10 @@ def main() -> None:
     ap.add_argument("--catalog-targets", action="store_true",
                     help="target every catalog error diagnostic (even ones with no "
                          "mined example — generated from name + message template)")
+    ap.add_argument("--feature-verify", action="store_true",
+                    help="also verify pairs under feature/target configs (OpenMP, "
+                         "ObjC-ARC, HLSL, OpenCL, modules, SVE/SME...) and hint the "
+                         "model toward the feature — unlocks flag-gated diagnostics")
     args = ap.parse_args()
 
     if not args.clang or not args.diagtool:
@@ -154,18 +159,25 @@ def main() -> None:
 
     chat = _build_chat(args.base_url, args.model, args.max_tokens, args.temperature)
 
+    feat_cfgs = []
+    if args.feature_verify:
+        rdir = subprocess.run([args.clang, "-print-resource-dir"],
+                              capture_output=True, text=True).stdout.strip()
+        feat_cfgs = feature_configs(rdir)
+
     def gen_one(diag):
         examples = index.get(diag, [])
         lang = _guess_language(examples[0]) if examples else args.language
         # Verify generated pairs under the language sweep PLUS the configs that
-        # actually triggered this diagnostic (e.g. -fopenmp / -triple from a
-        # RUN line), so RUN-line diagnostics can be reproduced and kept.
-        gen_cmds = configs + diag_configs.get(diag, [])
+        # actually triggered this diagnostic (RUN-line -fopenmp/-triple) PLUS
+        # feature/target configs, so flag-gated diagnostics can be reproduced.
+        gen_cmds = configs + diag_configs.get(diag, []) + feat_cfgs
+        extra = feature_hint(diag) if args.feature_verify else ""
         return generate_pairs(diag, msg_of.get(diag, ""), examples, chat, verifier,
                               source=f"guided:{diag}", language=lang,
                               compile_cmds=gen_cmds,
                               target_required=args.target_required,
-                              samples=args.samples_per_diag)
+                              samples=args.samples_per_diag, extra=extra)
 
     # Generation is LLM + verify I/O-bound: run targets concurrently.
     records = []

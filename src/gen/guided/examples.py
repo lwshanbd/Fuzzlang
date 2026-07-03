@@ -42,6 +42,41 @@ def sweep_configs() -> list[list[str]]:
     ]
 
 
+def feature_configs(resource_dir: str) -> list[list[str]]:
+    """Verification configs for feature/target-gated CODE diagnostics.
+
+    Many uncovered diagnostics are real code errors that only fire under a
+    feature flag or target (OpenMP, ObjC-ARC, HLSL, OpenCL, modules, blocks,
+    fixed-point, matrix, SVE/SME/NEON/RISC-V). The LLM tends to synthesize the
+    right feature code from the diagnostic name; verifying under these lets the
+    pair be kept. Driver-mode where possible; `-cc1` (with the resource dir) for
+    target-feature and HLSL.
+    """
+    def drv(*flags: str) -> list[str]:
+        return ["__CLANG__", "-fsyntax-only", *flags, PLACEHOLDER]
+
+    def cc1(*flags: str) -> list[str]:
+        return ["__CLANG__", "-cc1", "-resource-dir", resource_dir, *flags,
+                "-fsyntax-only", PLACEHOLDER]
+
+    return [
+        drv("-fopenmp", "-x", "c++", "-std=c++17"),
+        drv("-fopenmp", "-x", "c"),
+        drv("-fobjc-arc", "-x", "objective-c"),
+        drv("-fobjc-arc", "-x", "objective-c++"),
+        drv("-fblocks", "-x", "c"),
+        drv("-fmodules", "-fcxx-modules", "-x", "c++", "-std=c++20"),
+        drv("-ffixed-point", "-x", "c"),
+        drv("-fenable-matrix", "-x", "c++", "-std=c++17"),
+        drv("-x", "cl"),                      # OpenCL
+        drv("-x", "cuda", "--cuda-host-only"),
+        cc1("-triple", "dxil-pc-shadermodel6.3-library", "-x", "hlsl"),
+        cc1("-triple", "aarch64", "-target-feature", "+sve", "-target-feature",
+            "+sme", "-target-feature", "+neon", "-x", "c"),
+        cc1("-triple", "riscv64", "-target-feature", "+v", "-x", "c"),
+    ]
+
+
 def _diags_for_source(
     snippet: str, source_id: str, verifier: BaseVerifier, cmds: list[list[str]]
 ) -> list[tuple[str, list[str]]]:

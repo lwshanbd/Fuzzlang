@@ -2,7 +2,7 @@
 from foundation.types import DiagInfo, VerifierResult
 from foundation.verifier.base import PLACEHOLDER
 from foundation.verifier.mock import MockVerifier, ok_result
-from gen.guided.examples import mine, mine_examples, sweep_configs
+from gen.guided.examples import feature_configs, mine, mine_examples, sweep_configs
 
 
 def _err(name):
@@ -99,6 +99,17 @@ def test_mine_tracks_the_config_that_triggered_each_diagnostic():
     examples, configs = mine([("S", "s1")], MockVerifier(policy), compile_cmds=cfgs)
     assert examples == {"err_x": ["S"]}
     assert configs["err_x"] == [["clang", "c89", PLACEHOLDER]]  # the winning config
+
+
+def test_feature_configs_cover_major_feature_flags_and_use_placeholders():
+    cfgs = feature_configs("/RES")
+    flat = " ".join(t for cfg in cfgs for t in cfg)
+    for needed in ("-fopenmp", "-fobjc-arc", "hlsl", "-fblocks", "-fmodules",
+                   "-target-feature"):
+        assert needed in flat, needed
+    assert all(cfg[0] == "__CLANG__" and cfg[-1] == PLACEHOLDER for cfg in cfgs)
+    # cc1 target-feature configs must carry the resource dir.
+    assert any("-cc1" in cfg and "/RES" in cfg for cfg in cfgs)
 
 
 def test_sweep_configs_cover_c_cxx_objc_and_use_placeholders():
