@@ -11,16 +11,16 @@ compiles clean, broken version triggers a real error diagnostic):
 | Stage 1 + 2 (single-config guided) | 1454 | 577 | 577/3891 (14.8%) |
 | Stage 1 + 2 (multi-config sweep) | 3448 | 963 | 963/3891 (24.7%) |
 | Stage 1 + 2 (sweep + RUN-line cc1) | 5348 | 1185 | 1185/3891 (30.5%) |
-| **+ catalog-driven (no example needed)** | **6556** | **1524** | **1524/3891 (39.2%)** |
+| **+ catalog-driven (no example needed)** | **8801** | **1673** | **1673/3891 (43.0%)** |
 
 Stage 2 (compiler-guided LLM generation) is the breadth lever. Two mechanisms:
 (a) mine Clang's own tests under a **sweep of language/standard configs** plus
 each file's own **`%clang_cc1` RUN-line flags** (1391 distinct triggerable
 diagnostics, from ~839 with one config); (b) **catalog-driven** generation for
 the ~2700 diagnostics no test triggered — the LLM synthesizes a triggering
-program from the diagnostic *name + message template* alone. Together they reach
-39.2% of all error diagnostics; `covered@target` (≥3 examples) is 943/3891
-(24.2%).
+program from the diagnostic *name + message template* alone. Together, across
+unioned passes, they reach **43.0%** of all error diagnostics; `covered@target`
+(≥3 examples) is **1187/3891 (30.5%)**.
 
 # Stage 1 — mechanical mutation
 
@@ -148,15 +148,17 @@ PYTHONPATH=src python3 src/coverage/run_coverage.py \
   `--catalog-targets` generates from name + message template alone (no example).
   On a random uncovered sample ~50% produce a verified pair; one full pass added
   **+339 distinct** diagnostics.
-- **Combined coverage:** **1524 / 3891 (39.2%)** distinct across 6 unioned passes
-  (**6556** deduped records), up from 1185 (30.5% mining-only), 963 (24.7%),
-  577 (14.8%), 59 (1.5% mechanical); **943 (24.2%)** at multiplicity target ≥3.
+- **Combined coverage:** **1673 / 3891 (43.0%)** distinct across 7 unioned passes
+  (**8801** deduped records), up from 1185 (30.5% mining-only), 963 (24.7%),
+  577 (14.8%), 59 (1.5% mechanical); **1187 (30.5%)** at multiplicity target ≥3.
+  Generation is thread-parallel (`--gen-workers`); a full catalog pass runs in
+  minutes.
 
 | Component | Stage 1 | + sweep | + RUN-line | + catalog |
 |---|---:|---:|---:|---:|
-| Sema | 31 / 2747 | 758 | 941 | **1203 / 2747 (44%)** |
-| Parse | 25 / 420 | 130 | 155 | **197 / 420 (47%)** |
-| Lex | 0 / 191 | 53 | 61 | **92 / 191 (48%)** |
+| Sema | 31 / 2747 | 758 | 941 | **1317 / 2747 (48%)** |
+| Parse | 25 / 420 | 130 | 155 | **218 / 420 (52%)** |
+| Lex | 0 / 191 | 53 | 61 | **106 / 191 (55%)** |
 | Common | 3 / 85 | 19 | 25 | 26 / 85 |
 | AST | 0 / 46 | 3 | 3 | 6 / 46 |
 | Driver / Frontend / Serialization / InstallAPI / Refactoring / CrossTU | 0 | 0 | 0 | 0 |
