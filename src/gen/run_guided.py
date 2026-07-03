@@ -22,8 +22,11 @@ from pathlib import Path
 
 from foundation.diagnostics.catalog import load_catalog
 from foundation.verifier.fuzzlang import FuzzlangClangVerifier
-from gen.guided.examples import mine_examples, sweep_configs
+import subprocess
+
+from gen.guided.examples import mine, sweep_configs
 from gen.guided.generate import generate_pairs
+from gen.guided.runline import parse_cc1_configs
 
 _EXTS = (".c", ".cpp", ".cc", ".cxx", ".m", ".mm")
 
@@ -86,6 +89,10 @@ def main() -> None:
                     help="fallback prompt language (per-diagnostic is auto-guessed)")
     ap.add_argument("--workers", type=int, default=16,
                     help="threads for the multi-config mining sweep")
+    ap.add_argument("--no-runline", action="store_true",
+                    help="disable mining each file's own %%clang_cc1 RUN-line flags")
+    ap.add_argument("--max-cc1-per-file", type=int, default=4,
+                    help="cap on RUN-line cc1 configs mined per test file")
     ap.add_argument("--max-per-diag", type=int, default=3,
                     help="cap on mined examples kept per diagnostic")
     ap.add_argument("--samples-per-diag", type=int, default=1,
@@ -106,10 +113,24 @@ def main() -> None:
 
     configs = sweep_configs()
     tests = _read_tests(args.tests, args.limit_tests)
-    print(f"[run_guided] mining {len(tests)} test files x {len(configs)} configs "
+
+    per_source_cmds = None
+    if not args.no_runline:
+        resource_dir = subprocess.run(
+            [args.clang, "-print-resource-dir"], capture_output=True, text=True
+        ).stdout.strip()
+        cap = args.max_cc1_per_file
+
+        def per_source_cmds(snippet, _sid):
+            return parse_cc1_configs(snippet, resource_dir=resource_dir)[:cap]
+
+    print(f"[run_guided] mining {len(tests)} test files x {len(configs)} sweep configs"
+          f"{'' if args.no_runline else ' + per-file RUN-line cc1 flags'} "
           f"({args.workers} workers) ...")
-    index = mine_examples(tests, verifier, compile_cmds=configs,
-                          max_per_diag=args.max_per_diag, workers=args.workers)
+    index, diag_configs = mine(tests, verifier, compile_cmds=configs,
+                               per_source_cmds=per_source_cmds,
+                               max_per_diag=args.max_per_diag,
+                               max_configs_per_diag=3, workers=args.workers)
     print(f"[run_guided] examples for {len(index)} distinct diagnostics")
 
     targets = list(index)
@@ -125,9 +146,13 @@ def main() -> None:
     records = []
     for diag in targets:
         lang = _guess_language(index[diag][0]) if index[diag] else args.language
+        # Verify generated pairs under the language sweep PLUS the configs that
+        # actually triggered this diagnostic (e.g. -fopenmp / -triple from a
+        # RUN line), so RUN-line diagnostics can be reproduced and kept.
+        gen_cmds = configs + diag_configs.get(diag, [])
         recs = generate_pairs(diag, msg_of.get(diag, ""), index[diag], chat, verifier,
                               source=f"guided:{diag}", language=lang,
-                              compile_cmds=configs,
+                              compile_cmds=gen_cmds,
                               target_required=args.target_required,
                               samples=args.samples_per_diag)
         records.extend(recs)

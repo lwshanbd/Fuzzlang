@@ -2,7 +2,7 @@
 from foundation.types import DiagInfo, VerifierResult
 from foundation.verifier.base import PLACEHOLDER
 from foundation.verifier.mock import MockVerifier, ok_result
-from gen.guided.examples import mine_examples, sweep_configs
+from gen.guided.examples import mine, mine_examples, sweep_configs
 
 
 def _err(name):
@@ -77,6 +77,28 @@ def test_parallel_workers_match_sequential():
     seq = mine_examples(src, MockVerifier(policy))
     par = mine_examples(src, MockVerifier(policy), workers=4)
     assert seq == par
+
+
+def test_per_source_cmds_add_configs_for_that_source_only():
+    def policy(s, cmd, l):
+        return _err("err_special") if "SPECIAL" in " ".join(cmd) else ok_result()
+
+    def per_source(snippet, sid):
+        return [["clang", "SPECIAL", PLACEHOLDER]] if sid == "s1" else []
+
+    idx = mine_examples([("A", "s1"), ("B", "s2")], MockVerifier(policy),
+                        compile_cmds=[["clang", "base", PLACEHOLDER]],
+                        per_source_cmds=per_source)
+    assert idx == {"err_special": ["A"]}   # only s1 got the SPECIAL config
+
+
+def test_mine_tracks_the_config_that_triggered_each_diagnostic():
+    def policy(s, cmd, l):
+        return _err("err_x") if "c89" in " ".join(cmd) else ok_result()
+    cfgs = [["clang", "c99", PLACEHOLDER], ["clang", "c89", PLACEHOLDER]]
+    examples, configs = mine([("S", "s1")], MockVerifier(policy), compile_cmds=cfgs)
+    assert examples == {"err_x": ["S"]}
+    assert configs["err_x"] == [["clang", "c89", PLACEHOLDER]]  # the winning config
 
 
 def test_sweep_configs_cover_c_cxx_objc_and_use_placeholders():

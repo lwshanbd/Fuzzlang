@@ -13,7 +13,7 @@ diagnostics each triggers covers far more distinct diagnostic *kinds*.
 """
 from __future__ import annotations
 
-from typing import Iterable, Optional
+from typing import Callable, Iterable, Optional
 
 from foundation.verifier.base import PLACEHOLDER, BaseVerifier
 from gen.collect import default_compile_cmd
@@ -44,9 +44,13 @@ def sweep_configs() -> list[list[str]]:
 
 def _diags_for_source(
     snippet: str, source_id: str, verifier: BaseVerifier, cmds: list[list[str]]
-) -> list[str]:
-    """Named error diagnostics `snippet` triggers across `cmds` (deduped, in order)."""
-    found: list[str] = []
+) -> list[tuple[str, list[str]]]:
+    """(diagnostic, triggering config) pairs `snippet` yields across `cmds`.
+
+    Deduped by diagnostic in config order, so each diagnostic is paired with the
+    first config that triggered it.
+    """
+    found: list[tuple[str, list[str]]] = []
     seen: set[str] = set()
     for cmd in cmds:
         result = verifier.verify(snippet, cmd, logical_path=source_id)
@@ -55,7 +59,7 @@ def _diags_for_source(
         name = result.diag.diag_name
         if name not in seen:
             seen.add(name)
-            found.append(name)
+            found.append((name, cmd))
     return found
 
 
@@ -66,10 +70,14 @@ def mine_examples(
     language: str = "c++",
     compile_cmd: Optional[list[str]] = None,
     compile_cmds: Optional[list[list[str]]] = None,
+    per_source_cmds: Optional[Callable[[str, str], list[list[str]]]] = None,
     max_per_diag: Optional[int] = None,
     workers: int = 1,
 ) -> dict[str, list[str]]:
-    """Group snippets by the error diagnostic(s) they trigger.
+    """Group snippets by the error diagnostic(s) they trigger (examples only).
+
+    Thin wrapper over :func:`mine` that returns just the ``{diag: [snippet]}``
+    index. See :func:`mine` for the full argument docs.
 
     Args:
         sources: iterable of (snippet, source_id).
@@ -77,6 +85,9 @@ def mine_examples(
         language / compile_cmd: single-config compilation (back-compat default).
         compile_cmds: list of configs to sweep and union (e.g. sweep_configs());
             overrides the single-config path.
+        per_source_cmds: optional ``(snippet, source_id) -> [config, ...]`` giving
+            extra per-file configs (e.g. that file's own ``%clang_cc1`` RUN-line
+            flags), unioned with `compile_cmds` for that source only.
         max_per_diag: cap on examples kept per diagnostic (None = unbounded).
         workers: thread pool size for mining (subprocess-bound, so threads help).
 
@@ -84,23 +95,62 @@ def mine_examples(
         ``{diag_name: [snippet, ...]}``. Snippets that compile clean or trigger an
         unnamed diagnostic under every config are skipped.
     """
+    return mine(
+        sources, verifier, language=language, compile_cmd=compile_cmd,
+        compile_cmds=compile_cmds, per_source_cmds=per_source_cmds,
+        max_per_diag=max_per_diag, workers=workers,
+    )[0]
+
+
+def mine(
+    sources: Iterable[tuple[str, str]],
+    verifier: BaseVerifier,
+    *,
+    language: str = "c++",
+    compile_cmd: Optional[list[str]] = None,
+    compile_cmds: Optional[list[list[str]]] = None,
+    per_source_cmds: Optional[Callable[[str, str], list[list[str]]]] = None,
+    max_per_diag: Optional[int] = None,
+    max_configs_per_diag: Optional[int] = None,
+    workers: int = 1,
+) -> tuple[dict[str, list[str]], dict[str, list[list[str]]]]:
+    """Mine, returning both the example index and the triggering configs.
+
+    Same arguments as :func:`mine_examples`, plus `max_configs_per_diag` (cap on
+    tracked triggering configs per diagnostic). Returns
+    ``(examples, configs)`` where ``configs[diag]`` are the compile configs that
+    triggered `diag` (order of first appearance) — used to verify generated pairs
+    for RUN-line diagnostics under the flags that can actually trigger them.
+    """
     cmds = compile_cmds if compile_cmds is not None else [
         compile_cmd if compile_cmd is not None else default_compile_cmd(language)
     ]
     sources = list(sources)
 
+    def cmds_for(snippet: str, sid: str) -> list[list[str]]:
+        if per_source_cmds is None:
+            return cmds
+        return cmds + per_source_cmds(snippet, sid)
+
     if workers and workers > 1:
         from concurrent.futures import ThreadPoolExecutor
         with ThreadPoolExecutor(max_workers=workers) as ex:
             per_source = list(ex.map(
-                lambda so: _diags_for_source(so[0], so[1], verifier, cmds), sources))
+                lambda so: _diags_for_source(so[0], so[1], verifier, cmds_for(*so)),
+                sources))
     else:
-        per_source = [_diags_for_source(s, sid, verifier, cmds) for s, sid in sources]
+        per_source = [_diags_for_source(s, sid, verifier, cmds_for(s, sid))
+                      for s, sid in sources]
 
-    index: dict[str, list[str]] = {}
+    examples: dict[str, list[str]] = {}
+    configs: dict[str, list[list[str]]] = {}
     for (snippet, _sid), diags in zip(sources, per_source):
-        for name in diags:
-            bucket = index.setdefault(name, [])
+        for name, cmd in diags:
+            bucket = examples.setdefault(name, [])
             if max_per_diag is None or len(bucket) < max_per_diag:
                 bucket.append(snippet)
-    return index
+            cfgs = configs.setdefault(name, [])
+            if cmd not in cfgs and (max_configs_per_diag is None
+                                    or len(cfgs) < max_configs_per_diag):
+                cfgs.append(cmd)
+    return examples, configs
