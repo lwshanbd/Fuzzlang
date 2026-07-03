@@ -11,18 +11,21 @@ compiles clean, broken version triggers a real error diagnostic):
 | Stage 1 + 2 (single-config guided) | 1454 | 577 | 577/3891 (14.8%) |
 | Stage 1 + 2 (multi-config sweep) | 3448 | 963 | 963/3891 (24.7%) |
 | Stage 1 + 2 (sweep + RUN-line cc1) | 5348 | 1185 | 1185/3891 (30.5%) |
-| **+ catalog-driven (no example needed)** | **10542** | **1742** | **1742/3891 (44.8%)** |
+| + catalog-driven (no example needed) | 10542 | 1742 | 1742/3891 (44.8%) |
+| **+ feature/target-config verify** | **12473** | **1921** | **1921/3891 (49.4%)** |
 
 Stage 2 (compiler-guided LLM generation) is the breadth lever. Two mechanisms:
 (a) mine Clang's own tests under a **sweep of language/standard configs** plus
 each file's own **`%clang_cc1` RUN-line flags** (1391 distinct triggerable
 diagnostics, from ~839 with one config); (b) **catalog-driven** generation for
 the ~2700 diagnostics no test triggered — the LLM synthesizes a triggering
-program from the diagnostic *name + message template* alone. Together, across
-unioned passes, they reach **44.8%** of all error diagnostics; `covered@target`
-(≥3 examples) is **1345/3891 (34.6%)**. Successive catalog passes converge
-(+339 → +149 → +69 distinct) toward ~45% — the residual needs different
-mechanisms, not more passes (see Takeaway).
+program from the diagnostic *name + message template* alone. (c) **feature/target
+verification** (`--feature-verify`): 764 uncovered diagnostics are real code
+errors gated behind a flag (OpenMP, ObjC-ARC, HLSL, OpenCL, modules, SVE/SME…);
+the model already writes the feature code from the name, so verifying under those
+configs (and hinting the prompt) keeps the pair. Together, across unioned passes,
+they reach **49.4%** of all error diagnostics; `covered@target` (≥3 examples) is
+**1450/3891 (37.3%)**.
 
 # Stage 1 — mechanical mutation
 
@@ -150,19 +153,19 @@ PYTHONPATH=src python3 src/coverage/run_coverage.py \
   `--catalog-targets` generates from name + message template alone (no example).
   On a random uncovered sample ~50% produce a verified pair; one full pass added
   **+339 distinct** diagnostics.
-- **Combined coverage:** **1742 / 3891 (44.8%)** distinct across 8 unioned passes
-  (**10,542** deduped records), up from 1185 (30.5% mining-only), 963 (24.7%),
-  577 (14.8%), 59 (1.5% mechanical); **1345 (34.6%)** at multiplicity target ≥3.
+- **Combined coverage:** **1921 / 3891 (49.4%)** distinct across 9 unioned passes
+  (**12,473** deduped records), up from 1185 (30.5% mining-only), 963 (24.7%),
+  577 (14.8%), 59 (1.5% mechanical); **1450 (37.3%)** at multiplicity target ≥3.
   Generation is thread-parallel (`--gen-workers`); a full catalog pass runs in
   minutes.
 
-| Component | Stage 1 | + sweep | + RUN-line | + catalog |
+| Component | Stage 1 | + sweep | + catalog | + feature-verify |
 |---|---:|---:|---:|---:|
-| Sema | 31 / 2747 | 758 | 941 | **1372 / 2747 (50%)** |
-| Parse | 25 / 420 | 130 | 155 | **230 / 420 (55%)** |
-| Lex | 0 / 191 | 53 | 61 | **106 / 191 (55%)** |
-| Common | 3 / 85 | 19 | 25 | 26 / 85 |
-| AST | 0 / 46 | 3 | 3 | 6 / 46 |
+| Sema | 31 / 2747 | 758 | 1372 | **1522 / 2747 (55%)** |
+| Parse | 25 / 420 | 130 | 230 | **254 / 420 (60%)** |
+| Lex | 0 / 191 | 53 | 106 | **109 / 191 (57%)** |
+| Common | 3 / 85 | 19 | 26 | 29 / 85 |
+| AST | 0 / 46 | 3 | 6 | 7 / 46 |
 | Driver / Frontend / Serialization / InstallAPI / Refactoring / CrossTU | 0 | 0 | 0 | 0 |
 
 The RUN-line pass uniquely reached **159 diagnostics** the language sweep can't
