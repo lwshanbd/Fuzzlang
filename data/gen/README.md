@@ -10,15 +10,17 @@ compiles clean, broken version triggers a real error diagnostic):
 | Stage 1 — mechanical mutation | 832 | 59 | 59/3891 (1.5%) |
 | Stage 1 + 2 (single-config guided) | 1454 | 577 | 577/3891 (14.8%) |
 | Stage 1 + 2 (multi-config sweep) | 3448 | 963 | 963/3891 (24.7%) |
-| **Stage 1 + 2 (sweep + RUN-line cc1)** | **5348** | **1185** | **1185/3891 (30.5%)** |
+| Stage 1 + 2 (sweep + RUN-line cc1) | 5348 | 1185 | 1185/3891 (30.5%) |
+| **+ catalog-driven (no example needed)** | **6556** | **1524** | **1524/3891 (39.2%)** |
 
-Stage 2 (compiler-guided LLM generation) is the breadth lever. Mining Clang's own
-tests under a **sweep of language/standard configs** plus each file's own
-**`%clang_cc1` RUN-line flags** exposes 1391 distinct triggerable diagnostics
-(from ~839 with one config); the LLM turns each into a verified pair. This
-reaches Sema, Lex, and flag-gated (OpenMP, target-feature) diagnostics that
-punctuation mutation structurally cannot. `covered@target` (≥3 examples) rose to
-867/3891 (22.3%) across the unioned passes.
+Stage 2 (compiler-guided LLM generation) is the breadth lever. Two mechanisms:
+(a) mine Clang's own tests under a **sweep of language/standard configs** plus
+each file's own **`%clang_cc1` RUN-line flags** (1391 distinct triggerable
+diagnostics, from ~839 with one config); (b) **catalog-driven** generation for
+the ~2700 diagnostics no test triggered — the LLM synthesizes a triggering
+program from the diagnostic *name + message template* alone. Together they reach
+39.2% of all error diagnostics; `covered@target` (≥3 examples) is 943/3891
+(24.2%).
 
 # Stage 1 — mechanical mutation
 
@@ -138,35 +140,36 @@ PYTHONPATH=src python3 src/coverage/run_coverage.py \
     --records data/gen/all.jsonl --target 3 --gap-out data/gen/gaps.jsonl
 ```
 
-## Results (4 unioned guided passes)
+## Results (mining + catalog, unioned passes)
 
 - **Mining:** **1391** distinct diagnostics from **21,359** test files (sweep +
-  RUN-line cc1), vs ~839 single-config — mining is no longer the bottleneck.
-- **Generation:** a pair attempted per mined diagnostic; ~75% of targets per pass
-  verify. Four unioned passes → **5348** deduped records.
-- **Combined coverage:** **1185 / 3891 (30.5%)** distinct, up from 963 (24.7%
-  sweep-only), 577 (14.8% single-config), 59 (1.5% mechanical); **867 (22.3%)**
-  now at multiplicity target ≥3.
+  RUN-line cc1), vs ~839 single-config.
+- **Catalog-driven:** for the ~2700 diagnostics no test triggered,
+  `--catalog-targets` generates from name + message template alone (no example).
+  On a random uncovered sample ~50% produce a verified pair; one full pass added
+  **+339 distinct** diagnostics.
+- **Combined coverage:** **1524 / 3891 (39.2%)** distinct across 6 unioned passes
+  (**6556** deduped records), up from 1185 (30.5% mining-only), 963 (24.7%),
+  577 (14.8%), 59 (1.5% mechanical); **943 (24.2%)** at multiplicity target ≥3.
 
-| Component | Stage 1 | + sweep guided | + RUN-line guided |
-|---|---:|---:|---:|
-| Sema | 31 / 2747 | 758 | **941 / 2747 (34%)** |
-| Parse | 25 / 420 | 130 | **155 / 420 (37%)** |
-| Lex | 0 / 191 | 53 | **61 / 191 (32%)** |
-| Common | 3 / 85 | 19 | 25 / 85 |
-| AST | 0 / 46 | 3 | 3 / 46 |
-| Driver / Frontend / Serialization / InstallAPI / Refactoring / CrossTU | 0 | 0 | 0 |
+| Component | Stage 1 | + sweep | + RUN-line | + catalog |
+|---|---:|---:|---:|---:|
+| Sema | 31 / 2747 | 758 | 941 | **1203 / 2747 (44%)** |
+| Parse | 25 / 420 | 130 | 155 | **197 / 420 (47%)** |
+| Lex | 0 / 191 | 53 | 61 | **92 / 191 (48%)** |
+| Common | 3 / 85 | 19 | 25 | 26 / 85 |
+| AST | 0 / 46 | 3 | 3 | 6 / 46 |
+| Driver / Frontend / Serialization / InstallAPI / Refactoring / CrossTU | 0 | 0 | 0 | 0 |
 
-The RUN-line pass uniquely reached **159 diagnostics** neither mechanical nor the
-language sweep did — Sema 121, Parse 21, Lex 11, Common 6 — including OpenMP
-(`err_omp_*`) and other flag-gated diagnostics.
+The RUN-line pass uniquely reached **159 diagnostics** the language sweep can't
+(OpenMP `err_omp_*` and other flag-gated); catalog-driven generation then added
+the never-triggered tail.
 
-**Takeaway & remaining gaps.** Guided generation now covers ~1/3 of all error
-diagnostics, concentrated in Sema/Parse/Lex. The remaining gaps are structural:
-(1) **Driver/Frontend/Serialization/InstallAPI** (0%) need real multi-file /
-driver-level compiler *invocations*, not single-TU `-fsyntax-only` snippets;
-(2) we are near the ~1391 mining ceiling of `clang/test` under these configs —
-breaking past it means new mining sources (LLVM's other test suites, more RUN-line
-variants) rather than more passes. The long multiplicity tail (most covered
-diagnostics still <3 examples outside the 867) is a separate depth axis. The
-refined `data/gen/gaps.jsonl` (3024 below target) drives the next round.
+**Takeaway & remaining gaps.** Guided generation now covers ~40% of all error
+diagnostics, concentrated in Sema/Parse/Lex/AST. The remaining gaps are
+structural: **Driver/Frontend/Serialization/InstallAPI** (0%) need real
+multi-file / driver-level compiler *invocations*, not single-TU `-fsyntax-only`
+snippets; and the residual Sema/Parse tail is diagnostics needing specific
+targets/flags or contexts the LLM can't synthesize hermetically. More
+independent catalog passes still convert new diagnostics (diminishing). The
+refined `data/gen/gaps.jsonl` (2948 below target) drives the next round.
