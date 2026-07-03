@@ -13,7 +13,8 @@ compiles clean, broken version triggers a real error diagnostic):
 | Stage 1 + 2 (sweep + RUN-line cc1) | 5348 | 1185 | 1185/3891 (30.5%) |
 | + catalog-driven (no example needed) | 10542 | 1742 | 1742/3891 (44.8%) |
 | + feature/target-config verify (1 pass) | 12473 | 1921 | 1921/3891 (49.4%) |
-| **+ feature-verify (2 passes)** | **14237** | **1977** | **1977/3891 (50.8%)** |
+| + feature-verify (2 passes) | 14237 | 1977 | 1977/3891 (50.8%) |
+| **+ expanded features + gpt-5.5 hard tail** | **16660** | **2336** | **2336/3891 (60.0%)** |
 
 Stage 2 (compiler-guided LLM generation) is the breadth lever. Two mechanisms:
 (a) mine Clang's own tests under a **sweep of language/standard configs** plus
@@ -24,17 +25,20 @@ program from the diagnostic *name + message template* alone. (c) **feature/targe
 verification** (`--feature-verify`): 764 uncovered diagnostics are real code
 errors gated behind a flag (OpenMP, ObjC-ARC, HLSL, OpenCL, modules, SVE/SME…);
 the model already writes the feature code from the name, so verifying under those
-configs (and hinting the prompt) keeps the pair. Together, across unioned passes,
-they reach **50.8%** of all error diagnostics; `covered@target` (≥3 examples) is
-**1580/3891 (40.6%)**.
+configs (and hinting the prompt) keeps the pair. (d) **stronger model on the hard
+tail**: a `gpt-5.5` pass (`--skip-mining` over the still-uncovered diagnostics)
+reproduces templates/attributes/builtins/target-specific errors `gpt-5.4-mini`
+could not — 769/1446 uncovered targets verified, **+293 distinct** in one pass.
+Together, across unioned passes, they reach **60.0%** of all error diagnostics;
+`covered@target` (≥3 examples) is **1663/3891 (42.7%)**.
 
 **Code vs invocation diagnostics.** 402 of the 3891 error diagnostics
 (Driver/Frontend/Serialization/InstallAPI/CrossTU/Refactoring) are
 invocation/environment errors — the source is *correct* and only the command
 line / build setup is wrong, so they can't be a broken-code/corrected-code pair
 and are structurally uncoverable here. Measured against the **3489 code
-diagnostics** (`run_coverage --code-only`), coverage is **1977/3489 = 56.7%**
-(covered@target 45.3%). Every covered diagnostic is a code diagnostic.
+diagnostics** (`run_coverage --code-only`), coverage is **2336/3489 = 67.0%**
+(covered@target 47.7%). Every covered diagnostic is a code diagnostic.
 
 # Stage 1 — mechanical mutation
 
@@ -162,10 +166,10 @@ PYTHONPATH=src python3 src/coverage/run_coverage.py \
   `--catalog-targets` generates from name + message template alone (no example).
   On a random uncovered sample ~50% produce a verified pair; one full pass added
   **+339 distinct** diagnostics.
-- **Combined coverage:** **1977 / 3891 (50.8%)** distinct across 10 unioned passes
-  (**14,237** deduped records), up from 1185 (30.5% mining-only), 963 (24.7%),
-  577 (14.8%), 59 (1.5% mechanical); **1580 (40.6%)** at multiplicity target ≥3.
-  Generation is thread-parallel (`--gen-workers`); a full catalog pass runs in
+- **Combined coverage:** **2336 / 3891 (60.0%)** — **67.0% of the 3489 code
+  diagnostics** — across 12 unioned passes (**16,660** deduped records); **1663
+  (42.7%)** at multiplicity target ≥3. Generation is thread-parallel
+  (`--gen-workers`); `--skip-mining` runs a catalog pass in minutes.
   minutes.
 
 | Component | Stage 1 | + sweep | + catalog | + feature-verify |
