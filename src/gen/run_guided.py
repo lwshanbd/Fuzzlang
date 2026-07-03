@@ -89,6 +89,8 @@ def main() -> None:
                     help="fallback prompt language (per-diagnostic is auto-guessed)")
     ap.add_argument("--workers", type=int, default=16,
                     help="threads for the multi-config mining sweep")
+    ap.add_argument("--gen-workers", type=int, default=12,
+                    help="threads for generation (LLM + verify are I/O-bound)")
     ap.add_argument("--no-runline", action="store_true",
                     help="disable mining each file's own %%clang_cc1 RUN-line flags")
     ap.add_argument("--max-cc1-per-file", type=int, default=4,
@@ -151,21 +153,28 @@ def main() -> None:
           f"({n_with_ex} with a mined example, {len(targets) - n_with_ex} from catalog only)")
 
     chat = _build_chat(args.base_url, args.model, args.max_tokens, args.temperature)
-    records = []
-    for diag in targets:
+
+    def gen_one(diag):
         examples = index.get(diag, [])
         lang = _guess_language(examples[0]) if examples else args.language
         # Verify generated pairs under the language sweep PLUS the configs that
         # actually triggered this diagnostic (e.g. -fopenmp / -triple from a
         # RUN line), so RUN-line diagnostics can be reproduced and kept.
         gen_cmds = configs + diag_configs.get(diag, [])
-        recs = generate_pairs(diag, msg_of.get(diag, ""), examples, chat, verifier,
+        return generate_pairs(diag, msg_of.get(diag, ""), examples, chat, verifier,
                               source=f"guided:{diag}", language=lang,
                               compile_cmds=gen_cmds,
                               target_required=args.target_required,
                               samples=args.samples_per_diag)
-        records.extend(recs)
-        print(f"  [{diag}] {len(recs)}")
+
+    # Generation is LLM + verify I/O-bound: run targets concurrently.
+    records = []
+    from concurrent.futures import ThreadPoolExecutor
+    with ThreadPoolExecutor(max_workers=max(1, args.gen_workers)) as ex:
+        for i, recs in enumerate(ex.map(gen_one, targets), 1):
+            records.extend(recs)
+            if i % 200 == 0:
+                print(f"  ... {i}/{len(targets)} targets, {len(records)} records")
 
     args.out.parent.mkdir(parents=True, exist_ok=True)
     with args.out.open("w", encoding="utf-8") as f:
