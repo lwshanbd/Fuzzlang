@@ -41,6 +41,17 @@ and are structurally uncoverable here. Measured against the **3489 code
 diagnostics** (`run_coverage --code-only`), coverage is **2432/3489 = 69.7%**
 (covered@target 48.5%). Every covered diagnostic is a code diagnostic.
 
+**Strict C/C++ scope (the headline).** Of the 3489 code diagnostics, an
+LLM-judged classifier (`gen/run_scope.py`, vendor keywords + `gpt-5.4-mini`,
+result in `data/gen/out_of_scope.txt`) marks **1847 as out of scope** — specific
+to another dialect (Objective-C, OpenMP, OpenACC, OpenCL, CUDA/HIP, SYCL, HLSL,
+MS-only) or a hardware target (SVE/SME/NEON/AVX/RISC-V-V/AMDGPU/ptrauth). Those
+aren't standard-C/C++ code errors and their being uncovered is expected. Against
+the **1877 in-scope C/C++ code diagnostics** (`run_coverage --code-only
+--exclude-names data/gen/out_of_scope.txt`), coverage is **1494/1877 = 79.6%**
+(covered@target 1168/1877 = 62.2%): Sema 1162/1418 (82%), Parse 205/241 (85%),
+Lex 97/157 (62%). The out-of-scope list is committed for review/editing.
+
 # Stage 1 — mechanical mutation
 
 ## Corpus
@@ -212,10 +223,11 @@ PYTHONPATH=src python3 src/gen/run_dataset.py \
     --salt fuzzlang-gen-v1 --dev-fraction 0.1 --eval-fraction 0.1
 ```
 
-Result (`data/gen/splits/manifest.json`): **17,658 → 16,787 records after dedup**
-(871 removed); train 13,292 / dev 1,767 / eval 1,728; provenance isolation OK.
+Result on the **strict-C/C++ records** (out-of-scope diagnostics dropped via
+`data/gen/out_of_scope.txt`): **13,777 → 13,059 after dedup** (718 removed);
+train 10,406 / dev 1,356 / eval 1,297; provenance isolation OK.
 Because isolation is by source (not diagnostic), a diagnostic can recur across
-splits via different sources: **62% of eval diagnostics also appear in train**
-(held-out instances of seen diagnostics) and 176 are eval-only (a
+splits via different sources: **68% of eval diagnostics also appear in train**
+(held-out instances of seen diagnostics) and 91 are eval-only (a
 generalization tail). The split JSONLs and `manifest.json` are gitignored data
 artifacts (regenerate with the command above); the numbers here are the record.
