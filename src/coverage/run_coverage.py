@@ -39,16 +39,25 @@ def main() -> None:
                     help="exclude invocation/environment diagnostics (Driver, Frontend, "
                          "Serialization, InstallAPI, CrossTU, Refactoring) that can't be "
                          "single-file broken/corrected code pairs")
+    ap.add_argument("--exclude-names", type=Path, default=None,
+                    help="file of diagnostic names (one per line) to drop from the "
+                         "denominator, e.g. out-of-scope non-C/C++ diagnostics")
     args = ap.parse_args()
 
     catalog = load_catalog()
     records = _load_records(args.records)
     exclude = INVOCATION_COMPONENTS if args.code_only else None
+    exclude_names = None
+    if args.exclude_names:
+        exclude_names = {l.strip() for l in
+                         args.exclude_names.read_text().splitlines() if l.strip()}
     report = build_report(records, catalog, multiplicity_target=args.target,
-                          exclude_components=exclude)
+                          exclude_components=exclude, exclude_names=exclude_names)
 
     if args.code_only:
         print(f"[coverage] code-only: excluding {', '.join(sorted(INVOCATION_COMPONENTS))}")
+    if exclude_names:
+        print(f"[coverage] excluding {len(exclude_names)} named diagnostics")
     print(format_report(report))
 
     if args.gap_out:

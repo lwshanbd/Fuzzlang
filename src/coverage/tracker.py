@@ -76,9 +76,12 @@ def build_report(
     catalog: Catalog,
     multiplicity_target: int = 3,
     exclude_components: Optional[Iterable[str]] = None,
+    exclude_names: Optional[Iterable[str]] = None,
 ) -> CoverageReport:
     excluded = frozenset(exclude_components or ())
-    errors = [e for e in catalog.errors() if e.component not in excluded]
+    excluded_names = frozenset(exclude_names or ())
+    errors = [e for e in catalog.errors()
+              if e.component not in excluded and e.name not in excluded_names]
     denominator = frozenset(e.name for e in errors)
     component_of = {e.name: e.component for e in errors}
 

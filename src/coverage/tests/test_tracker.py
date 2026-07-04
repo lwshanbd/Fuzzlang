@@ -92,3 +92,13 @@ def test_exclude_components_filters_denominator():
     assert "err_drv_x" not in r.counts        # excluded diagnostic not counted
     assert r.counts == {"err_a": 1}
     assert set(r.by_component()) == {"Sema", "Parse"}
+
+
+def test_exclude_names_drops_specific_diagnostics():
+    from coverage.tracker import build_report as br
+    recs = [_rec("err_a", "1"), _rec("err_c", "2")]
+    r = br(recs, _catalog(), multiplicity_target=1,
+           exclude_names={"err_a", "err_b"})
+    assert r.total == 2                        # err_c, err_d remain (err_a,b dropped)
+    assert "err_a" not in r.counts
+    assert r.counts == {"err_c": 1}
