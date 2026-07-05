@@ -20,10 +20,10 @@ etc.) that are out of scope by design.
 - **Gen** — all three strategies, verifier-checked, run at scale:
   mechanical mutation; guided generation from Clang's tests (multi-config +
   RUN-line flag mining); and model-assisted/catalog generation (gpt-5.4-mini,
-  gpt-5.5 for the hard tail). Drove coverage 1.5% → 79.5%.
-- **Dataset** — 14,483 verified records → 13,745 after dedup, split
-  train 10,973 / dev 1,402 / eval 1,370, provenance-isolated (no source leaks
-  across splits).
+  gpt-5.5 for the hard tail). These supply the verified records behind the
+  coverage above.
+- **Dataset** — 13,745 deduped verified records, split train 10,973 /
+  dev 1,402 / eval 1,370, provenance-isolated (no source leaks across splits).
 - **Scope filter** — every diagnostic classified strict-C/C++ vs out-of-scope
   (keywords + LLM, audited by sub-agents); list at `data/gen/out_of_scope.txt`.
 
