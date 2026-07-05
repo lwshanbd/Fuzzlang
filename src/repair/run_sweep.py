@@ -13,9 +13,11 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import random
 import sys
 import time
+from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
 from repair.agent import (
@@ -70,6 +72,9 @@ def _parse_args() -> argparse.Namespace:
     p.add_argument("--out", required=True, help="Output JSON summary path.")
     p.add_argument("--max-instances", type=int, default=None,
                    help="Cap for smoke / dry-run.")
+    p.add_argument("--workers", type=int, default=1,
+                   help="Instance-level parallelism (thread pool). LLM/verifier "
+                        "calls are I/O-bound, so >1 gives near-linear speedup.")
     p.add_argument("--dry-run", action="store_true",
                    help="Use a MockChatBackend that always returns an empty edit.")
     return p.parse_args()
@@ -92,7 +97,10 @@ def _make_backend(args):
     if args.dry_run:
         return MockChatBackend(scripted_responses=[])
     model_name = args.adapter_name or args.model_name
-    return OpenAIChatBackend(model_name=model_name, base_url=args.base_url)
+    # api_key from env (OPENAI_API_KEY); "dummy" is fine for a local vLLM server.
+    api_key = os.environ.get("OPENAI_API_KEY", "dummy")
+    return OpenAIChatBackend(model_name=model_name, base_url=args.base_url,
+                             api_key=api_key)
 
 
 def _make_runner(args, verifier, policy):
@@ -123,38 +131,50 @@ def main() -> int:
     policy = OpenAICompatPolicy(backend)
     runner = _make_runner(args, verifier, policy)
 
-    t0 = time.time()
-    results: list[InstanceResult] = []
-    for i, inst in enumerate(split):
+    def run_one(i: int, inst: dict) -> InstanceResult:
         src = inst["buggy_src"]
         cmd = inst["compile_cmd"]            # list[str] with PLACEHOLDER for the file.
         inst_id = inst.get("instance_id", f"idx_{i}")
         gt_diag_id = inst.get("diag_id")
         gt_diag_name = inst.get("diag_name")
-
         try:
             r = runner(src, cmd)
         except Exception as e:            # robust against policy / verifier crashes.
             print(f"[run_sweep]   {inst_id}: error {type(e).__name__}: {e}",
                   flush=True)
-            results.append(InstanceResult(
+            return InstanceResult(
                 instance_id=inst_id, diag_id=gt_diag_id,
                 diag_family=diag_family_from_name(gt_diag_name),
                 ok=False, turns_used=0, tokens_used=0,
                 reason=f"exception:{type(e).__name__}",
-            ))
-            continue
-
-        results.append(InstanceResult(
+            )
+        return InstanceResult(
             instance_id=inst_id, diag_id=gt_diag_id,
             diag_family=diag_family_from_name(gt_diag_name),
             ok=r.ok, turns_used=r.turns_used, tokens_used=r.output_tokens_used,
             reason=r.reason.value,
-        ))
-        if (i + 1) % 50 == 0:
-            fix_rate = sum(1 for x in results if x.ok) / len(results)
-            print(f"[run_sweep]   {i+1}/{len(split)}  fix_rate={fix_rate:.3f}",
+        )
+
+    t0 = time.time()
+    results: list[InstanceResult] = [None] * len(split)  # type: ignore[list-item]
+    done = 0
+    if args.workers <= 1:
+        iterator = ((i, run_one(i, inst)) for i, inst in enumerate(split))
+    else:
+        ex = ThreadPoolExecutor(max_workers=args.workers)
+        futs = {ex.submit(run_one, i, inst): i for i, inst in enumerate(split)}
+        from concurrent.futures import as_completed
+        iterator = ((futs[f], f.result()) for f in as_completed(futs))
+    for i, res in iterator:
+        results[i] = res
+        done += 1
+        if done % 50 == 0:
+            got = [x for x in results if x is not None]
+            fix_rate = sum(1 for x in got if x.ok) / len(got)
+            print(f"[run_sweep]   {done}/{len(split)}  fix_rate={fix_rate:.3f}",
                   flush=True)
+    if args.workers > 1:
+        ex.shutdown()
 
     elapsed = time.time() - t0
     summary = summarize(results, seed=args.seed, n_resamples=10_000)

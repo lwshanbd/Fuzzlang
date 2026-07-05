@@ -20,6 +20,7 @@ def make_diag_runner(
     trajectory_window: int = 2,
     temperature: float = 0.8,
     max_tokens_per_call: int = 256,
+    token_envelope: int | None = None,
 ) -> Callable[[str, list[str]], RunResult]:
     """Bind (verifier, policy, knobs) into a single-argument runner.
 
@@ -38,6 +39,7 @@ def make_diag_runner(
     )
 
     def run(source: str, compile_cmd: list[str]) -> RunResult:
-        return run_repair_loop(source, compile_cmd, verifier, policy, ctx, T=T, K=K)
+        return run_repair_loop(source, compile_cmd, verifier, policy, ctx,
+                               T=T, K=K, token_envelope=token_envelope)
 
     return run
