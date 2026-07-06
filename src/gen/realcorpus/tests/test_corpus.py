@@ -1,0 +1,52 @@
+from __future__ import annotations
+
+import json
+from pathlib import Path
+
+from foundation.types import DiagInfo, VerifierResult
+from foundation.verifier.mock import MockVerifier, ok_result
+from gen.realcorpus.corpus import Fragment, build_fragment_index, sanitize_cmd
+
+
+def test_sanitize_cmd_drops_werror_only():
+    cmd = ["__CLANG__", "-Werror", "-Werror=return-type", "-Wall", "-std=c++17", "__SRC__"]
+    out = sanitize_cmd(cmd)
+    assert "-Werror" not in out and "-Werror=return-type" not in out
+    assert "-Wall" in out and "-std=c++17" in out
+
+
+def _write_tu(tmp_path: Path, name: str, body: str) -> str:
+    p = tmp_path / name
+    p.write_text(body)
+    return str(p)
+
+
+def test_build_fragment_index_keeps_only_clean_tus(tmp_path: Path):
+    good = _write_tu(tmp_path, "good.cpp", "int add(int a,int b){ return a+b; }\n")
+    bad = _write_tu(tmp_path, "bad.cpp", "int oops(int a){ return a\n}\n")
+    ccdb = tmp_path / "compile_commands.json"
+    ccdb.write_text(json.dumps([
+        {"directory": str(tmp_path), "file": good, "command": f"g++ -c {good}"},
+        {"directory": str(tmp_path), "file": bad, "command": f"g++ -c {bad}"},
+    ]))
+    from foundation.compile_db import load_compile_db
+    db = load_compile_db(ccdb)
+
+    def policy(src, cmd, logical_path):
+        # "good" body compiles; "bad" (missing ;) errors.
+        if "return a\n" in src:
+            return VerifierResult(ok=False, diag=DiagInfo(
+                diag_id=1, diag_name="err_expected_semi", diag_msg="expected ';'",
+                file=logical_path, line=1, col=1, start_byte=0, end_byte=1,
+                span_snippet="x"), raw_stderr="error: expected ';'")
+        return ok_result()
+
+    frags = build_fragment_index(db, MockVerifier(policy),
+                                 n_files=10, seed=0, max_regions_per_file=4)
+    paths = {f.rel_path for f in frags}
+    assert any("good.cpp" in p for p in paths)
+    assert not any("bad.cpp" in p for p in paths)
+    # a fragment carries its region text and a placeholdered compile cmd
+    f = next(iter(frags))
+    assert f.compile_cmd[0] == "__CLANG__" and f.compile_cmd[-1] == "__SRC__"
+    assert f.region_text in f.tu_src
