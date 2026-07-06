@@ -51,6 +51,10 @@ from dataclasses import asdict, dataclass
 from pathlib import Path
 from typing import Optional
 
+from foundation.compile_db import build_clang_argv as _shared_build_clang_argv
+from foundation.compile_db import load_compile_db as _shared_load_compile_db
+from foundation.compile_db import split_command as _shared_split_command
+
 
 # ----- Tunables -----
 
@@ -153,15 +157,7 @@ def _load_compile_db(ccdb_path: Path) -> dict[str, dict]:
 
     Each entry has `directory`, `command` or `arguments`, `file`.
     """
-    with ccdb_path.open() as f:
-        rows = json.load(f)
-    index: dict[str, dict] = {}
-    for r in rows:
-        fpath = os.path.realpath(
-            r["file"] if os.path.isabs(r["file"])
-            else os.path.join(r.get("directory", ""), r["file"])
-        )
-        index[fpath] = r
+    index = _shared_load_compile_db(ccdb_path)
     print(f"[stage2-llvm] compile_commands.json: {len(index)} TUs", flush=True)
     return index
 
@@ -202,10 +198,7 @@ def _buggy_source_at_sha(llvm_src: Path, sha: str, repo_path: str) -> Optional[s
 def _split_command(entry: dict) -> list[str]:
     """compile_commands.json entries use `command` (shell string) OR
     `arguments` (list). Return the argv list."""
-    if "arguments" in entry:
-        return list(entry["arguments"])
-    import shlex
-    return shlex.split(entry["command"])
+    return _shared_split_command(entry)
 
 
 def _build_clang_argv(entry: dict, clang_bin: str, src_tmpfile: str) -> list[str]:
@@ -215,40 +208,7 @@ def _build_clang_argv(entry: dict, clang_bin: str, src_tmpfile: str) -> list[str
     - Drop any trailing source path and append our tmp source.
     - Force `-fsyntax-only` to avoid .o writes.
     """
-    argv = _split_command(entry)
-    # Replace compiler (first arg).
-    argv[0] = clang_bin
-
-    # Drop output arg and the source file at the end.
-    out: list[str] = []
-    skip_next = False
-    entry_file = os.path.realpath(
-        entry["file"] if os.path.isabs(entry["file"])
-        else os.path.join(entry.get("directory", ""), entry["file"])
-    )
-    for tok in argv:
-        if skip_next:
-            skip_next = False
-            continue
-        if tok == "-o":
-            skip_next = True
-            continue
-        if tok.startswith("-o"):   # -o/path form
-            continue
-        # Drop the recorded source path; we'll append our tmp file instead.
-        tok_abs = os.path.realpath(tok)
-        if tok_abs == entry_file:
-            continue
-        out.append(tok)
-
-    if "-fsyntax-only" not in out:
-        out.append("-fsyntax-only")
-    # clang's terminal-default color escapes (\e[0;34m etc.) break the
-    # `file:line:col: error:` regex. Force monochrome.
-    if "-fno-color-diagnostics" not in out:
-        out.append("-fno-color-diagnostics")
-    out.append(src_tmpfile)
-    return out
+    return _shared_build_clang_argv(entry, clang_bin, src_tmpfile)
 
 
 def _reverse_lookup_diagname(diagtool_bin: str, diag_id: int,
