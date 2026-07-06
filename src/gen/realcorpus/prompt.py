@@ -23,8 +23,11 @@ _SYSTEM = (
     "You corrupt correct C/C++ code to create a SPECIFIC compiler error, for a "
     "compiler-diagnostics dataset. You are given a target Clang diagnostic, an "
     "example of how it is triggered, and a region of real code. Introduce the "
-    "SMALLEST possible edit to the region so that Clang emits the target "
-    "diagnostic. Keep it realistic and local. Reply with ONE block:\n"
+    "SMALLEST possible edit to the region so that the FIRST error Clang emits is "
+    "exactly the target diagnostic. Prefer a SEMANTIC change (wrong type, wrong "
+    "name, wrong overload, bad member/conversion) over trivial syntax breakage, "
+    "unless the target is itself a syntactic diagnostic. Keep the edit local and "
+    "realistic. Reply with ONE block:\n"
     "<<<OLD\n<exact text to replace, copied verbatim from the region>\n===\n"
     "<replacement text>\n>>>\n"
     "If the target diagnostic cannot be naturally induced in this region, reply "
@@ -61,3 +64,23 @@ def parse_edit(reply: str) -> Optional[Edit]:
     if not m:
         return None
     return Edit(old=m.group(1), new=m.group(2))
+
+
+def build_retry_message(target: Target, observed: str,
+                        compiled_ok: bool) -> dict:
+    """A follow-up user turn telling the model how its last edit missed, so it
+    can correct toward making the FIRST Clang error equal the target."""
+    if compiled_ok:
+        body = (
+            f"Your edit did NOT cause any compiler error. Make a change so the "
+            f"FIRST error Clang emits is {target.name} ({target.message})."
+        )
+    else:
+        body = (
+            f"Your edit produced '{observed}' as the first error, but I need the "
+            f"FIRST error to be {target.name} ({target.message}). Revise the edit "
+            f"so Clang's first error is {target.name}."
+        )
+    return {"role": "user",
+            "content": body + "\nReply with ONE <<<OLD ... === ... >>> block, "
+                              "or NOT_APPLICABLE."}
