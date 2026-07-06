@@ -31,7 +31,7 @@ from foundation.verifier import FuzzlangClangVerifier
 from gen.realcorpus.collect import collect_real_record
 from gen.realcorpus.corpus import Fragment, build_fragment_index
 from gen.realcorpus.inject import inject_target
-from gen.realcorpus.select import rank_fragments
+from gen.realcorpus.ranking import rank_fragments
 from gen.realcorpus.targets import Target, build_targets, load_exemplars
 
 
@@ -45,23 +45,46 @@ def drive_targets(
     candidates_per_target: int,
     max_instances: int,
     split: Split = Split.EVAL,
+    workers: int = 1,
+    retries: int = 2,
+    temperature: float = 0.8,
+    on_emit=None,
 ) -> list[Record]:
     """Core orchestration: one emitted Record per target that injects+verifies,
-    up to max_instances. `inject_fn` is injectable for testing."""
-    out: list[Record] = []
-    for target in targets:
-        if len(out) >= max_instances:
-            break
+    up to max_instances (covered-first priority preserved by processing targets
+    in order). Parallelized across targets with a thread pool. `inject_fn` is
+    injectable for testing; `on_emit(rec, frag)` is called for each kept record."""
+    from concurrent.futures import ThreadPoolExecutor
+
+    def work(target):
         for frag in rank_fragments(target, fragments, k=candidates_per_target):
-            erroneous = inject_fn(target, frag, chat)
+            erroneous = inject_fn(target, frag, chat, retries=retries,
+                                  temperature=temperature)
             if erroneous is None:
                 continue
             lang = "c" if frag.rel_path.endswith(".c") else "c++"
             rec = collect_real_record(frag, erroneous, target, verifier,
                                       split=split, language=lang)
             if rec is not None:
+                return rec, frag
+        return None
+
+    out: list[Record] = []
+    with ThreadPoolExecutor(max_workers=max(1, workers)) as ex:
+        i = 0
+        block = max(1, workers) * 4
+        while i < len(targets) and len(out) < max_instances:
+            chunk = targets[i:i + block]
+            i += len(chunk)
+            for res in ex.map(work, chunk):
+                if res is None:
+                    continue
+                rec, frag = res
                 out.append(rec)
-                break  # one instance per target; move on
+                if on_emit is not None:
+                    on_emit(rec, frag)
+                if len(out) >= max_instances:
+                    break
     return out
 
 
@@ -108,6 +131,9 @@ def main() -> None:
     ap.add_argument("--max-instances", type=int, default=300)
     ap.add_argument("--seed", type=int, default=0)
     ap.add_argument("--out", type=Path, required=True)
+    ap.add_argument("--workers", type=int, default=8)
+    ap.add_argument("--retries", type=int, default=2)
+    ap.add_argument("--temperature", type=float, default=0.8)
     args = ap.parse_args()
 
     verifier = FuzzlangClangVerifier(clang_bin=args.clang_bin,
@@ -126,28 +152,21 @@ def main() -> None:
 
     chat = _chat_fn(args.model, args.base_url)
 
-    # main() inlines the drive loop (vs. calling drive_targets) so it can stream
-    # progress and rows; drive_targets stays the unit-tested pure core.
-    records: list[Record] = []
     rows: list[dict] = []
-    remaining = args.max_instances
-    for target in targets:
-        if remaining <= 0:
-            break
-        for frag in rank_fragments(target, frags, k=args.candidates_per_target):
-            erroneous = inject_target(target, frag, chat)
-            if erroneous is None:
-                continue
-            lang = "c" if frag.rel_path.endswith(".c") else "c++"
-            rec = collect_real_record(frag, erroneous, target, verifier, language=lang)
-            if rec is not None:
-                records.append(rec)
-                rows.append(to_run_sweep_row(rec, frag))
-                remaining -= 1
-                print(f"[realcorpus] {len(rows)}/{args.max_instances} "
-                      f"{target.name} match={rec.provenance.detail['primary_matches_target']} "
-                      f"cascade={rec.provenance.detail['cascade_size']}", flush=True)
-                break
+
+    def on_emit(rec, frag):
+        rows.append(to_run_sweep_row(rec, frag))
+        det = rec.provenance.detail
+        print(f"[realcorpus] {len(rows)}/{args.max_instances} {det['target_diag']} "
+              f"match={det['primary_matches_target']} cascade={det['cascade_size']}",
+              flush=True)
+
+    drive_targets(
+        targets, frags, verifier, chat=chat,
+        candidates_per_target=args.candidates_per_target,
+        max_instances=args.max_instances, workers=args.workers,
+        retries=args.retries, temperature=args.temperature, on_emit=on_emit,
+    )
 
     args.out.parent.mkdir(parents=True, exist_ok=True)
     with args.out.open("w") as f:

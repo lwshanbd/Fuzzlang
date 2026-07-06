@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from gen.realcorpus.corpus import Fragment
-from gen.realcorpus.select import rank_fragments
+from gen.realcorpus.ranking import rank_fragments
 from gen.realcorpus.targets import Target
 
 
