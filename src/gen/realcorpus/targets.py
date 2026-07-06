@@ -16,6 +16,18 @@ from typing import Optional
 from foundation.diagnostics.catalog import DiagEntry
 from gen.realcorpus.features import target_features
 
+# Diagnostic families effectively uninducible by a small semantic edit in
+# ordinary code (need inline asm, preprocessor, module/driver context). Sorted
+# to the END of the target order so the driver spends attempts where they pay off.
+_PATHOLOGICAL_PREFIXES = (
+    "err_asm_", "err_pp_", "err_pragma", "err_module", "err_import",
+    "err_drv_", "err_fe_", "err_mmap",
+)
+
+
+def _is_pathological(name: str) -> bool:
+    return name.startswith(_PATHOLOGICAL_PREFIXES)
+
 
 @dataclass(frozen=True)
 class Target:
@@ -58,5 +70,11 @@ def build_targets(
             features=target_features(e.name, e.message or ""),
             exemplar=exemplar, covered=exemplar is not None,
         ))
-    targets.sort(key=lambda t: 0 if t.covered else 1)  # stable: covered first
+    order = {t.name: i for i, t in enumerate(targets)}   # catalog order tiebreak
+    targets.sort(key=lambda t: (
+        1 if _is_pathological(t.name) else 0,   # pathological families last
+        0 if t.covered else 1,                  # then covered (known-inducible)
+        0 if t.features else 1,                 # then feature-taggable
+        order[t.name],
+    ))
     return targets

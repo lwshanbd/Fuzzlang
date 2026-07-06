@@ -10,13 +10,18 @@ def _frag(feats):
                     features=frozenset(feats), compile_cmd=["__CLANG__", "__SRC__"])
 
 
-def test_rank_prefers_feature_overlap():
+def test_rank_gates_to_feature_matching_fragments():
     target = Target(name="err_ovl", message="no matching function",
                     features=frozenset({"call"}), exemplar=None, covered=False)
     frags = [_frag(set()), _frag({"call"}), _frag({"template"})]
-    ranked = rank_fragments(target, frags, k=2)
-    assert ranked[0].features == frozenset({"call"})  # best overlap first
-    assert len(ranked) == 2
+    ranked = rank_fragments(target, frags, k=3)
+    assert [f.features for f in ranked] == [frozenset({"call"})]  # only the applicable one
+
+
+def test_rank_returns_empty_when_no_fragment_matches():
+    target = Target(name="x", message="y", features=frozenset({"lambda"}),
+                    exemplar=None, covered=False)
+    assert rank_fragments(target, [_frag({"call"})], k=3) == []
 
 
 def test_rank_no_target_features_returns_first_k():

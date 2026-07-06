@@ -2,8 +2,7 @@
 compile command, and if the primary error is not the target, feed the observed
 diagnostic back and retry. Closes the diagnostic loop on GENERATION — the
 verifier signal steers the model toward inducing exactly the requested
-diagnostic. Returns the first exact match, else the best near-miss (a real error
-whose primary != target), else None.
+diagnostic. Returns the first exact match, else None (near-misses are dropped).
 """
 from __future__ import annotations
 
@@ -26,7 +25,6 @@ def induce_target(target: Target, fragment: Fragment, chat: ChatFn,
                   ) -> Optional[tuple[str, VerifierResult]]:
     messages = build_inject_prompt(target, fragment.region_text,
                                    fragment.tu_src[:_FILE_HEAD_CHARS])
-    best: Optional[tuple[str, VerifierResult]] = None
     for _ in range(max(1, max_attempts)):
         try:
             reply = chat(messages, temperature)
@@ -48,8 +46,6 @@ def induce_target(target: Target, fragment: Fragment, chat: ChatFn,
         if not res.ok and res.diag is not None:
             if res.diag.diag_name == target.name:
                 return mutant, res
-            if best is None:
-                best = (mutant, res)
             observed = res.diag.diag_name or res.diag.diag_msg
             messages = messages + [
                 {"role": "assistant", "content": reply},
@@ -60,4 +56,4 @@ def induce_target(target: Target, fragment: Fragment, chat: ChatFn,
                 {"role": "assistant", "content": reply},
                 build_retry_message(target, "", compiled_ok=True),
             ]
-    return best
+    return None

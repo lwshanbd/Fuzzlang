@@ -35,7 +35,7 @@ def test_induce_returns_exact_match():
     assert res.diag.diag_name == "err_target"
 
 
-def test_induce_retries_then_returns_near_miss():
+def test_induce_returns_none_when_never_matches():
     calls = {"n": 0}
 
     def chat(m, t):
@@ -45,10 +45,8 @@ def test_induce_retries_then_returns_near_miss():
     v = MockVerifier(lambda s, c, l: VerifierResult(ok=False, diag=_diag("err_other"),
                                                     raw_stderr="e"))
     out = induce_target(_target("err_target"), _frag(), chat, v, max_attempts=3)
-    assert out is not None
-    _, res = out
-    assert res.diag.diag_name == "err_other"     # near-miss kept
-    assert calls["n"] >= 2                        # it retried on mismatch
+    assert out is None                 # near-miss is NOT kept
+    assert calls["n"] >= 2             # it retried on mismatch
 
 
 def test_induce_gives_up_on_not_applicable():

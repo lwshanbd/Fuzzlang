@@ -33,3 +33,13 @@ def test_build_targets_excludes_out_of_scope_and_orders_covered_first():
     assert "err_omp_bad" not in names
     assert names.index("err_covered") < names.index("err_uncovered")  # covered first
     assert targets[0].exemplar == "buggy" and targets[0].covered is True
+
+
+def test_build_targets_deprioritizes_pathological_families():
+    entries = [
+        DiagEntry(name="err_asm_bad", severity="Error", message="asm"),
+        DiagEntry(name="err_typecheck_bad", severity="Error", message="type"),
+    ]
+    targets = build_targets(entries, out_of_scope=set(), exemplars={})
+    names = [t.name for t in targets]
+    assert names.index("err_typecheck_bad") < names.index("err_asm_bad")
