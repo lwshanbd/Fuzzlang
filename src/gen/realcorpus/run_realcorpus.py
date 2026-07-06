@@ -30,7 +30,7 @@ from foundation.record import Record, Split
 from foundation.verifier import FuzzlangClangVerifier
 from gen.realcorpus.collect import collect_real_record
 from gen.realcorpus.corpus import Fragment, build_fragment_index
-from gen.realcorpus.inject import inject_target
+from gen.realcorpus.induce import induce_target
 from gen.realcorpus.ranking import rank_fragments
 from gen.realcorpus.targets import Target, build_targets, load_exemplars
 
@@ -41,30 +41,31 @@ def drive_targets(
     verifier,
     *,
     chat,
-    inject_fn: Callable = inject_target,
+    induce_fn: Callable = induce_target,
     candidates_per_target: int,
     max_instances: int,
     split: Split = Split.EVAL,
     workers: int = 1,
-    retries: int = 2,
+    max_attempts: int = 3,
     temperature: float = 0.8,
     on_emit=None,
 ) -> list[Record]:
     """Core orchestration: one emitted Record per target that injects+verifies,
     up to max_instances (covered-first priority preserved by processing targets
-    in order). Parallelized across targets with a thread pool. `inject_fn` is
+    in order). Parallelized across targets with a thread pool. `induce_fn` is
     injectable for testing; `on_emit(rec, frag)` is called for each kept record."""
     from concurrent.futures import ThreadPoolExecutor
 
     def work(target):
         for frag in rank_fragments(target, fragments, k=candidates_per_target):
-            erroneous = inject_fn(target, frag, chat, retries=retries,
-                                  temperature=temperature)
-            if erroneous is None:
+            induced = induce_fn(target, frag, chat, verifier,
+                                max_attempts=max_attempts, temperature=temperature)
+            if induced is None:
                 continue
+            erroneous, res = induced
             lang = "c" if frag.rel_path.endswith(".c") else "c++"
             rec = collect_real_record(frag, erroneous, target, verifier,
-                                      split=split, language=lang)
+                                      split=split, language=lang, result=res)
             if rec is not None:
                 return rec, frag
         return None
@@ -132,7 +133,7 @@ def main() -> None:
     ap.add_argument("--seed", type=int, default=0)
     ap.add_argument("--out", type=Path, required=True)
     ap.add_argument("--workers", type=int, default=8)
-    ap.add_argument("--retries", type=int, default=2)
+    ap.add_argument("--max-attempts", type=int, default=3)
     ap.add_argument("--temperature", type=float, default=0.8)
     args = ap.parse_args()
 
@@ -165,7 +166,7 @@ def main() -> None:
         targets, frags, verifier, chat=chat,
         candidates_per_target=args.candidates_per_target,
         max_instances=args.max_instances, workers=args.workers,
-        retries=args.retries, temperature=args.temperature, on_emit=on_emit,
+        max_attempts=args.max_attempts, temperature=args.temperature, on_emit=on_emit,
     )
 
     args.out.parent.mkdir(parents=True, exist_ok=True)

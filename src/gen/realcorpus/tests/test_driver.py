@@ -18,24 +18,23 @@ def test_drive_targets_emits_one_record_per_success_up_to_cap():
     frags = [_frag()]
     diag = DiagInfo(diag_id=1, diag_name="err_0", diag_msg="m", file="clang/lib/A.cpp",
                     line=1, col=1, start_byte=0, end_byte=1, span_snippet="x")
+    res = VerifierResult(ok=False, diag=diag, raw_stderr="a:1:1: error: m\n")
 
-    def verify(src, cmd, logical_path):
-        return VerifierResult(ok=False, diag=diag, raw_stderr="a:1:1: error: m\n")
+    def induce(target, fragment, chat, verifier, **kw):     # always succeeds
+        return ("int f(){ return 0 }\n", res)
 
-    def inject(target, fragment, chat, **kw):        # always succeeds
-        return "int f(){ return 0 }\n"
-
-    recs = drive_targets(targets, frags, MockVerifier(verify), chat=None,
-                         inject_fn=inject, candidates_per_target=2, max_instances=2)
-    assert len(recs) == 2                            # capped
-    assert to_run_sweep_row(recs[0], frags[0])["compile_cmd"] == ["__CLANG__", "__SRC__"]
-    assert "cascade_size" in to_run_sweep_row(recs[0], frags[0])
+    recs = drive_targets(targets, frags, MockVerifier(lambda s, c, l: res), chat=None,
+                         induce_fn=induce, candidates_per_target=2, max_instances=2)
+    assert len(recs) == 2                                   # capped
+    row = to_run_sweep_row(recs[0], frags[0])
+    assert row["compile_cmd"] == ["__CLANG__", "__SRC__"]
+    assert "cascade_size" in row
 
 
-def test_drive_targets_skips_targets_that_never_inject():
+def test_drive_targets_skips_targets_that_never_induce():
     targets = [Target(name="err_x", message="m", features=frozenset(),
                       exemplar=None, covered=True)]
     recs = drive_targets(targets, [_frag()], MockVerifier(lambda s, c, l: None),
-                         chat=None, inject_fn=lambda *a, **k: None,
+                         chat=None, induce_fn=lambda *a, **k: None,
                          candidates_per_target=2, max_instances=5)
     assert recs == []

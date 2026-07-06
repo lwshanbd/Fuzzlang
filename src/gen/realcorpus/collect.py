@@ -11,6 +11,7 @@ import re
 from typing import Optional
 
 from foundation.record import Origin, Provenance, Record, Split
+from foundation.types import VerifierResult
 from foundation.verifier.base import BaseVerifier
 from gen.realcorpus.corpus import Fragment
 from gen.realcorpus.targets import Target
@@ -35,9 +36,10 @@ def collect_real_record(
     *,
     split: Split = Split.EVAL,
     language: str = "c++",
+    result: Optional[VerifierResult] = None,
 ) -> Optional[Record]:
-    res = verifier.verify(erroneous_src, fragment.compile_cmd,
-                          logical_path=fragment.rel_path)
+    res = result if result is not None else verifier.verify(
+        erroneous_src, fragment.compile_cmd, logical_path=fragment.rel_path)
     if res.ok or res.diag is None:
         return None
     cascade = count_errors(res.raw_stderr)
