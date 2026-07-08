@@ -134,6 +134,9 @@ def main() -> None:
     ap.add_argument("--source-substr", default="external/llvm-project",
                     help="path must contain this (excludes generated/build files)")
     ap.add_argument("--min-region-lines", type=int, default=3)
+    ap.add_argument("--max-regions-per-file", type=int, default=40,
+                    help="how many function spans to take per source file "
+                         "(cap=6 wasted ~80%% of real functions)")
     ap.add_argument("--index-workers", type=int, default=16)
     ap.add_argument("--out", type=Path, required=True)
     ap.add_argument("--workers", type=int, default=8)
@@ -149,6 +152,7 @@ def main() -> None:
         return (args.source_substr in p) and not is_test_path(p)
     frags = build_fragment_index(db, verifier, n_files=args.n_files, seed=args.seed,
                                  min_region_lines=args.min_region_lines,
+                                 max_regions_per_file=args.max_regions_per_file,
                                  path_filter=_keep, workers=args.index_workers)
     print(f"[realcorpus] fragment pool: {len(frags)} fragments", flush=True)
 
