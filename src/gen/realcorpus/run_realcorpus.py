@@ -29,7 +29,7 @@ from foundation.diagnostics.catalog import load_catalog
 from foundation.record import Record, Split
 from foundation.verifier import FuzzlangClangVerifier
 from gen.realcorpus.collect import collect_real_record
-from gen.realcorpus.corpus import Fragment, build_fragment_index
+from gen.realcorpus.corpus import Fragment, build_fragment_index, is_test_path
 from gen.realcorpus.induce import induce_target
 from gen.realcorpus.ranking import rank_fragments
 from gen.realcorpus.targets import Target, build_targets, load_exemplars
@@ -131,6 +131,10 @@ def main() -> None:
     ap.add_argument("--candidates-per-target", type=int, default=4)
     ap.add_argument("--max-instances", type=int, default=300)
     ap.add_argument("--seed", type=int, default=0)
+    ap.add_argument("--source-substr", default="external/llvm-project",
+                    help="path must contain this (excludes generated/build files)")
+    ap.add_argument("--min-region-lines", type=int, default=3)
+    ap.add_argument("--index-workers", type=int, default=16)
     ap.add_argument("--out", type=Path, required=True)
     ap.add_argument("--workers", type=int, default=8)
     ap.add_argument("--max-attempts", type=int, default=3)
@@ -141,7 +145,11 @@ def main() -> None:
                                      diagtool_bin=args.diagtool_bin, timeout_s=30.0)
     db = load_compile_db(args.compile_db)
     print(f"[realcorpus] compile db: {len(db)} TUs", flush=True)
-    frags = build_fragment_index(db, verifier, n_files=args.n_files, seed=args.seed)
+    def _keep(p):
+        return (args.source_substr in p) and not is_test_path(p)
+    frags = build_fragment_index(db, verifier, n_files=args.n_files, seed=args.seed,
+                                 min_region_lines=args.min_region_lines,
+                                 path_filter=_keep, workers=args.index_workers)
     print(f"[realcorpus] fragment pool: {len(frags)} fragments", flush=True)
 
     out_of_scope = {l.strip() for l in args.out_of_scope.read_text().splitlines()

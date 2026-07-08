@@ -50,3 +50,34 @@ def test_build_fragment_index_keeps_only_clean_tus(tmp_path: Path):
     f = next(iter(frags))
     assert f.compile_cmd[0] == "__CLANG__" and f.compile_cmd[-1] == "__SRC__"
     assert f.region_text in f.tu_src
+
+
+def test_is_test_path_flags_test_and_example_dirs():
+    from gen.realcorpus.corpus import is_test_path
+    assert is_test_path("/x/llvm/unittests/ADT/FooTest.cpp")
+    assert is_test_path("/x/clang/examples/Bar/Bar.cpp")
+    assert is_test_path("/x/third-party/unittest/googletest/src/gtest-all.cc")
+    assert not is_test_path("/x/llvm/lib/Support/APInt.cpp")
+    assert not is_test_path("/x/clang/lib/Sema/SemaDecl.cpp")
+
+
+def test_build_fragment_index_excludes_test_files(tmp_path):
+    import json
+    from foundation.compile_db import load_compile_db
+    from foundation.verifier.mock import MockVerifier, ok_result
+    real = _write_tu(tmp_path, "APInt.cpp", "int add(int a,int b){ return a+b; }\n")
+    testdir = tmp_path / "unittests"
+    testdir.mkdir()
+    tf = testdir / "FooTest.cpp"
+    tf.write_text("int t(){ return 1; }\n")
+    ccdb = tmp_path / "compile_commands.json"
+    ccdb.write_text(json.dumps([
+        {"directory": str(tmp_path), "file": real, "command": f"g++ -c {real}"},
+        {"directory": str(tmp_path), "file": str(tf), "command": f"g++ -c {tf}"},
+    ]))
+    db = load_compile_db(ccdb)
+    frags = build_fragment_index(db, MockVerifier(lambda s, c, l: ok_result()),
+                                 n_files=10, seed=0)
+    paths = {f.rel_path for f in frags}
+    assert any("APInt.cpp" in p for p in paths)
+    assert not any("FooTest.cpp" in p for p in paths)
