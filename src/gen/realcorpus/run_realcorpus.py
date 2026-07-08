@@ -161,26 +161,32 @@ def main() -> None:
 
     chat = _chat_fn(args.model, args.base_url)
 
+    args.out.parent.mkdir(parents=True, exist_ok=True)
     rows: list[dict] = []
+    out_f = args.out.open("w")
 
     def on_emit(rec, frag):
-        rows.append(to_run_sweep_row(rec, frag))
+        # Stream each verified instance to disk immediately (flushed), so a run
+        # killed mid-way (login-node long jobs can be) keeps what it produced.
+        # on_emit runs only on the consumer/main thread, so no lock is needed.
+        row = to_run_sweep_row(rec, frag)
+        rows.append(row)
+        out_f.write(json.dumps(row) + "\n")
+        out_f.flush()
         det = rec.provenance.detail
         print(f"[realcorpus] {len(rows)}/{args.max_instances} {det['target_diag']} "
               f"match={det['primary_matches_target']} cascade={det['cascade_size']}",
               flush=True)
 
-    drive_targets(
-        targets, frags, verifier, chat=chat,
-        candidates_per_target=args.candidates_per_target,
-        max_instances=args.max_instances, workers=args.workers,
-        max_attempts=args.max_attempts, temperature=args.temperature, on_emit=on_emit,
-    )
-
-    args.out.parent.mkdir(parents=True, exist_ok=True)
-    with args.out.open("w") as f:
-        for row in rows:
-            f.write(json.dumps(row) + "\n")
+    try:
+        drive_targets(
+            targets, frags, verifier, chat=chat,
+            candidates_per_target=args.candidates_per_target,
+            max_instances=args.max_instances, workers=args.workers,
+            max_attempts=args.max_attempts, temperature=args.temperature, on_emit=on_emit,
+        )
+    finally:
+        out_f.close()
     matched = sum(1 for r in rows if r["primary_matches_target"])
     print(f"[realcorpus] DONE wrote {len(rows)} rows -> {args.out} "
           f"({matched} primary==target)", flush=True)
