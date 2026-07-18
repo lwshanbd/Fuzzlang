@@ -1,0 +1,47 @@
+{
+  "schema_version": 1,
+  "experiment": "realcorpus-v2-repair-pilot16",
+  "created": "2026-07-17",
+  "model": "gpt-5.4-mini",
+  "compiler": "Fuzzlang-patched clang 22.1.8",
+  "eval_source": "data/gen/releases/realcorpus-v2/formal/eval.repair.jsonl",
+  "budget": {
+    "token_envelope_per_instance": 5120,
+    "turns": 5,
+    "parallel_proposals": 4
+  },
+  "completed_runs": {
+    "b0_full": {
+      "instances_per_seed": 440,
+      "seeds": [0, 1, 2],
+      "fix_rates": [0.7318181818, 0.7113636364, 0.7318181818],
+      "mean_fix_rate": 0.725,
+      "recorded_output_tokens": 52912
+    },
+    "matched_pilot": {
+      "selection": "first 16 formal eval instances",
+      "instances": 16,
+      "seeds": [0],
+      "fix_rates": {
+        "b0_zero_shot": 0.75,
+        "b1_stderr_loop": 0.9375,
+        "diag": 1.0,
+        "diag_no_id": 1.0,
+        "diag_no_structure": 0.9375
+      },
+      "new_recorded_output_tokens": 12608
+    }
+  },
+  "usage_note": {
+    "full_five_method_440_by_3_sweep_completed": false,
+    "reason": "stopped to constrain API usage",
+    "aborted_partial_cells_included_in_results": false,
+    "aborted_partial_usage_reconstructable_from_local_outputs": false
+  },
+  "archive": {
+    "path": "data/repair/releases/realcorpus-v2-pilot16/results.tar.zst",
+    "bytes": 15160,
+    "sha256": "01002f39f5c5315a7e9d4696ba061779315af4a70187d070fcd5d871ef6c3c1d",
+    "integrity_checked": true
+  }
+}

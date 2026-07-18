@@ -5,6 +5,7 @@ total-jsons/
 *.json
 !data/gen/releases/**/manifest.json
 !data/gen/releases/**/release-manifest.json
+!data/repair/releases/**/manifest.json
 *.ipynb_checkpoints
 tmp/
 __pycache__/

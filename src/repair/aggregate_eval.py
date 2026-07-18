@@ -54,6 +54,34 @@ def _load_instances(path: Path) -> list[InstanceResult]:
     return out
 
 
+def _load_metadata(path: Path) -> dict[str, dict]:
+    metadata: dict[str, dict] = {}
+    for line in path.read_text().splitlines():
+        if not line.strip():
+            continue
+        row = json.loads(line)
+        metadata[row["instance_id"]] = row
+    return metadata
+
+
+def slice_rates(
+    results: list[InstanceResult], metadata: dict[str, dict], field: str,
+) -> dict[str, dict[str, float | int]]:
+    """Return pooled fix rates after joining instance results to eval metadata."""
+    buckets: dict[str, list[InstanceResult]] = defaultdict(list)
+    for result in results:
+        value = metadata.get(result.instance_id, {}).get(field)
+        buckets[str(value) if value is not None else "__unknown__"].append(result)
+    return {
+        label: {
+            "ok": sum(result.ok for result in bucket),
+            "n": len(bucket),
+            "rate": verified_fix_rate(bucket),
+        }
+        for label, bucket in sorted(buckets.items())
+    }
+
+
 def _fmt_pct(x: float) -> str:
     return f"{100 * x:.1f}"
 
@@ -61,11 +89,16 @@ def _fmt_pct(x: float) -> str:
 def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--dir", type=Path, required=True)
+    ap.add_argument(
+        "--split", type=Path, default=None,
+        help="repair-ready eval JSONL; enables exact/near and cascade slices",
+    )
     ap.add_argument("--json", type=Path, default=None)
     ap.add_argument("--n-resamples", type=int, default=10_000)
     args = ap.parse_args()
 
     d = args.dir
+    metadata = _load_metadata(args.split) if args.split else {}
     present = []
     for method, _ in _ORDER:
         seeds = sorted(d.glob(f"{method}_s*.instances.jsonl"))
@@ -105,6 +138,12 @@ def main() -> None:
             "mean_tokens": statistics.mean(per_seed_tok),
             "per_seed_micro": per_seed_micro,
         }
+        if metadata:
+            agg[method]["slices"] = {
+                "generation_label": slice_rates(
+                    pool, metadata, "generation_label"),
+                "cascade_bucket": slice_rates(pool, metadata, "cascade_bucket"),
+            }
         pooled[method] = pool
 
     # ---- Markdown table ----
@@ -155,6 +194,37 @@ def main() -> None:
             lines.append(f"| {f} | {nd // agg['diag']['seeds']} | "
                          f"{_fmt_pct(rd)} | {_fmt_pct(rb)} | "
                          f"{_fmt_pct(rd - rb)} |")
+
+    # ---- generation and cascade slices (pooled across seeds) ----
+    def append_slice_table(title: str, field: str, order: list[str]) -> None:
+        if not metadata or not present:
+            return
+        methods = [method for method, _ in _ORDER if method in agg]
+        lines.extend(["", title, ""])
+        lines.append("| slice | n | " + " | ".join(methods) + " |")
+        lines.append("|---|---:|" + "---:|" * len(methods))
+        for bucket in order:
+            available = [agg[m].get("slices", {}).get(field, {}).get(bucket)
+                         for m in methods]
+            if not any(available):
+                continue
+            base = next(item for item in available if item is not None)
+            n_per_seed = int(base["n"]) // agg[methods[0]]["seeds"]
+            rates = [
+                _fmt_pct(float(item["rate"])) if item is not None else "--"
+                for item in available
+            ]
+            lines.append(f"| {bucket} | {n_per_seed} | " +
+                         " | ".join(rates) + " |")
+
+    append_slice_table(
+        "Fix-rate by generation label (pooled across seeds):",
+        "generation_label", ["exact_target", "near_miss", "__unknown__"],
+    )
+    append_slice_table(
+        "Fix-rate by initial diagnostic cascade size (pooled across seeds):",
+        "cascade_bucket", ["1", "2-5", "6-10", ">10", "__unknown__"],
+    )
 
     md = "\n".join(lines)
     print(md)
