@@ -1,0 +1,75 @@
+{
+  "compiler": {
+    "clang_bin": "/p/lustre2/shan4/fuzzlang-clang/bin/clang",
+    "diagtool_bin": "/p/lustre2/shan4/fuzzlang-clang/bin/diagtool",
+    "required_version": "llvmorg-22.1.8"
+  },
+  "generator": "learned_recipe_replay",
+  "limits": {
+    "exact_only": false,
+    "language": "c++",
+    "max_candidates_per_recipe": 1,
+    "max_instances": 30,
+    "max_instances_per_diagnostic": 3,
+    "max_records_per_source": 3,
+    "max_verifications_per_source": 10,
+    "n_files": 30
+  },
+  "recipes": {
+    "extracted": 1413,
+    "file": {
+      "bytes": 598644,
+      "path": "data/gen/releases/recipe-replay-v2/pilot/recipes.jsonl",
+      "records": 1413,
+      "sha256": "6c738b16d9e57f7de0dce1f92afb1207bd474814e11471c216d90bde8e9cd224"
+    },
+    "max_edit_chars": 256,
+    "mode": "bindings",
+    "portable": 594,
+    "portable_diagnostics": 306,
+    "scheduled_by_language": {
+      "c": 2,
+      "c++": 125
+    },
+    "selected": 127,
+    "selected_diagnostics": 95
+  },
+  "replay": {
+    "candidate_tus": 30,
+    "distinct_diagnostics": 23,
+    "exact_target": 15,
+    "mutants_compiled": 33,
+    "near_miss": 15,
+    "novel_diagnostics": [
+      "err_use_of_tag_name_without_tag"
+    ],
+    "output": {
+      "bytes": 1284117,
+      "path": "data/gen/releases/recipe-replay-v2/pilot/records.jsonl",
+      "records": 30,
+      "sha256": "44ebc297802f4789c7f8862e74346610c98c24f680a7d226d97f9d1d88cea1ca"
+    },
+    "records": 30,
+    "seed": 4,
+    "sources": 10,
+    "sources_scanned": 12,
+    "statuses": {
+      "accepted": 10,
+      "corrected_not_clean": 2
+    },
+    "test_sources": 0
+  },
+  "schema_version": 1,
+  "training": {
+    "additional_exclude_paths": [
+      "data/gen/releases/recipe-replay-v1/formal/records.jsonl"
+    ],
+    "additional_excluded_records": 631,
+    "distinct_diagnostics": 681,
+    "excluded_sources": 675,
+    "path": "data/gen/releases/realcorpus-v2/formal/canonical_all.jsonl",
+    "recipe_training_sources": 419,
+    "records": 1422
+  },
+  "uses_llm_api": false
+}

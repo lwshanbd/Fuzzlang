@@ -367,3 +367,32 @@ PYTHONPATH=src python3 src/gen/realcorpus/run_recipe_replay.py \
   --out data/gen/releases/recipe-replay-v1/next/records.jsonl \
   --n-files 400 --max-instances 300 --workers 16
 ```
+
+## Identifier-binding recipe replay (v2)
+
+The v2 recipe schema labels user identifiers in the matched context and can
+reuse those bindings in the inserted or replacement text. For example, a
+recipe learned from `value + 0` -> `value + value` can replay on `other + 0`
+as `other + other`; it does not copy the exemplar's identifier. Repeated
+metavariables must match the same target identifier. Edits longer than 256
+characters remain non-portable, and old v1 recipe JSON still loads as a
+literal replacement.
+
+This expanded the portable set from 468 recipes / 245 target diagnostics to
+**594 / 306**. The v2 run scheduled only the 127 newly enabled binding recipes
+(95 target diagnostics) on LLVM TUs absent from realcorpus-v2 and replay-v1.
+It generated 266 raw records; paired recompilation accepted **266/266**, and
+structural dedup retained **265 records from 172 new, non-test LLVM TUs**.
+The retained set has 93 actual diagnostic names (108 exact target matches and
+157 compiler-confirmed near misses), including 14 names not observed in the
+previous combined release.
+
+Combined with realcorpus-v2 and replay-v1, the corpus now contains **2318
+records and 714 observed diagnostic names**. Strict C/C++ coverage is
+**702/1935 (36.3%)**, a net gain of 11; diagnostics with at least three
+instances increased from 179 to **208**. No model/API call was made.
+
+Release details and checksums are in
+`releases/recipe-replay-v2/release-manifest.json`. Run a binding-only replay
+with `--recipe-mode bindings`; use repeated `--exclude-records` arguments to
+keep every prior source TU out of subsequent rounds.

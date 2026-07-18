@@ -1,0 +1,90 @@
+{
+  "combined": {
+    "distinct_observed_diagnostics": 714,
+    "records": 2318,
+    "strict_code_coverage": {
+      "covered": 702,
+      "covered_at_multiplicity_3": 208,
+      "rate": 0.3627906976744186,
+      "total": 1935
+    }
+  },
+  "compiler": {
+    "clang_bin": "/p/lustre2/shan4/fuzzlang-clang/bin/clang",
+    "diagtool_bin": "/p/lustre2/shan4/fuzzlang-clang/bin/diagtool",
+    "required_version": "llvmorg-22.1.8"
+  },
+  "dedup": {
+    "kept_new": 265,
+    "removed_against_base_or_new": 1,
+    "validated_new": 266
+  },
+  "files": {
+    "records": {
+      "bytes": 16421490,
+      "path": "data/gen/releases/recipe-replay-v2/formal/records.jsonl",
+      "records": 265,
+      "sha256": "fcc5318a9ca044798c98d81b8617e7049e00b58414a7d3ec46766f4ea38799cd"
+    },
+    "rejected": {
+      "bytes": 0,
+      "path": "data/gen/releases/recipe-replay-v2/formal/rejected.jsonl",
+      "records": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  },
+  "inputs": {
+    "base": [
+      "data/gen/releases/realcorpus-v2/formal/canonical_all.jsonl",
+      "data/gen/releases/recipe-replay-v1/formal/records.jsonl"
+    ],
+    "base_records": 2053,
+    "generated": [
+      "data/gen/releases/recipe-replay-v2/pilot/records.jsonl",
+      "data/gen/releases/recipe-replay-v2/round1/records.jsonl"
+    ],
+    "generated_records": 266
+  },
+  "new_data": {
+    "corrected_src_missing": 0,
+    "distinct_diagnostics": 93,
+    "exact_target": 108,
+    "near_miss": 157,
+    "novel_diagnostics": [
+      "err_abstract_type_in_decl",
+      "err_array_of_abstract_type",
+      "err_ice_explicit_conversion",
+      "err_ice_incomplete_type",
+      "err_pp_bad_paste",
+      "err_pseudo_dtor_destructor_non_type",
+      "err_redefinition_different_type",
+      "err_template_instantiate_undefined",
+      "err_typecheck_call_too_many_args_at_most",
+      "err_typecheck_call_too_many_args_at_most_one",
+      "err_typecheck_comparison_of_distinct_pointers",
+      "err_typecheck_comparison_of_pointer_integer",
+      "err_undeclared_use",
+      "err_use_of_tag_name_without_tag"
+    ],
+    "records": 265,
+    "source_overlap_with_base": 0,
+    "sources": 172,
+    "test_sources": 0
+  },
+  "release": "recipe-replay-v2",
+  "revalidation": {
+    "accepted": 266,
+    "gate": [
+      "corrected_clean",
+      "buggy_fails",
+      "primary_diag_stable",
+      "source_not_test"
+    ],
+    "rejected": 0,
+    "statuses": {
+      "accepted": 266
+    }
+  },
+  "schema_version": 1,
+  "uses_llm_api": false
+}

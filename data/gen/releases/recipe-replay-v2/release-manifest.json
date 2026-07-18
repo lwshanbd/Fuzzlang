@@ -1,0 +1,78 @@
+{
+  "schema_version": 1,
+  "release": "recipe-replay-v2",
+  "created": "2026-07-17",
+  "method": {
+    "name": "diagnostic-specific learned recipe replay with identifier bindings",
+    "uses_llm_api": false,
+    "recipe_training_records": 1422,
+    "recipes_extracted": 1413,
+    "portable_recipes": 594,
+    "portable_recipe_diagnostics": 306,
+    "binding_recipes_selected": 127,
+    "binding_recipe_diagnostics": 95,
+    "max_edit_chars": 256,
+    "recipe_file_sha256": "6c738b16d9e57f7de0dce1f92afb1207bd474814e11471c216d90bde8e9cd224"
+  },
+  "compiler": {
+    "version": "22.1.8",
+    "llvm_revision": "ca7933e47d3a3451d81e72ac174dcb5aa28b59d1",
+    "llvm_tag": "llvmorg-22.1.8",
+    "verifier": "Fuzzlang-patched clang with DiagID emission"
+  },
+  "generation": {
+    "raw_records": 266,
+    "stages": {
+      "pilot": 30,
+      "round1": 236
+    },
+    "all_sources_excluded_from_recipe_training_and_v1": true,
+    "clang_tests_or_test_support_present": false
+  },
+  "formal": {
+    "revalidated": 266,
+    "revalidation_rejected": 0,
+    "records_after_structural_dedup": 265,
+    "duplicates_removed": 1,
+    "sources": 172,
+    "source_overlap_with_base": 0,
+    "languages": {
+      "c++": 265
+    },
+    "distinct_diagnostics": 93,
+    "exact_target": 108,
+    "near_miss": 157,
+    "novel_observed_diagnostics": 14,
+    "records_file": {
+      "path": "data/gen/releases/recipe-replay-v2/formal/records.jsonl",
+      "bytes": 16421490,
+      "sha256": "fcc5318a9ca044798c98d81b8617e7049e00b58414a7d3ec46766f4ea38799cd"
+    }
+  },
+  "combined_with_realcorpus_v2_and_recipe_replay_v1": {
+    "records": 2318,
+    "distinct_observed_diagnostics": 714,
+    "strict_c_cpp_code_coverage": {
+      "covered": 702,
+      "total": 1935,
+      "rate": 0.3627906977,
+      "net_new_diagnostics_over_v1": 11,
+      "covered_at_multiplicity_3": 208,
+      "net_new_at_multiplicity_3": 29
+    }
+  },
+  "archive": {
+    "path": "data/gen/releases/recipe-replay-v2.bundle.tar.zst",
+    "bytes": 1954184,
+    "sha256": "f7e5f8e85407eeaebaa17d7b9bd9e367ae9f144e78db258962348752dede65d3",
+    "integrity_checked": true
+  },
+  "release_gates": {
+    "corrected_compiles_cleanly": true,
+    "buggy_fails_with_primary_diagnostic": true,
+    "recorded_primary_diagnostic_stable": true,
+    "all_sources_are_unseen_real_tus": true,
+    "test_sources": 0,
+    "corrected_src_missing": 0
+  }
+}

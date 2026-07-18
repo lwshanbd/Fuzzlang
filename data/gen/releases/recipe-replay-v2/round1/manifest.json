@@ -1,0 +1,94 @@
+{
+  "compiler": {
+    "clang_bin": "/p/lustre2/shan4/fuzzlang-clang/bin/clang",
+    "diagtool_bin": "/p/lustre2/shan4/fuzzlang-clang/bin/diagtool",
+    "required_version": "llvmorg-22.1.8"
+  },
+  "generator": "learned_recipe_replay",
+  "limits": {
+    "exact_only": false,
+    "language": "c++",
+    "max_candidates_per_recipe": 1,
+    "max_instances": 300,
+    "max_instances_per_diagnostic": 3,
+    "max_records_per_source": 3,
+    "max_verifications_per_source": 16,
+    "n_files": 500
+  },
+  "recipes": {
+    "extracted": 1413,
+    "file": {
+      "bytes": 598644,
+      "path": "data/gen/releases/recipe-replay-v2/round1/recipes.jsonl",
+      "records": 1413,
+      "sha256": "6c738b16d9e57f7de0dce1f92afb1207bd474814e11471c216d90bde8e9cd224"
+    },
+    "max_edit_chars": 256,
+    "mode": "bindings",
+    "portable": 594,
+    "portable_diagnostics": 306,
+    "scheduled_by_language": {
+      "c": 2,
+      "c++": 125
+    },
+    "selected": 127,
+    "selected_diagnostics": 95
+  },
+  "replay": {
+    "candidate_tus": 500,
+    "distinct_diagnostics": 92,
+    "exact_target": 93,
+    "mutants_compiled": 1405,
+    "near_miss": 143,
+    "novel_diagnostics": [
+      "err_abstract_type_in_decl",
+      "err_array_of_abstract_type",
+      "err_destructor_with_params",
+      "err_ice_explicit_conversion",
+      "err_ice_incomplete_type",
+      "err_ovl_deleted_special_init",
+      "err_pp_bad_paste",
+      "err_pseudo_dtor_destructor_non_type",
+      "err_redefinition_different_type",
+      "err_template_instantiate_undefined",
+      "err_template_variable_noparams",
+      "err_typecheck_call_too_many_args_at_most",
+      "err_typecheck_call_too_many_args_at_most_one",
+      "err_typecheck_call_too_many_args_suggest",
+      "err_typecheck_comparison_of_distinct_pointers",
+      "err_typecheck_comparison_of_pointer_integer",
+      "err_undeclared_use"
+    ],
+    "output": {
+      "bytes": 15139092,
+      "path": "data/gen/releases/recipe-replay-v2/round1/records.jsonl",
+      "records": 236,
+      "sha256": "5cc6aac4a012b5701759419f64b7d5192fc103e7d277144b7d9e33e69aa3c09e"
+    },
+    "records": 236,
+    "seed": 4,
+    "sources": 163,
+    "sources_scanned": 500,
+    "statuses": {
+      "accepted": 431,
+      "corrected_not_clean": 56,
+      "no_verified_mutants": 12,
+      "verification_cap": 1
+    },
+    "test_sources": 0
+  },
+  "schema_version": 1,
+  "training": {
+    "additional_exclude_paths": [
+      "data/gen/releases/recipe-replay-v1/formal/records.jsonl",
+      "data/gen/releases/recipe-replay-v2/pilot/records.jsonl"
+    ],
+    "additional_excluded_records": 661,
+    "distinct_diagnostics": 681,
+    "excluded_sources": 685,
+    "path": "data/gen/releases/realcorpus-v2/formal/canonical_all.jsonl",
+    "recipe_training_sources": 419,
+    "records": 1422
+  },
+  "uses_llm_api": false
+}

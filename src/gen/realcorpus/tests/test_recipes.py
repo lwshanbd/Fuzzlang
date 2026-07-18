@@ -53,7 +53,7 @@ def test_extract_and_apply_insertion_recipe_abstracts_identifiers():
     assert recipe is not None
     assert recipe.diag_name == "err_typecheck_invalid_lvalue_addrof"
     assert recipe.operation == "insert"
-    assert recipe.right_context[0] == "<ID>"
+    assert recipe.right_context[0].startswith("<ID")
     assert recipe.portable is True
 
     applications = apply_recipe("int g() { return value; }", recipe)
@@ -87,6 +87,85 @@ def test_inside_identifier_edit_is_not_portable():
 def test_fixed_user_identifier_in_new_text_is_not_portable():
     rec = _record("a", "return x;", "return unknown_name + x;", diag="err_x")
     recipe = extract_recipe(rec)
+    assert recipe is not None
+    assert recipe.portable is False
+
+
+def test_new_identifier_reused_from_context_becomes_metavariable():
+    rec = _record(
+        "a",
+        "int f(){ return value + 0; }",
+        "int f(){ return value + value; }",
+        diag="err_x",
+    )
+    recipe = extract_recipe(rec, context_tokens=2)
+    assert recipe is not None
+    assert recipe.portable is True
+    assert any(kind == "binding" for kind, _ in recipe.replacement_parts)
+    assert [app.src for app in apply_recipe(
+        "int g(){ return other + 0; }", recipe
+    )] == ["int g(){ return other + other; }"]
+
+
+def test_inserted_identifier_can_bind_to_left_context():
+    rec = _record(
+        "a", "int f(){ return value; }", "int f(){ return value(value); }",
+        diag="err_x",
+    )
+    recipe = extract_recipe(rec, context_tokens=2)
+    assert recipe is not None and recipe.portable
+    assert [app.src for app in apply_recipe(
+        "int g(){ return item; }", recipe
+    )] == ["int g(){ return item(item); }"]
+
+
+def test_recipe_json_round_trip_preserves_replacement_bindings():
+    from gen.realcorpus.recipes import LearnedRecipe
+
+    rec = _record(
+        "a",
+        "int f(){ return value + 0; }",
+        "int f(){ return value + value; }",
+        diag="err_x",
+    )
+    recipe = extract_recipe(rec, context_tokens=2)
+    restored = LearnedRecipe.from_dict(recipe.to_dict())
+    assert restored == recipe
+    assert apply_recipe(
+        "int g(){ return item + 0; }", restored
+    )[0].src == "int g(){ return item + item; }"
+
+
+def test_v1_recipe_json_without_template_keeps_literal_replacement():
+    from gen.realcorpus.recipes import LearnedRecipe
+
+    recipe = extract_recipe(
+        _record("a", "return value;", "return &value;"), context_tokens=1
+    )
+    encoded = recipe.to_dict()
+    encoded.pop("replacement_parts")
+    restored = LearnedRecipe.from_dict(encoded)
+
+    assert restored.replacement_parts == (("literal", "&"),)
+    assert apply_recipe("return other;", restored)[0].src == "return &other;"
+
+
+def test_repeated_identifier_metavariable_requires_same_target_name():
+    recipe = extract_recipe(_record(
+        "a", "return value + value;", "return value - value;", diag="err_x"
+    ))
+
+    assert apply_recipe("return item + item;", recipe)[0].src == "return item - item;"
+    assert apply_recipe("return item + other;", recipe) == []
+
+
+def test_large_spanning_edit_is_not_portable():
+    corrected = "int f(){ return " + ("x + " * 100) + "0; }"
+    erroneous = "int f(){ return y; }"
+    recipe = extract_recipe(
+        _record("a", corrected, erroneous, diag="err_x"),
+        max_edit_chars=128,
+    )
     assert recipe is not None
     assert recipe.portable is False
 

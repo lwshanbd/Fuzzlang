@@ -74,8 +74,12 @@ def main() -> None:
     ap.add_argument("--workers", type=int, default=16)
     ap.add_argument("--timeout", type=float, default=30.0)
     ap.add_argument("--context-tokens", type=int, default=2)
+    ap.add_argument("--max-edit-chars", type=int, default=256,
+                    help="portable recipes cannot replace/insert a larger span")
     ap.add_argument("--max-recipes-per-language", type=int, default=0,
                     help="0 keeps every portable recipe")
+    ap.add_argument("--recipe-mode", choices=("all", "bindings"), default="all",
+                    help="bindings runs only v2 recipes with identifier metavariables")
     ap.add_argument("--max-candidates-per-recipe", type=int, default=1)
     ap.add_argument("--max-verifications-per-source", type=int, default=16)
     ap.add_argument("--max-records-per-source", type=int, default=3)
@@ -95,16 +99,26 @@ def main() -> None:
 
     print(f"[recipe-replay] loading paired records: {args.records}", flush=True)
     training = _load_records(args.records)
-    recipes = extract_recipes(training, context_tokens=args.context_tokens)
+    recipes = extract_recipes(
+        training, context_tokens=args.context_tokens,
+        max_edit_chars=args.max_edit_chars,
+    )
     portable = [recipe for recipe in recipes if recipe.portable]
+    selected_recipes = portable
+    if args.recipe_mode == "bindings":
+        selected_recipes = [
+            recipe for recipe in portable
+            if any(kind == "binding" for kind, _ in recipe.replacement_parts)
+        ]
     print(f"[recipe-replay] recipes={len(recipes)} portable={len(portable)} "
-          f"diagnostics={len({r.diag_name for r in portable})}", flush=True)
+          f"selected={len(selected_recipes)} "
+          f"diagnostics={len({r.diag_name for r in selected_recipes})}", flush=True)
     recipes_file = _write_jsonl(recipes_out, (recipe.to_dict() for recipe in recipes))
 
     recipes_by_language = {}
     for language in ("c", "c++"):
         recipes_by_language[language] = [
-            recipe for recipe in portable if recipe.language == language
+            recipe for recipe in selected_recipes if recipe.language == language
         ]
 
     excluded = []
@@ -234,6 +248,10 @@ def main() -> None:
             "extracted": len(recipes),
             "portable": len(portable),
             "portable_diagnostics": len({recipe.diag_name for recipe in portable}),
+            "max_edit_chars": args.max_edit_chars,
+            "mode": args.recipe_mode,
+            "selected": len(selected_recipes),
+            "selected_diagnostics": len({r.diag_name for r in selected_recipes}),
             "scheduled_by_language": {
                 language: (
                     min(len(values), args.max_recipes_per_language)

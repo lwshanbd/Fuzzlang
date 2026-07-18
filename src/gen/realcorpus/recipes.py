@@ -48,6 +48,7 @@ class LexToken:
     start: int
     end: int
     pattern: str
+    kind: str
 
 
 @dataclass(frozen=True)
@@ -61,6 +62,7 @@ class LearnedRecipe:
     left_context: tuple[str, ...]
     right_context: tuple[str, ...]
     portable: bool
+    replacement_parts: tuple[tuple[str, str], ...] = ()
     support: int = 1
     exemplar_ids: tuple[str, ...] = ()
 
@@ -68,6 +70,7 @@ class LearnedRecipe:
         return (
             self.diag_name, self.language, self.operation, self.old_patterns,
             self.new_text, self.left_context, self.right_context, self.portable,
+            self.replacement_parts,
         )
 
     def to_dict(self) -> dict:
@@ -81,6 +84,7 @@ class LearnedRecipe:
             "left_context": list(self.left_context),
             "right_context": list(self.right_context),
             "portable": self.portable,
+            "replacement_parts": [list(part) for part in self.replacement_parts],
             "support": self.support,
             "exemplar_ids": list(self.exemplar_ids),
         }
@@ -97,6 +101,11 @@ class LearnedRecipe:
             left_context=tuple(value.get("left_context", ())),
             right_context=tuple(value.get("right_context", ())),
             portable=bool(value.get("portable", False)),
+            replacement_parts=tuple(
+                tuple(part) for part in value.get(
+                    "replacement_parts", (("literal", value.get("new_text", "")),)
+                )
+            ),
             support=int(value.get("support", 1)),
             exemplar_ids=tuple(value.get("exemplar_ids", ())),
         )
@@ -140,12 +149,15 @@ def lex_tokens(source: str) -> list[LexToken]:
             continue
         text = match.group(0)
         if re.fullmatch(r"[A-Za-z_]\w*", text):
-            pattern = text if text in _KEYWORDS or text.startswith("__") else "<ID>"
+            if text in _KEYWORDS or text.startswith("__"):
+                pattern, kind = text, "exact"
+            else:
+                pattern, kind = "<ID>", "id"
         elif re.fullmatch(r"(?:0[xX][0-9A-Fa-f]+|\d+(?:\.\d*)?)", text):
-            pattern = "<NUM>"
+            pattern, kind = "<NUM>", "num"
         else:
-            pattern = text
-        tokens.append(LexToken(text, start, end, pattern))
+            pattern, kind = text, "exact"
+        tokens.append(LexToken(text, start, end, pattern, kind))
     return tokens
 
 
@@ -157,23 +169,38 @@ def build_token_index(tokens: Iterable[LexToken]) -> dict[str, tuple[int, ...]]:
     return {pattern: tuple(values) for pattern, values in positions.items()}
 
 
-def _new_text_is_portable(text: str) -> bool:
+def _replacement_template(
+    text: str, identifier_labels: dict[str, str],
+) -> tuple[tuple[tuple[str, str], ...], bool]:
     if not text:
-        return True
+        return (), True
     mask = code_mask(text)
     # Comments and string/character literals deliberately do not become fixed
     # replay payloads.  Whitespace in them is harmless; any other masked byte is not.
     if any(not keep and not char.isspace() for char, keep in zip(text, mask)):
-        return False
+        return (("literal", text),), False
+    parts: list[tuple[str, str]] = []
+    cursor = 0
     for token in lex_tokens(text):
-        if token.pattern == "<ID>":
-            return False
-    return True
+        if token.kind != "id":
+            continue
+        label = identifier_labels.get(token.text)
+        if label is None:
+            return (("literal", text),), False
+        if token.start > cursor:
+            parts.append(("literal", text[cursor:token.start]))
+        parts.append(("binding", label))
+        cursor = token.end
+    if cursor < len(text):
+        parts.append(("literal", text[cursor:]))
+    if not parts:
+        parts.append(("literal", text))
+    return tuple(parts), True
 
 
 def _edit_is_token_aligned(
     tokens: list[LexToken], start: int, old_text: str,
-) -> tuple[bool, tuple[str, ...]]:
+) -> tuple[bool, tuple[LexToken, ...]]:
     end = start + len(old_text)
     if not old_text:
         inside = any(token.start < start < token.end for token in tokens)
@@ -183,11 +210,32 @@ def _edit_is_token_aligned(
     if not edited:
         return False, ()
     aligned = edited[0].start == start and edited[-1].end == end
-    return aligned, tuple(token.pattern for token in edited)
+    return aligned, tuple(edited)
+
+
+def _bind_identifier_patterns(
+    left: tuple[LexToken, ...], edited: tuple[LexToken, ...],
+    right: tuple[LexToken, ...],
+) -> tuple[tuple[str, ...], tuple[str, ...], tuple[str, ...], dict[str, str]]:
+    labels: dict[str, str] = {}
+
+    def pattern(token: LexToken) -> str:
+        if token.kind != "id":
+            return token.pattern
+        if token.text not in labels:
+            labels[token.text] = f"ID{len(labels)}"
+        return f"<{labels[token.text]}>"
+
+    return (
+        tuple(pattern(token) for token in left),
+        tuple(pattern(token) for token in edited),
+        tuple(pattern(token) for token in right),
+        labels,
+    )
 
 
 def extract_recipe(
-    record: Record, *, context_tokens: int = 2,
+    record: Record, *, context_tokens: int = 2, max_edit_chars: int = 256,
 ) -> Optional[LearnedRecipe]:
     """Extract one lexical recipe from a verified paired Record."""
     if record.corrected_src is None or record.primary_diagnostic is None:
@@ -201,20 +249,30 @@ def extract_recipe(
     if not old_text and not new_text:
         return None
     tokens = lex_tokens(record.corrected_src)
-    aligned, old_patterns = _edit_is_token_aligned(tokens, start, old_text)
+    aligned, edited_tokens = _edit_is_token_aligned(tokens, start, old_text)
     end = start + len(old_text)
-    left = [token.pattern for token in tokens if token.end <= start]
-    right = [token.pattern for token in tokens if token.start >= end]
-    left_context = tuple(left[-context_tokens:])
-    right_context = tuple(right[:context_tokens])
+    left_tokens = tuple(
+        [token for token in tokens if token.end <= start][-context_tokens:]
+    )
+    right_tokens = tuple(
+        [token for token in tokens if token.start >= end][:context_tokens]
+    )
+    left_context, old_patterns, right_context, identifier_labels = (
+        _bind_identifier_patterns(left_tokens, edited_tokens, right_tokens)
+    )
+    replacement_parts, replacement_portable = _replacement_template(
+        new_text, identifier_labels
+    )
     portable = bool(
         aligned and (left_context or right_context or old_patterns)
-        and _new_text_is_portable(new_text)
+        and replacement_portable
+        and len(old_text) <= max_edit_chars
+        and len(new_text) <= max_edit_chars
     )
     operation = "insert" if not old_text else ("delete" if not new_text else "replace")
     identity = (
         diag_name, record.language, operation, old_patterns, new_text,
-        left_context, right_context, portable,
+        left_context, right_context, portable, replacement_parts,
     )
     encoded = json.dumps(identity, sort_keys=True).encode()
     recipe_id = "recipe-" + hashlib.sha256(encoded).hexdigest()[:12]
@@ -228,17 +286,21 @@ def extract_recipe(
         left_context=left_context,
         right_context=right_context,
         portable=portable,
+        replacement_parts=replacement_parts,
         exemplar_ids=(record.record_id,),
     )
 
 
 def extract_recipes(
     records: Iterable[Record], *, context_tokens: int = 2,
+    max_edit_chars: int = 256,
 ) -> list[LearnedRecipe]:
     """Extract and aggregate identical diagnostic-specific lexical recipes."""
     grouped: dict[tuple, LearnedRecipe] = {}
     for record in records:
-        recipe = extract_recipe(record, context_tokens=context_tokens)
+        recipe = extract_recipe(
+            record, context_tokens=context_tokens, max_edit_chars=max_edit_chars
+        )
         if recipe is None:
             continue
         key = recipe.identity()
@@ -260,11 +322,55 @@ def extract_recipes(
     )
 
 
-def _matches(actual: list[LexToken], start: int, patterns: tuple[str, ...]) -> bool:
+_BOUND_PATTERN_RE = re.compile(r"<(ID\d+)>")
+
+
+def _match_sequence(
+    actual: list[LexToken], start: int, patterns: tuple[str, ...],
+) -> Optional[dict[str, str]]:
     if start < 0 or start + len(patterns) > len(actual):
-        return False
-    return all(actual[start + offset].pattern == pattern
-               for offset, pattern in enumerate(patterns))
+        return None
+    bindings: dict[str, str] = {}
+    for offset, pattern in enumerate(patterns):
+        token = actual[start + offset]
+        bound = _BOUND_PATTERN_RE.fullmatch(pattern)
+        if bound:
+            if token.kind != "id":
+                return None
+            label = bound.group(1)
+            if label in bindings and bindings[label] != token.text:
+                return None
+            bindings[label] = token.text
+        elif pattern == "<ID>":
+            if token.kind != "id":
+                return None
+        elif pattern == "<NUM>":
+            if token.kind != "num":
+                return None
+        elif token.pattern != pattern:
+            return None
+    return bindings
+
+
+def _is_placeholder(pattern: str) -> bool:
+    return pattern in ("<ID>", "<NUM>") or bool(
+        _BOUND_PATTERN_RE.fullmatch(pattern)
+    )
+
+
+def _render_replacement(
+    recipe: LearnedRecipe, bindings: dict[str, str],
+) -> Optional[str]:
+    parts = recipe.replacement_parts or (("literal", recipe.new_text),)
+    rendered: list[str] = []
+    for kind, value in parts:
+        if kind == "literal":
+            rendered.append(value)
+        elif kind == "binding" and value in bindings:
+            rendered.append(bindings[value])
+        else:
+            return None
+    return "".join(rendered)
 
 
 def _candidate_edit_indices(
@@ -276,7 +382,7 @@ def _candidate_edit_indices(
     anchors = [
         (offset, pattern, token_index.get(pattern, ()))
         for offset, pattern in enumerate(sequence)
-        if pattern not in ("<ID>", "<NUM>")
+        if not _is_placeholder(pattern)
     ]
     if not anchors:
         upper = len(tokens) + 1 if recipe.operation == "insert" else len(tokens)
@@ -306,10 +412,14 @@ def apply_recipe(
     if recipe.operation == "insert":
         # Boundary i sits between tokens i-1 and i.
         for i in candidates:
-            if not _matches(tokens, i - len(recipe.left_context),
-                            recipe.left_context):
+            sequence = recipe.left_context + recipe.right_context
+            bindings = _match_sequence(
+                tokens, i - len(recipe.left_context), sequence
+            )
+            if bindings is None:
                 continue
-            if not _matches(tokens, i, recipe.right_context):
+            replacement = _render_replacement(recipe, bindings)
+            if replacement is None:
                 continue
             if i < len(tokens):
                 start = tokens[i].start
@@ -322,10 +432,10 @@ def apply_recipe(
                 continue
             seen_spans.add(span)
             applications.append(RecipeApplication(
-                src=source[:start] + recipe.new_text + source[start:],
+                src=source[:start] + replacement + source[start:],
                 start=start,
                 end=start,
-                replacement=recipe.new_text,
+                replacement=replacement,
                 recipe_id=recipe.recipe_id,
             ))
             if len(applications) >= max_candidates:
@@ -336,11 +446,16 @@ def apply_recipe(
     if width == 0:
         return []
     for i in candidates:
-        if not _matches(tokens, i, recipe.old_patterns):
+        sequence = (
+            recipe.left_context + recipe.old_patterns + recipe.right_context
+        )
+        bindings = _match_sequence(
+            tokens, i - len(recipe.left_context), sequence
+        )
+        if bindings is None:
             continue
-        if not _matches(tokens, i - len(recipe.left_context), recipe.left_context):
-            continue
-        if not _matches(tokens, i + width, recipe.right_context):
+        replacement = _render_replacement(recipe, bindings)
+        if replacement is None:
             continue
         start, end = tokens[i].start, tokens[i + width - 1].end
         span = (start, end)
@@ -348,10 +463,10 @@ def apply_recipe(
             continue
         seen_spans.add(span)
         applications.append(RecipeApplication(
-            src=source[:start] + recipe.new_text + source[end:],
+            src=source[:start] + replacement + source[end:],
             start=start,
             end=end,
-            replacement=recipe.new_text,
+            replacement=replacement,
             recipe_id=recipe.recipe_id,
         ))
         if len(applications) >= max_candidates:

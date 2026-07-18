@@ -23,6 +23,10 @@ def _load(path: Path) -> list[Record]:
         return [Record.from_dict(json.loads(line)) for line in stream if line.strip()]
 
 
+def _load_many(paths: list[Path]) -> list[Record]:
+    return [record for path in paths for record in _load(path)]
+
+
 def _write(path: Path, rows) -> dict:
     sha = hashlib.sha256()
     count = 0
@@ -43,7 +47,8 @@ def _diag_names(records: list[Record]) -> set[str]:
 
 def main() -> None:
     ap = argparse.ArgumentParser()
-    ap.add_argument("--base", type=Path, required=True)
+    ap.add_argument("--base", type=Path, action="append", required=True,
+                    help="existing release JSONL; repeat to deduplicate against several")
     ap.add_argument("--input", type=Path, action="append", required=True)
     ap.add_argument("--clang-bin", required=True)
     ap.add_argument("--diagtool-bin", required=True)
@@ -51,12 +56,13 @@ def main() -> None:
     ap.add_argument("--manifest-out", type=Path, required=True)
     ap.add_argument("--rejected-out", type=Path, default=None)
     ap.add_argument("--out-of-scope", type=Path, default=None)
+    ap.add_argument("--release", default="recipe-replay-v1")
     ap.add_argument("--workers", type=int, default=32)
     ap.add_argument("--timeout", type=float, default=30.0)
     args = ap.parse_args()
 
-    base = _load(args.base)
-    generated = [record for path in args.input for record in _load(path)]
+    base = _load_many(args.base)
+    generated = _load_many(args.input)
     print(f"[revalidate-replay] base={len(base)} generated={len(generated)}", flush=True)
     verifier = FuzzlangClangVerifier(
         args.clang_bin, args.diagtool_bin, timeout_s=args.timeout
@@ -102,7 +108,7 @@ def main() -> None:
     )
     manifest = {
         "schema_version": 1,
-        "release": "recipe-replay-v1",
+        "release": args.release,
         "uses_llm_api": False,
         "compiler": {
             "required_version": "llvmorg-22.1.8",
@@ -110,7 +116,7 @@ def main() -> None:
             "diagtool_bin": args.diagtool_bin,
         },
         "inputs": {
-            "base": str(args.base),
+            "base": [str(path) for path in args.base],
             "base_records": len(base),
             "generated": [str(path) for path in args.input],
             "generated_records": len(generated),
