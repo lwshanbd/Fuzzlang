@@ -57,6 +57,10 @@ def test_is_test_path_flags_test_and_example_dirs():
     assert is_test_path("/x/llvm/unittests/ADT/FooTest.cpp")
     assert is_test_path("/x/clang/examples/Bar/Bar.cpp")
     assert is_test_path("/x/third-party/unittest/googletest/src/gtest-all.cc")
+    assert is_test_path("/x/clang/tools/c-index-test/c-index-test.c")
+    assert is_test_path("/x/llvm/tools/llvm-c-test/main.c")
+    assert is_test_path("/x/llvm/tools/bugpoint-passes/TestPasses.cpp")
+    assert is_test_path("/x/llvm/tools/llvm-cov/TestingSupport.cpp")
     assert not is_test_path("/x/llvm/lib/Support/APInt.cpp")
     assert not is_test_path("/x/clang/lib/Sema/SemaDecl.cpp")
 

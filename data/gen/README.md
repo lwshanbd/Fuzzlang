@@ -233,3 +233,91 @@ splits via different sources: **68% of eval diagnostics also appear in train**
 (held-out instances of seen diagnostics) and 96 are eval-only (a
 generalization tail). The split JSONLs and `manifest.json` are gitignored data
 artifacts (regenerate with the command above); the numbers here are the record.
+
+# Real-project source injection
+
+`src/gen/realcorpus/run_realcorpus.py` drives the TableGen catalog against
+clean translation units from a real project's `compile_commands.json`. For
+each still-missing diagnostic it selects feature-compatible regions, asks the
+model for a localized edit, and keeps the pair only after the patched Clang
+verifies it. The driver is project-agnostic (`--project`, `--source-substr`),
+supports C- or C++-only passes, and can prioritize types absent from previous
+runs with `--existing-realcorpus ... --target-order real-gap-first`.
+
+The July 2026 LLVM run expanded the original real-code injection slice as
+follows:
+
+| Dataset | Verified instances | Distinct diagnostics |
+|---|---:|---:|
+| Original LLVM realcorpus | 437 | 437 |
+| Expanded, merged, deduplicated, test-free | **1429** | **681** |
+| Net increase | **+992** | **+244** |
+
+The **992 retained new rows** came from **408 LLVM translation units**; no single
+TU contributed more than 2.52%. Region mix was 518 function, 420
+record/class/enum, and 54 preprocessor edits. Of the new rows, 394 produced more
+than one compiler error and 89 produced more than ten, providing the
+cascade-heavy examples needed by Repair. A dedicated pass over the 32 C TUs
+expanded the C slice; the merged dataset contains 50 C and 1379 C++ instances.
+Against the strict-C/C++ denominator, the real-code corpus now covers
+**673/1935 diagnostics (34.8%)**.
+
+**No compiler regression tests or test-support code are allowed.** Corpus
+indexing rejects `test/`, `tests/`, `unittests/`, examples, benchmarks, fuzzers,
+and test-named components such as `clang/tools/c-index-test`,
+`llvm/tools/llvm-c-test`, `TestPasses.cpp`, and `TestingSupport.cpp`. The
+original 437 rows were reverse-matched to 32 compile-database sources and none
+were test paths. A stricter audit removed 38 test-tool/support rows from the new
+runs before producing the merged dataset.
+
+Outputs (gitignored data artifacts):
+
+- `splits/eval_realcorpus_v2_all.jsonl` — merged/deduplicated/test-free
+  1429-row dataset;
+- `splits/eval_realcorpus_v2_{pilot,round2,round3,c}.jsonl` — exact target matches;
+- corresponding `*_nearmiss.jsonl` — valid paired errors whose primary
+  diagnostic differed from the requested target;
+- corresponding `*_attempts.jsonl` — every attempt labelled `exact_match`,
+  `wrong_diagnostic`, `not_applicable`, `no_error`, `invalid_anchor`, or
+  `unparseable_reply`.
+
+Exact and near-miss rows obey the same core invariant: `corrected_src` was
+clean under the real compile command, and `buggy_src` was verifier-confirmed to
+emit the recorded diagnostic. Near misses are retained because they add valid
+data volume and, in these runs, contributed many diagnostic types not reached
+by the requested targets.
+
+## realcorpus-v2 formal release
+
+The raw 1429 rows were recompiled on both sides under their recorded real LLVM
+compile commands with the 22.1.8 patched compiler. All **1429/1429** passed the
+release gate: corrected source clean, erroneous source failing, recorded
+primary diagnostic unchanged, source provenance resolved, and source not a
+test path. Diagnostic-plus-normalized-error-window dedup removed 7 rows,
+leaving **1422 canonical `Record` objects with 681 diagnostic names**. Every
+record has `corrected_src` and `Origin.LLM`.
+
+The deterministic `fuzzlang-realcorpus-v2` source-isolated split contains
+train 876 / dev 106 / eval 440. It spans 419 LLVM source TUs, with zero source
+straddlers and zero test sources. The formal eval split contains 376 distinct
+diagnostics and has a companion `eval.repair.jsonl` for `repair/run_sweep.py`.
+
+Release metadata and checksums are tracked in
+`releases/realcorpus-v2/release-manifest.json`; the detailed revalidation and
+per-file manifest is `releases/realcorpus-v2/formal/manifest.json`. Two
+gitignored, checksum-pinned archives live beside them:
+
+- `eval_realcorpus_v2_all.jsonl.zst` — immutable raw 1429-row input;
+- `realcorpus-v2-formal.tar.zst` — canonical all/train/dev/eval JSONL, the
+  repair-ready eval JSONL, rejection log, and detailed manifest.
+
+Regenerate the formal bundle with:
+
+```bash
+PYTHONPATH=src python3 src/gen/realcorpus/finalize.py \
+  --input data/gen/splits/eval_realcorpus_v2_all.jsonl \
+  --compile-db /p/lustre2/shan4/fuzzlang-llvm-build/compile_commands.json \
+  --clang-bin /p/lustre2/shan4/fuzzlang-clang/bin/clang \
+  --diagtool-bin /p/lustre2/shan4/fuzzlang-clang/bin/diagtool \
+  --out-dir data/gen/releases/realcorpus-v2/formal --workers 48
+```

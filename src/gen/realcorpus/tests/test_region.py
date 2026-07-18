@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from gen.realcorpus.region import select_regions
+from gen.realcorpus.region import select_regions, select_typed_regions
 
 SRC = """\
 #include <x>
@@ -33,3 +33,24 @@ def test_braces_in_comments_do_not_start_a_region():
     spans = select_regions(src, min_lines=0)
     assert len(spans) == 1
     assert "return 0;" in src[spans[0][0]:spans[0][1]]
+
+
+def test_typed_regions_include_functions_records_and_preprocessor():
+    src = """\
+#define FLAG 1
+struct S {
+  int x;
+};
+int f() {
+  return FLAG;
+}
+"""
+    regions = select_typed_regions(src, max_regions=10, min_lines=0)
+    kinds = {r.kind for r in regions}
+    assert {"function", "record", "preprocessor"} <= kinds
+
+
+def test_typed_regions_round_robin_kinds_under_a_small_cap():
+    src = "#define X 1\nstruct S { int x; };\nint f() { return X; }\n"
+    regions = select_typed_regions(src, max_regions=3, min_lines=0)
+    assert {r.kind for r in regions} == {"function", "record", "preprocessor"}

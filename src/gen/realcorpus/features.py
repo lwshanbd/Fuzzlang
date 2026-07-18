@@ -9,6 +9,9 @@ import re
 FEATURE_VOCAB = (
     "template", "call", "pointer", "member", "class", "constexpr",
     "enum", "cast", "lambda", "operator", "virtual", "reference",
+    "preprocessor", "attribute", "concept", "inheritance", "namespace",
+    "using", "array", "atomic", "builtin", "coroutine", "exception",
+    "auto", "pack", "storage", "asm",
 )
 
 # fragment-side detectors: feature -> regex on the code text.
@@ -25,6 +28,22 @@ _FRAG_PATTERNS = {
     "operator": re.compile(r"\boperator\b"),
     "virtual": re.compile(r"\bvirtual\b"),
     "reference": re.compile(r"[\w>]\s*&\s*\w"),
+    "preprocessor": re.compile(r"(?m)^\s*#\s*\w+"),
+    "attribute": re.compile(r"\[\[|\b__attribute__\s*\(|\b__declspec\s*\("),
+    "concept": re.compile(r"\b(concept|requires)\b"),
+    "inheritance": re.compile(
+        r"\b(class|struct)\s+\w+[^;{}]*:\s*(public|protected|private|virtual)?"),
+    "namespace": re.compile(r"\bnamespace\b"),
+    "using": re.compile(r"\b(using|typedef)\b"),
+    "array": re.compile(r"\[[^\]\n]*\]"),
+    "atomic": re.compile(r"\b(_Atomic|atomic(?:_|\s*<))"),
+    "builtin": re.compile(r"\b__builtin_\w+"),
+    "coroutine": re.compile(r"\b(co_await|co_yield|co_return)\b"),
+    "exception": re.compile(r"\b(try|catch|throw|noexcept)\b"),
+    "auto": re.compile(r"\b(auto|decltype)\b"),
+    "pack": re.compile(r"\.\.\.|\bsizeof\s*\.\.\."),
+    "storage": re.compile(r"\b(static|extern|thread_local|register)\b"),
+    "asm": re.compile(r"\b(asm|__asm__)\b"),
 }
 
 # target-side keyword hints: feature -> substrings that may appear in a
@@ -42,6 +61,21 @@ _TARGET_HINTS = {
     "operator": ("operator",),
     "virtual": ("virtual", "override", "pure"),
     "reference": ("reference", "bind"),
+    "preprocessor": ("pp_", "preprocessor", "macro", "#if", "#include"),
+    "attribute": ("attribute", "declspec", "annotate"),
+    "concept": ("concept", "constraint", "requires clause", "requires_expr"),
+    "inheritance": ("base class", "derived", "inherit", "override"),
+    "namespace": ("namespace",),
+    "using": ("using", "typedef", "type alias"),
+    "array": ("array", "subscript", "bounds"),
+    "atomic": ("atomic",),
+    "builtin": ("builtin",),
+    "coroutine": ("coroutine", "co_await", "co_yield", "co_return"),
+    "exception": ("exception", "catch", "throw", "noexcept"),
+    "auto": ("auto", "deduc", "decltype", "placeholder"),
+    "pack": ("parameter pack", "pack expansion", "unexpanded pack"),
+    "storage": ("storage class", "thread_local", "linkage"),
+    "asm": ("asm", "assembly"),
 }
 
 

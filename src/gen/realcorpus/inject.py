@@ -17,12 +17,16 @@ ChatFn = Callable[[list[dict], float], str]
 _FILE_HEAD_CHARS = 1200
 
 
-def apply_edit(tu_src: str, edit: Edit) -> Optional[str]:
+def apply_edit(tu_src: str, edit: Edit, *,
+               span: Optional[tuple[int, int]] = None) -> Optional[str]:
     """Replace a UNIQUE occurrence of edit.old with edit.new. None if the anchor
     is absent or appears more than once (ambiguous)."""
-    if not edit.old or tu_src.count(edit.old) != 1:
+    start, end = span if span is not None else (0, len(tu_src))
+    region = tu_src[start:end]
+    if not edit.old or region.count(edit.old) != 1:
         return None
-    return tu_src.replace(edit.old, edit.new, 1)
+    changed = region.replace(edit.old, edit.new, 1)
+    return tu_src[:start] + changed + tu_src[end:]
 
 
 def inject_target(target: Target, fragment: Fragment, chat: ChatFn, *,
@@ -37,7 +41,7 @@ def inject_target(target: Target, fragment: Fragment, chat: ChatFn, *,
         edit = parse_edit(reply)
         if edit is None:
             continue
-        mutant = apply_edit(fragment.tu_src, edit)
+        mutant = apply_edit(fragment.tu_src, edit, span=fragment.span)
         if mutant is not None and mutant != fragment.tu_src:
             return mutant
     return None

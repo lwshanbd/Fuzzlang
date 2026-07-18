@@ -23,8 +23,9 @@ def count_errors(stderr: str) -> int:
     return len(_ERROR_LINE.findall(stderr))
 
 
-def _record_id(rel_path: str, target: str, mutant: str) -> str:
-    h = hashlib.sha256(f"{rel_path}|{target}|{mutant}".encode()).hexdigest()[:12]
+def _record_id(project: str, rel_path: str, target: str, mutant: str) -> str:
+    h = hashlib.sha256(
+        f"{project}|{rel_path}|{target}|{mutant}".encode()).hexdigest()[:12]
     return f"realinject-{h}"
 
 
@@ -37,6 +38,7 @@ def collect_real_record(
     split: Split = Split.EVAL,
     language: str = "c++",
     result: Optional[VerifierResult] = None,
+    project: str = "llvm",
 ) -> Optional[Record]:
     res = result if result is not None else verifier.verify(
         erroneous_src, fragment.compile_cmd, logical_path=fragment.rel_path)
@@ -45,19 +47,20 @@ def collect_real_record(
     cascade = count_errors(res.raw_stderr)
     matches = res.diag.diag_name == target.name
     return Record(
-        record_id=_record_id(fragment.rel_path, target.name, erroneous_src),
+        record_id=_record_id(project, fragment.rel_path, target.name, erroneous_src),
         erroneous_src=erroneous_src,
         corrected_src=fragment.tu_src,
         diagnostics=(res.diag,),
         provenance=Provenance(
-            origin=Origin.GUIDED,
-            source=f"llvm:{fragment.rel_path}",
+            origin=Origin.LLM,
+            source=f"{project}:{fragment.rel_path}",
             detail={
                 "strategy": "realcorpus_inject",
                 "target_diag": target.name,
                 "primary_matches_target": matches,
                 "cascade_size": cascade,
                 "region": list(fragment.span),
+                "region_type": fragment.region_type,
             },
         ),
         split=split,

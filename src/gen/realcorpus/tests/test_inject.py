@@ -16,6 +16,16 @@ def test_apply_edit_rejects_absent_or_nonunique():
     assert apply_edit("xyz", Edit(old="q", new="b")) is None     # absent
 
 
+def test_apply_edit_can_enforce_selected_region():
+    tu = "int outside;\nint f(){ return outside; }\n"
+    start = tu.index("int f")
+    assert apply_edit(tu, Edit(old="int outside;", new="long outside;"),
+                      span=(start, len(tu))) is None
+    assert apply_edit(tu, Edit(old="return outside;", new="return missing;"),
+                      span=(start, len(tu))) == \
+        "int outside;\nint f(){ return missing; }\n"
+
+
 def test_inject_target_end_to_end_with_mock_chat():
     frag = Fragment(rel_path="f.cpp", tu_src="int f(){ return 1; }\n",
                     span=(0, 20), features=frozenset(), compile_cmd=["__CLANG__", "__SRC__"])

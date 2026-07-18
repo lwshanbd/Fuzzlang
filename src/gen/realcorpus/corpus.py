@@ -16,21 +16,45 @@ from pathlib import Path
 from foundation.compile_db import build_clang_argv
 from foundation.verifier.base import BaseVerifier
 from gen.realcorpus.features import fragment_features
-from gen.realcorpus.region import select_regions
+from gen.realcorpus.region import select_typed_regions
 
 _SRC_EXTS = (".c", ".cc", ".cpp", ".cxx", ".c++")
 
-# Directories whose files are NOT proper project source (tests, unit tests,
-# examples, benchmarks, fuzzers, vendored gtest/gmock). Injecting into these is
-# meaningless for the dataset — exclude them from the corpus.
-_TEST_DIR_RE = re.compile(
-    r"/(test|tests|unittest|unittests|gtest|gmock|googletest|googlemock|"
-    r"examples?|benchmark|benchmarks|fuzz|fuzzer|fuzzing)/", re.I)
+# Path components whose files are NOT proper project source (tests, test tools,
+# examples, benchmarks, fuzzers, vendored gtest/gmock).  Match the token even
+# inside names such as c-index-test, llvm-c-test, TestPasses.cpp, and
+# TestingSupport.cpp: those are compiled by LLVM but are still test-oriented
+# code and must not enter the real-project corpus.
+_TEST_COMPONENTS = frozenset({
+    "test", "tests", "unittest", "unittests", "gtest", "gmock",
+    "googletest", "googlemock", "example", "examples", "benchmark",
+    "benchmarks", "fuzz", "fuzzer", "fuzzing",
+})
+_TEST_HYPHEN_TOKEN_RE = re.compile(
+    r"(?:^|-)(?:test|tests|gtest|gmock|example|examples|benchmark|benchmarks|"
+    r"fuzz|fuzzer|fuzzing)(?:-|$)", re.I)
+_TEST_CAMEL_RE = re.compile(r"(?:Testing|Test)(?:[A-Z]|$)")
 
 
 def is_test_path(path: str) -> bool:
-    """True if `path` lives in a test/unittest/example/benchmark/fuzzer dir."""
-    return bool(_TEST_DIR_RE.search(path))
+    """True for conventional and test-named tool/support paths.
+
+    Token-aware matching avoids rejecting an unrelated parent such as a pytest
+    temporary directory named ``test_build_fragment_index...`` while still
+    catching LLVM components like ``c-index-test`` and ``TestingSupport.cpp``.
+    """
+    parts = [part for part in path.replace("\\", "/").split("/") if part]
+    for i, part in enumerate(parts):
+        stem = part.rsplit(".", 1)[0]
+        lower = stem.lower()
+        if lower in _TEST_COMPONENTS or _TEST_HYPHEN_TOKEN_RE.search(lower):
+            return True
+        if _TEST_CAMEL_RE.search(stem):
+            return True
+        if i == len(parts) - 1 and (
+                lower.startswith("test_") or lower.endswith("_test")):
+            return True
+    return False
 
 
 @dataclass(frozen=True)
@@ -40,6 +64,7 @@ class Fragment:
     span: tuple[int, int]         # (start, end) char offsets of the region in tu_src
     features: frozenset[str]
     compile_cmd: list[str]        # placeholdered: [__CLANG__ ... __SRC__]
+    region_type: str = "function"
 
     @property
     def region_text(self) -> str:
@@ -87,12 +112,14 @@ def build_fragment_index(
         if not base.ok:
             return []
         frags: list[Fragment] = []
-        for span in select_regions(tu_src, max_regions=max_regions_per_file,
-                                   min_lines=min_region_lines):
+        for region in select_typed_regions(
+                tu_src, max_regions=max_regions_per_file,
+                min_lines=min_region_lines):
+            span = region.span
             frags.append(Fragment(
                 rel_path=entry["file"], tu_src=tu_src, span=span,
                 features=fragment_features(tu_src[span[0]:span[1]]),
-                compile_cmd=cmd))
+                compile_cmd=cmd, region_type=region.kind))
         return frags
 
     out: list[Fragment] = []

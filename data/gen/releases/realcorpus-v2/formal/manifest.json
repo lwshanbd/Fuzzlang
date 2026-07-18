@@ -1,0 +1,116 @@
+{
+  "clang_bin": "/p/lustre2/shan4/fuzzlang-clang/bin/clang",
+  "clang_version": "clang version 22.1.8 (https://github.com/llvm/llvm-project.git ca7933e47d3a3451d81e72ac174dcb5aa28b59d1)",
+  "corpus": {
+    "cascade_buckets": {
+      "1": 934,
+      "2-5": 324,
+      "6-10": 67,
+      ">10": 97
+    },
+    "distinct_diagnostics": 681,
+    "generation_labels": {
+      "exact_target": 575,
+      "near_miss": 847
+    },
+    "languages": {
+      "c": 50,
+      "c++": 1372
+    },
+    "records": 1422,
+    "sources": 419,
+    "test_sources": 0
+  },
+  "dedup": {
+    "after": 1422,
+    "before": 1429,
+    "key": "primary diagnostic + normalized 5-line error window",
+    "removed": 7
+  },
+  "diagtool_bin": "/p/lustre2/shan4/fuzzlang-clang/bin/diagtool",
+  "files": {
+    "canonical_all": {
+      "bytes": 195831057,
+      "path": "data/gen/releases/realcorpus-v2/formal/canonical_all.jsonl",
+      "records": 1422,
+      "sha256": "e3469c79ec0ab8463c570784495b247a079a65267110f27c7ad2c487bee9d4a7"
+    },
+    "dev": {
+      "bytes": 26411259,
+      "path": "data/gen/releases/realcorpus-v2/formal/dev.jsonl",
+      "records": 106,
+      "sha256": "23be9f072662324cc670da74ef431c0026351781a470320d2999bcab38af9bc8"
+    },
+    "eval": {
+      "bytes": 37836337,
+      "path": "data/gen/releases/realcorpus-v2/formal/eval.jsonl",
+      "records": 440,
+      "sha256": "e0617b8881153758a8d4857aaa757584d755f5848d86a138cec0c0402f7ad4e9"
+    },
+    "eval_repair": {
+      "bytes": 37587627,
+      "path": "data/gen/releases/realcorpus-v2/formal/eval.repair.jsonl",
+      "records": 440,
+      "sha256": "487c22baf7ab8a5f016a47ae378ab4f699a4babf33274a60048d307cfb2fd0fb"
+    },
+    "rejected": {
+      "bytes": 0,
+      "path": "data/gen/releases/realcorpus-v2/formal/rejected.jsonl",
+      "records": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "train": {
+      "bytes": 131583461,
+      "path": "data/gen/releases/realcorpus-v2/formal/train.jsonl",
+      "records": 876,
+      "sha256": "0993f18fd4ab879c8a8857dfb67013e42c49ed3a49d5646cf8617040a79f92e6"
+    }
+  },
+  "input": {
+    "bytes": 195634248,
+    "path": "data/gen/splits/eval_realcorpus_v2_all.jsonl",
+    "records": 1429,
+    "sha256": "08f7a1e9ba19059c25fedeea1f3cb370c373b4d790dccc9a12ced498f7f4ef60"
+  },
+  "llvm_revision": "llvmorg-22.1.8",
+  "release": "realcorpus-v2",
+  "revalidation": {
+    "accepted": 1429,
+    "gate": [
+      "corrected_clean",
+      "buggy_fails",
+      "primary_diag_stable",
+      "source_resolved",
+      "source_not_test"
+    ],
+    "rejected": 0,
+    "statuses": {
+      "accepted": 1429
+    }
+  },
+  "schema_version": 1,
+  "split": {
+    "counts": {
+      "dev": {
+        "distinct_diagnostics": 81,
+        "records": 106,
+        "sources": 42
+      },
+      "eval": {
+        "distinct_diagnostics": 376,
+        "records": 440,
+        "sources": 45
+      },
+      "train": {
+        "distinct_diagnostics": 392,
+        "records": 876,
+        "sources": 332
+      }
+    },
+    "dev_fraction": 0.1,
+    "eval_fraction": 0.1,
+    "provenance_isolation_ok": true,
+    "salt": "fuzzlang-realcorpus-v2",
+    "straddling_sources": {}
+  }
+}

@@ -1,6 +1,10 @@
 *.jsonl
+*.jsonl.zst
+*.tar.zst
 total-jsons/
 *.json
+!data/gen/releases/**/manifest.json
+!data/gen/releases/**/release-manifest.json
 *.ipynb_checkpoints
 tmp/
 __pycache__/

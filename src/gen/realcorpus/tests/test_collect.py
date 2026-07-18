@@ -34,7 +34,7 @@ def test_collect_emits_record_with_cascade_and_target_match():
     rec = collect_real_record(_frag(), "int f(){ return 0 }\n", _target(),
                               MockVerifier(policy), split=Split.EVAL)
     assert rec is not None
-    assert rec.provenance.origin == Origin.GUIDED
+    assert rec.provenance.origin == Origin.LLM
     assert rec.provenance.detail["cascade_size"] == 2
     assert rec.provenance.detail["primary_matches_target"] is True
     assert rec.provenance.detail["target_diag"] == "err_expected_semi"
@@ -45,3 +45,15 @@ def test_collect_returns_none_when_mutant_still_compiles():
     rec = collect_real_record(_frag(), "int f(){ return 0; }\n", _target(),
                               MockVerifier(lambda s, c, l: ok_result()))
     assert rec is None
+
+
+def test_collect_tags_configured_project_name():
+    diag = DiagInfo(diag_id=1, diag_name="err_expected_semi", diag_msg="m",
+                    file="src/a.cpp", line=1, col=1, start_byte=0, end_byte=1,
+                    span_snippet="x")
+    res = VerifierResult(ok=False, diag=diag,
+                         raw_stderr="src/a.cpp:1:1: error: m\n")
+    rec = collect_real_record(_frag(), "int f(){ return 0 }\n", _target(),
+                              MockVerifier(lambda s, c, l: res), project="myproj")
+    assert rec is not None
+    assert rec.provenance.source.startswith("myproj:")

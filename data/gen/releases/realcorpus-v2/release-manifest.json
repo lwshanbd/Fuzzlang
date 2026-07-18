@@ -1,0 +1,69 @@
+{
+  "schema_version": 1,
+  "release": "realcorpus-v2",
+  "created": "2026-07-17",
+  "generator": {
+    "branch": "feat/realcorpus-injection",
+    "model": "gpt-5.4-mini",
+    "method": "diagnostic-targeted localized edits to clean real-project translation units"
+  },
+  "compiler": {
+    "version": "22.1.8",
+    "llvm_revision": "ca7933e47d3a3451d81e72ac174dcb5aa28b59d1",
+    "llvm_tag": "llvmorg-22.1.8",
+    "verifier": "Fuzzlang-patched clang with DiagID emission"
+  },
+  "raw": {
+    "format": "run_sweep JSONL",
+    "records": 1429,
+    "distinct_diagnostics": 681,
+    "strict_c_cpp_catalog_coverage": {
+      "covered": 673,
+      "total": 1935,
+      "rate": 0.348
+    },
+    "source_file": {
+      "path": "data/gen/splits/eval_realcorpus_v2_all.jsonl",
+      "bytes": 195634248,
+      "sha256": "08f7a1e9ba19059c25fedeea1f3cb370c373b4d790dccc9a12ced498f7f4ef60"
+    },
+    "archive": {
+      "path": "data/gen/releases/realcorpus-v2/eval_realcorpus_v2_all.jsonl.zst",
+      "bytes": 17377147,
+      "sha256": "5f0a8d1ee9ab2f5de143c4a126ef589e03462c0349de79214fcfd2802a73d701"
+    }
+  },
+  "formal": {
+    "format": "foundation.record.Record JSONL plus repair-ready eval JSONL",
+    "input_revalidated": 1429,
+    "input_rejected": 0,
+    "records_after_structural_dedup": 1422,
+    "duplicates_removed": 7,
+    "distinct_diagnostics": 681,
+    "sources": 419,
+    "test_sources": 0,
+    "corrected_src_missing": 0,
+    "split": {
+      "strategy": "deterministic provenance.source isolation",
+      "salt": "fuzzlang-realcorpus-v2",
+      "train": 876,
+      "dev": 106,
+      "eval": 440,
+      "source_straddlers": 0
+    },
+    "manifest": "data/gen/releases/realcorpus-v2/formal/manifest.json",
+    "archive": {
+      "path": "data/gen/releases/realcorpus-v2/realcorpus-v2-formal.tar.zst",
+      "bytes": 34064018,
+      "sha256": "e08909ca6aa6518ae49bcaacf552f9d368981b07f6c07a5ad5e705939038c958"
+    }
+  },
+  "release_gates": {
+    "corrected_compiles_cleanly": true,
+    "buggy_fails_with_primary_diagnostic": true,
+    "recorded_primary_diagnostic_stable": true,
+    "all_sources_resolved": true,
+    "clang_tests_or_test_support_present": false,
+    "archives_integrity_checked": true
+  }
+}

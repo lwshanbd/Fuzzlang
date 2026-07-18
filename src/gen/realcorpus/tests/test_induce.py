@@ -54,3 +54,37 @@ def test_induce_gives_up_on_not_applicable():
     out = induce_target(_target("err_target"), _frag(),
                         lambda m, t: "NOT_APPLICABLE", v, max_attempts=3)
     assert out is None
+
+
+def test_induce_reports_attempt_outcomes_and_near_misses():
+    replies = iter([
+        "<<<OLD\nreturn 1;\n===\nreturn 1\n>>>",
+        "<<<OLD\nreturn 1;\n===\nreturn 1\n>>>",
+    ])
+    results = iter([
+        VerifierResult(ok=False, diag=_diag("err_other"), raw_stderr="other"),
+        VerifierResult(ok=False, diag=_diag("err_target"), raw_stderr="target"),
+    ])
+    events = []
+    misses = []
+    out = induce_target(
+        _target("err_target"), _frag(), lambda m, t: next(replies),
+        MockVerifier(lambda s, c, l: next(results)), max_attempts=2,
+        on_attempt=events.append,
+        on_near_miss=lambda target, frag, mutant, res: misses.append(
+            res.diag.diag_name),
+    )
+    assert out is not None
+    assert [e["status"] for e in events] == ["wrong_diagnostic", "exact_match"]
+    assert events[0]["observed_diag"] == "err_other"
+    assert misses == ["err_other"]
+
+
+def test_induce_reports_not_applicable():
+    events = []
+    out = induce_target(
+        _target("err_target"), _frag(), lambda m, t: "NOT_APPLICABLE",
+        MockVerifier(lambda s, c, l: None), on_attempt=events.append,
+    )
+    assert out is None
+    assert events[0]["status"] == "not_applicable"
