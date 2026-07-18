@@ -1,0 +1,94 @@
+{
+  "combined": {
+    "distinct_observed_diagnostics": 700,
+    "records": 2053,
+    "strict_code_coverage": {
+      "covered": 691,
+      "covered_at_multiplicity_3": 179,
+      "rate": 0.3571059431524548,
+      "total": 1935
+    }
+  },
+  "compiler": {
+    "clang_bin": "/p/lustre2/shan4/fuzzlang-clang/bin/clang",
+    "diagtool_bin": "/p/lustre2/shan4/fuzzlang-clang/bin/diagtool",
+    "required_version": "llvmorg-22.1.8"
+  },
+  "dedup": {
+    "kept_new": 631,
+    "removed_against_base_or_new": 1,
+    "validated_new": 632
+  },
+  "files": {
+    "records": {
+      "bytes": 36177399,
+      "path": "data/gen/releases/recipe-replay-v1/formal/records.jsonl",
+      "records": 631,
+      "sha256": "9c31cc002319d3909c3c5b6c7959cfb66829fbdfa30f6074c4eafadf90e9eab1"
+    },
+    "rejected": {
+      "bytes": 0,
+      "path": "data/gen/releases/recipe-replay-v1/formal/rejected.jsonl",
+      "records": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  },
+  "inputs": {
+    "base": "data/gen/releases/realcorpus-v2/formal/canonical_all.jsonl",
+    "base_records": 1422,
+    "generated": [
+      "data/gen/releases/recipe-replay-v1/pilot/records.jsonl",
+      "data/gen/releases/recipe-replay-v1/round1/records.jsonl",
+      "data/gen/releases/recipe-replay-v1/round2/records.jsonl",
+      "data/gen/releases/recipe-replay-v1/c/records.jsonl"
+    ],
+    "generated_records": 632
+  },
+  "new_data": {
+    "corrected_src_missing": 0,
+    "distinct_diagnostics": 176,
+    "exact_target": 400,
+    "near_miss": 231,
+    "novel_diagnostics": [
+      "err_constexpr_non_literal_return",
+      "err_destructor_with_params",
+      "err_expected_type",
+      "err_explicit_non_function",
+      "err_func_returning_array_function",
+      "err_init_incomplete_type",
+      "err_main_arg_wrong",
+      "err_non_template_in_template_id_suggest",
+      "err_ovl_deleted_special_init",
+      "err_ovl_diff_return_type",
+      "err_redeclaration_different_type",
+      "err_reference_bind_failed",
+      "err_reference_has_multiple_inits",
+      "err_reference_without_init",
+      "err_subscript_function_type",
+      "err_template_variable_noparams",
+      "err_typecheck_call_too_many_args_suggest",
+      "err_typecheck_sclass_func",
+      "err_unknown_nested_typename_suggest"
+    ],
+    "records": 631,
+    "source_overlap_with_base": 0,
+    "sources": 256,
+    "test_sources": 0
+  },
+  "release": "recipe-replay-v1",
+  "revalidation": {
+    "accepted": 632,
+    "gate": [
+      "corrected_clean",
+      "buggy_fails",
+      "primary_diag_stable",
+      "source_not_test"
+    ],
+    "rejected": 0,
+    "statuses": {
+      "accepted": 632
+    }
+  },
+  "schema_version": 1,
+  "uses_llm_api": false
+}

@@ -1,0 +1,70 @@
+{
+  "compiler": {
+    "clang_bin": "/p/lustre2/shan4/fuzzlang-clang/bin/clang",
+    "diagtool_bin": "/p/lustre2/shan4/fuzzlang-clang/bin/diagtool",
+    "required_version": "llvmorg-22.1.8"
+  },
+  "generator": "learned_recipe_replay",
+  "limits": {
+    "exact_only": false,
+    "language": "c",
+    "max_candidates_per_recipe": 1,
+    "max_instances": 50,
+    "max_instances_per_diagnostic": 5,
+    "max_records_per_source": 3,
+    "max_verifications_per_source": 16,
+    "n_files": 100
+  },
+  "recipes": {
+    "extracted": 1413,
+    "file": {
+      "bytes": 490616,
+      "path": "data/gen/releases/recipe-replay-v1/c/recipes.jsonl",
+      "records": 1413,
+      "sha256": "5ca97c39f4db72c4171b2490ace903b52aab5cb7032d71202a8845ffeb80a968"
+    },
+    "portable": 468,
+    "portable_diagnostics": 245,
+    "scheduled_by_language": {
+      "c": 14,
+      "c++": 454
+    }
+  },
+  "replay": {
+    "candidate_tus": 3,
+    "distinct_diagnostics": 2,
+    "exact_target": 2,
+    "mutants_compiled": 6,
+    "near_miss": 0,
+    "novel_diagnostics": [],
+    "output": {
+      "bytes": 9979,
+      "path": "data/gen/releases/recipe-replay-v1/c/records.jsonl",
+      "records": 2,
+      "sha256": "2fffee58997191530c97a34a247dfe7209f4ded86aa7f3a67c886e1712166359"
+    },
+    "records": 2,
+    "seed": 3,
+    "sources": 1,
+    "sources_scanned": 3,
+    "statuses": {
+      "accepted": 1,
+      "no_verified_mutants": 2
+    },
+    "test_sources": 0
+  },
+  "schema_version": 1,
+  "training": {
+    "additional_exclude_paths": [
+      "data/gen/releases/recipe-replay-v1/formal/records.jsonl",
+      "data/gen/releases/recipe-replay-v1/round2/records.jsonl"
+    ],
+    "additional_excluded_records": 630,
+    "distinct_diagnostics": 681,
+    "excluded_sources": 674,
+    "path": "data/gen/releases/realcorpus-v2/formal/canonical_all.jsonl",
+    "recipe_training_sources": 419,
+    "records": 1422
+  },
+  "uses_llm_api": false
+}

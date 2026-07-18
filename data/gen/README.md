@@ -321,3 +321,49 @@ PYTHONPATH=src python3 src/gen/realcorpus/finalize.py \
   --diagtool-bin /p/lustre2/shan4/fuzzlang-clang/bin/diagtool \
   --out-dir data/gen/releases/realcorpus-v2/formal --workers 48
 ```
+
+# Learned diagnostic-specific recipe replay
+
+`src/gen/realcorpus/recipes.py` extracts the minimal corrected-to-erroneous
+edit from every verified real-code pair and turns its nearby tokens into a
+diagnostic-specific modifier. Language keywords and punctuation remain exact;
+user identifiers and numeric literals in the context become placeholders.
+Only token-aligned edits whose inserted text contains no user-defined name,
+string, character literal, or comment are marked portable.
+
+On realcorpus-v2 this produced **1413 learned recipes**, of which **468 are
+portable across source files**, covering 245 target diagnostics. The replay
+driver uses a different deterministic diagnostic order for each source TU,
+caps both verifier calls and output multiplicity, and applies these recipes
+only to clean, non-test compile-database sources that were absent from the
+recipe-training corpus. Every emitted mutant is checked by patched Clang; no
+model/API call is made.
+
+The first release generated 632 raw records across a pilot, two diversity
+rounds, and a C-only tail pass. Full paired recompilation accepted **632/632**;
+structural dedup against realcorpus-v2 retained **631 new records from 256 new
+LLVM TUs**, with zero source overlap and zero test sources. The new set covers
+176 diagnostics: 400 exact recipe targets and 231 verifier-confirmed near
+misses. It added 19 observed diagnostic names, 18 of them in the strict C/C++
+code denominator.
+
+Combined with realcorpus-v2, the real-source corpus is now **2053 records with
+700 observed diagnostic names**. Strict coverage increased from 673/1935 to
+**691/1935 (35.7%)**, and 179 diagnostics now have multiplicity at least three.
+Only two new C records were possible because just three unseen non-test C TUs
+remained in this LLVM compile database; further C expansion needs another
+project or build configuration.
+
+Release details, checksums, and the immutable archive are recorded in
+`releases/recipe-replay-v1/release-manifest.json`. Regenerate a replay round
+with:
+
+```bash
+PYTHONPATH=src python3 src/gen/realcorpus/run_recipe_replay.py \
+  --records data/gen/releases/realcorpus-v2/formal/canonical_all.jsonl \
+  --compile-db /p/lustre2/shan4/fuzzlang-llvm-build/compile_commands.json \
+  --clang-bin /p/lustre2/shan4/fuzzlang-clang/bin/clang \
+  --diagtool-bin /p/lustre2/shan4/fuzzlang-clang/bin/diagtool \
+  --out data/gen/releases/recipe-replay-v1/next/records.jsonl \
+  --n-files 400 --max-instances 300 --workers 16
+```

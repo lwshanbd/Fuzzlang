@@ -1,0 +1,77 @@
+{
+  "schema_version": 1,
+  "release": "recipe-replay-v1",
+  "created": "2026-07-17",
+  "method": {
+    "name": "diagnostic-specific learned recipe replay",
+    "uses_llm_api": false,
+    "recipe_training_records": 1422,
+    "recipes_extracted": 1413,
+    "portable_recipes": 468,
+    "portable_recipe_diagnostics": 245,
+    "recipe_file_sha256": "5ca97c39f4db72c4171b2490ace903b52aab5cb7032d71202a8845ffeb80a968"
+  },
+  "compiler": {
+    "version": "22.1.8",
+    "llvm_revision": "ca7933e47d3a3451d81e72ac174dcb5aa28b59d1",
+    "llvm_tag": "llvmorg-22.1.8",
+    "verifier": "Fuzzlang-patched clang with DiagID emission"
+  },
+  "generation": {
+    "raw_records": 632,
+    "stages": {
+      "pilot": 30,
+      "round1": 300,
+      "round2": 300,
+      "c": 2
+    },
+    "all_sources_excluded_from_recipe_training": true,
+    "clang_tests_or_test_support_present": false
+  },
+  "formal": {
+    "revalidated": 632,
+    "revalidation_rejected": 0,
+    "records_after_structural_dedup": 631,
+    "duplicates_removed": 1,
+    "sources": 256,
+    "source_overlap_with_base": 0,
+    "languages": {
+      "c": 2,
+      "c++": 629
+    },
+    "distinct_diagnostics": 176,
+    "exact_target": 400,
+    "near_miss": 231,
+    "novel_observed_diagnostics": 19,
+    "records_file": {
+      "path": "data/gen/releases/recipe-replay-v1/formal/records.jsonl",
+      "bytes": 36177399,
+      "sha256": "9c31cc002319d3909c3c5b6c7959cfb66829fbdfa30f6074c4eafadf90e9eab1"
+    }
+  },
+  "combined_with_realcorpus_v2": {
+    "records": 2053,
+    "distinct_observed_diagnostics": 700,
+    "strict_c_cpp_code_coverage": {
+      "covered": 691,
+      "total": 1935,
+      "rate": 0.3571059432,
+      "net_new_diagnostics": 18,
+      "covered_at_multiplicity_3": 179
+    }
+  },
+  "archive": {
+    "path": "data/gen/releases/recipe-replay-v1.bundle.tar.zst",
+    "bytes": 3260759,
+    "sha256": "0d3504fe47bec1d9d2b1cd555d310cc6aa5efe417450eb67fbd0aa20b3c4cd2b",
+    "integrity_checked": true
+  },
+  "release_gates": {
+    "corrected_compiles_cleanly": true,
+    "buggy_fails_with_primary_diagnostic": true,
+    "recorded_primary_diagnostic_stable": true,
+    "all_sources_are_unseen_real_tus": true,
+    "test_sources": 0,
+    "corrected_src_missing": 0
+  }
+}

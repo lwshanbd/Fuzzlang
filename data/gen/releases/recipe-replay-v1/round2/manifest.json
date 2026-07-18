@@ -1,0 +1,84 @@
+{
+  "compiler": {
+    "clang_bin": "/p/lustre2/shan4/fuzzlang-clang/bin/clang",
+    "diagtool_bin": "/p/lustre2/shan4/fuzzlang-clang/bin/diagtool",
+    "required_version": "llvmorg-22.1.8"
+  },
+  "generator": "learned_recipe_replay",
+  "limits": {
+    "exact_only": false,
+    "language": "c++",
+    "max_candidates_per_recipe": 1,
+    "max_instances": 300,
+    "max_instances_per_diagnostic": 3,
+    "max_records_per_source": 3,
+    "max_verifications_per_source": 16,
+    "n_files": 500
+  },
+  "recipes": {
+    "extracted": 1413,
+    "file": {
+      "bytes": 490616,
+      "path": "data/gen/releases/recipe-replay-v1/round2/recipes.jsonl",
+      "records": 1413,
+      "sha256": "5ca97c39f4db72c4171b2490ace903b52aab5cb7032d71202a8845ffeb80a968"
+    },
+    "portable": 468,
+    "portable_diagnostics": 245,
+    "scheduled_by_language": {
+      "c": 14,
+      "c++": 454
+    }
+  },
+  "replay": {
+    "candidate_tus": 500,
+    "distinct_diagnostics": 144,
+    "exact_target": 182,
+    "mutants_compiled": 467,
+    "near_miss": 118,
+    "novel_diagnostics": [
+      "err_constexpr_non_literal_return",
+      "err_destructor_with_params",
+      "err_expected_type",
+      "err_explicit_non_function",
+      "err_func_returning_array_function",
+      "err_main_arg_wrong",
+      "err_ovl_diff_return_type",
+      "err_redeclaration_different_type",
+      "err_reference_has_multiple_inits",
+      "err_reference_without_init",
+      "err_template_variable_noparams",
+      "err_typecheck_sclass_func"
+    ],
+    "output": {
+      "bytes": 21563933,
+      "path": "data/gen/releases/recipe-replay-v1/round2/records.jsonl",
+      "records": 300,
+      "sha256": "beb928d7605cd402b88a3a1dd3b7f3727a21dbdf2b1ebfb1759c46cf3ad44365"
+    },
+    "records": 300,
+    "seed": 2,
+    "sources": 136,
+    "sources_scanned": 155,
+    "statuses": {
+      "accepted": 142,
+      "corrected_not_clean": 11,
+      "no_verified_mutants": 1,
+      "verification_cap": 1
+    },
+    "test_sources": 0
+  },
+  "schema_version": 1,
+  "training": {
+    "additional_exclude_paths": [
+      "data/gen/releases/recipe-replay-v1/formal/records.jsonl"
+    ],
+    "additional_excluded_records": 330,
+    "distinct_diagnostics": 681,
+    "excluded_sources": 538,
+    "path": "data/gen/releases/realcorpus-v2/formal/canonical_all.jsonl",
+    "recipe_training_sources": 419,
+    "records": 1422
+  },
+  "uses_llm_api": false
+}
