@@ -9,7 +9,20 @@ from __future__ import annotations
 import os
 
 from foundation.verifier.base import PLACEHOLDER
-from foundation.verifier.fuzzlang import FuzzlangClangVerifier
+from foundation.verifier.fuzzlang import FuzzlangClangVerifier, _guess_suffix
+
+
+def test_guess_suffix_uses_stable_logical_path_when_command_has_no_language():
+    command = ["__CLANG__", "-I/project", "-fsyntax-only", "__SRC__"]
+
+    assert _guess_suffix(command, "absl/base/log_severity.cc") == ".cpp"
+    assert _guess_suffix(command, "src/runtime.c") == ".c"
+
+
+def test_guess_suffix_respects_explicit_language_over_logical_path():
+    assert _guess_suffix(
+        ["__CLANG__", "-x", "c", "__SRC__"], "src/misnamed.cc"
+    ) == ".c"
 
 
 def test_verify_tolerates_non_utf8_stderr(tmp_path):

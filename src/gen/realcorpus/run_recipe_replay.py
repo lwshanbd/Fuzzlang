@@ -97,6 +97,11 @@ def main() -> None:
     )
     ap.add_argument("--project", default="llvm")
     ap.add_argument("--source-substr", default="external/llvm-project")
+    ap.add_argument(
+        "--source-root",
+        default=None,
+        help="checkout root used to store project-relative source provenance",
+    )
     ap.add_argument("--language", choices=("all", "c", "c++"), default="all")
     ap.add_argument("--n-files", type=int, default=200)
     ap.add_argument("--seed", type=int, default=0)
@@ -238,7 +243,8 @@ def main() -> None:
         path_language = "c" if lower.endswith(".c") else "c++"
         if args.language != "all" and path_language != args.language:
             continue
-        source_key = f"{args.project}:{portable_source_path(path)}"
+        logical_path = portable_source_path(path, source_root=args.source_root)
+        source_key = f"{args.project}:{logical_path}"
         if source_key in excluded_sources:
             continue
         candidates.append(path)
@@ -260,7 +266,8 @@ def main() -> None:
         command = sanitize_cmd(build_clang_argv(entry, "__CLANG__", "__SRC__"))
         language = "c" if path.lower().endswith(".c") else "c++"
         scheduled = source_diverse_recipes(
-            recipes_by_language[language], portable_source_path(path)
+            recipes_by_language[language],
+            portable_source_path(path, source_root=args.source_root),
         )
         if args.max_recipes_per_language > 0:
             scheduled = scheduled[:args.max_recipes_per_language]
@@ -281,6 +288,7 @@ def main() -> None:
             injectors=scheduled_injectors,
             verifier=verifier,
             project=args.project,
+            source_root=args.source_root,
             excluded_sources=excluded_sources,
             max_records=args.max_records_per_source,
             max_candidates_per_recipe=args.max_candidates_per_recipe,
@@ -403,6 +411,9 @@ def main() -> None:
             "max_verifications_per_source": args.max_verifications_per_source,
             "exact_only": args.exact_only,
             "language": args.language,
+            "project": args.project,
+            "source_root": args.source_root,
+            "source_substr": args.source_substr,
         },
         "compiler": {
             "clang_bin": args.clang_bin,

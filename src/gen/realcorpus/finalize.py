@@ -34,9 +34,19 @@ class CanonicalizeResult:
     detail: str = ""
 
 
-def portable_source_path(path: str) -> str:
-    """Remove machine-specific checkout prefixes from an LLVM source path."""
+def portable_source_path(path: str, *, source_root: str | None = None) -> str:
+    """Remove a machine-specific checkout prefix from a source path.
+
+    LLVM retains its historical marker-based behavior.  Other projects should
+    provide ``source_root`` so provenance stores a project-relative path and
+    never leaks a host checkout prefix.
+    """
     normalized = path.replace("\\", "/")
+    if source_root is not None:
+        root = source_root.replace("\\", "/").rstrip("/")
+        if not root or not normalized.startswith(root + "/"):
+            raise ValueError(f"source path is outside source root: {path}")
+        return normalized[len(root) + 1:]
     marker = "/external/llvm-project/"
     if marker in normalized:
         return normalized.split(marker, 1)[1]

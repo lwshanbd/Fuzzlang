@@ -13,6 +13,7 @@ offline validation and data-preparation path before requesting GPU resources.
 from __future__ import annotations
 
 import argparse
+from collections import Counter
 import json
 import statistics
 import sys
@@ -46,6 +47,21 @@ _RELATIVE_EDIT_INSTRUCTION = (
     "to the source window."
 )
 
+# Gemma 3/4 are multimodal models.  A suffix-only PEFT target such as ``q_proj``
+# also matches their vision tower, which is both unnecessary and expensive for
+# this text-only experiment.  This expression deliberately selects only the
+# decoder projections in the language-model stack.
+_LORA_TARGET_MODULES = (
+    r"model\.language_model\.layers\.\d+\."
+    r"(?:self_attn\.(?:q_proj|k_proj|v_proj|o_proj)|"
+    r"mlp\.(?:gate_proj|up_proj|down_proj))"
+)
+
+_GENERIC_LORA_TARGET_MODULES = [
+    "q_proj", "k_proj", "v_proj", "o_proj",
+    "gate_proj", "up_proj", "down_proj",
+]
+
 
 def _parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
     p = argparse.ArgumentParser()
@@ -68,6 +84,12 @@ def _parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
     p.add_argument("--bf16", action="store_true")
     p.add_argument("--seed", type=int, default=42)
     p.add_argument("--max-seq-len", type=int, default=4096)
+    p.add_argument(
+        "--max-steps",
+        type=int,
+        default=-1,
+        help="Override epochs with a bounded number of optimizer steps (smoke runs).",
+    )
     limit = p.add_mutually_exclusive_group()
     limit.add_argument(
         "--limit", type=int, default=None, help="Cap training set size."
@@ -121,6 +143,29 @@ def _parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
             "Policy for rendered examples longer than --max-seq-len. The safe "
             "default rejects them instead of silently truncating the repair."
         ),
+    )
+    p.add_argument(
+        "--attn-implementation",
+        choices=("eager", "sdpa"),
+        default="sdpa",
+        help="Attention backend used when loading the base model.",
+    )
+    p.add_argument(
+        "--fsdp",
+        action="store_true",
+        help="Enable full-shard FSDP for models that do not fit on one device.",
+    )
+    p.add_argument(
+        "--fsdp-transformer-layer",
+        default="Gemma4TextDecoderLayer",
+        help="Decoder-layer class wrapped independently by FSDP auto-wrap.",
+    )
+    p.add_argument(
+        "--fsdp-version",
+        type=int,
+        choices=(1, 2),
+        default=2,
+        help="Accelerate FSDP implementation; version 2 is the supported default.",
     )
     return p.parse_args(argv)
 
@@ -268,6 +313,99 @@ def _format_example(
     )
 
 
+def _make_prompt_completion(
+    row: dict[str, str],
+    *,
+    tokenizer: Any | None = None,
+    chat_template: str = "legacy",
+    target_format: str = "full-source",
+) -> dict[str, str]:
+    """Split an exactly rendered example so loss applies only to the repair.
+
+    Rendering a placeholder assistant response first preserves model-specific
+    tokens after the answer (for Gemma 4, ``<turn|>``) without assuming details
+    of the tokenizer's chat template.
+    """
+
+    marker = "__FUZZLANG_ASSISTANT_COMPLETION_7D7A1F09__"
+    if any(marker in row[key] for key in ("source", "error", "fix")):
+        raise ValueError("training example contains the reserved completion marker")
+    probe = dict(row)
+    probe["fix"] = marker
+    rendered = _format_example(
+        probe,
+        tokenizer=tokenizer,
+        chat_template=chat_template,
+        target_format=target_format,
+    )
+    if rendered.count(marker) != 1:
+        raise ValueError("chat template did not preserve the assistant completion")
+    prompt, _, suffix = rendered.partition(marker)
+    result = {"prompt": prompt, "completion": row["fix"] + suffix}
+    expected = _format_example(
+        row,
+        tokenizer=tokenizer,
+        chat_template=chat_template,
+        target_format=target_format,
+    )
+    if result["prompt"] + result["completion"] != expected:
+        raise ValueError("chat template transformed the assistant completion")
+    return result
+
+
+def _sft_config_kwargs(args: argparse.Namespace) -> dict[str, Any]:
+    """Build kwargs for the current TRL ``SFTConfig`` API."""
+
+    kwargs: dict[str, Any] = {
+        "output_dir": args.adapter_out,
+        "num_train_epochs": args.epochs,
+        "max_steps": args.max_steps,
+        "per_device_train_batch_size": args.batch_size,
+        "gradient_accumulation_steps": args.grad_accum,
+        "learning_rate": args.lr,
+        "lr_scheduler_type": "cosine",
+        "warmup_steps": 0,
+        "bf16": args.bf16,
+        "fp16": not args.bf16,
+        "logging_steps": 1 if args.max_steps > 0 else 25,
+        "save_strategy": "no" if args.max_steps > 0 else "epoch",
+        "seed": args.seed,
+        "gradient_checkpointing": not args.fsdp,
+        "report_to": [],
+        "max_length": args.max_seq_len,
+        "completion_only_loss": True,
+        "model_init_kwargs": {
+            "dtype": "bfloat16" if args.bf16 else "float16",
+            # TRL 0.27 otherwise defaults to device_map="auto", which is
+            # incompatible with distributed/FSDP training.
+            "device_map": None,
+            "local_files_only": args.local_files_only,
+            "attn_implementation": args.attn_implementation,
+        },
+    }
+    if args.fsdp:
+        kwargs.update(
+            {
+                "fsdp": True,
+                "fsdp_config": {
+                    "version": args.fsdp_version,
+                    "reshard_after_forward": (
+                        True if args.fsdp_version == 2 else "full_shard"
+                    ),
+                    "auto_wrap_policy": "TRANSFORMER_BASED_WRAP",
+                    "transformer_layer_cls_to_wrap": args.fsdp_transformer_layer,
+                    "use_orig_params": True,
+                    "cpu_ram_efficient_loading": True,
+                    "sync_module_states": True,
+                    "activation_checkpointing": True,
+                },
+            }
+        )
+    else:
+        kwargs["gradient_checkpointing_kwargs"] = {"use_reentrant": False}
+    return kwargs
+
+
 def _write_prepared(path: str | Path, examples: Sequence[dict[str, str]]) -> None:
     output = Path(path)
     output.parent.mkdir(parents=True, exist_ok=True)
@@ -360,8 +498,8 @@ def main(argv: Sequence[str] | None = None) -> int:
     )
     if tok.pad_token is None:
         tok.pad_token = tok.eos_token
-    rendered = [
-        _format_example(
+    training_rows = [
+        _make_prompt_completion(
             row,
             tokenizer=tok,
             chat_template=args.chat_template,
@@ -369,12 +507,21 @@ def main(argv: Sequence[str] | None = None) -> int:
         )
         for row in rows
     ]
-    rendered, length_report = _preflight_token_lengths(
+    rendered = [row["prompt"] + row["completion"] for row in training_rows]
+    kept_rendered, length_report = _preflight_token_lengths(
         rendered,
         tok,
         max_seq_len=args.max_seq_len,
         overlong=args.overlong,
     )
+    if len(kept_rendered) != len(rendered):
+        remaining = Counter(kept_rendered)
+        kept_training_rows = []
+        for training_row, text in zip(training_rows, rendered):
+            if remaining[text]:
+                kept_training_rows.append(training_row)
+                remaining[text] -= 1
+        training_rows = kept_training_rows
     print(
         "[run_sft] token_preflight "
         + " ".join(f"{key}={value}" for key, value in length_report.items()),
@@ -387,54 +534,38 @@ def main(argv: Sequence[str] | None = None) -> int:
 
     # Lazy heavy imports so --help and tokenizer-only dry runs avoid the model
     # and training dependencies.
-    import torch
     from datasets import Dataset
-    from peft import LoraConfig, get_peft_model
-    from transformers import AutoModelForCausalLM, TrainingArguments
-    from trl import SFTTrainer
+    from peft import LoraConfig
+    from transformers import AutoConfig
+    from trl import SFTConfig, SFTTrainer
 
     print(f"[run_sft] base={args.base_model} out={args.adapter_out}", flush=True)
 
-    ds = Dataset.from_list([{"text": text} for text in rendered])
-    dtype = torch.bfloat16 if args.bf16 else torch.float16
-    model = AutoModelForCausalLM.from_pretrained(
-        args.base_model,
-        torch_dtype=dtype,
-        device_map="auto",
-        local_files_only=args.local_files_only,
+    ds = Dataset.from_list(training_rows)
+    base_config = AutoConfig.from_pretrained(
+        args.base_model, local_files_only=args.local_files_only
     )
+    target_modules: str | list[str]
+    if getattr(base_config, "model_type", None) in {"gemma3", "gemma4"}:
+        target_modules = _LORA_TARGET_MODULES
+    else:
+        target_modules = _GENERIC_LORA_TARGET_MODULES
 
     lora = LoraConfig(
         r=args.lora_rank, lora_alpha=args.lora_alpha, lora_dropout=0.05,
         bias="none", task_type="CAUSAL_LM",
-        target_modules=["q_proj", "k_proj", "v_proj", "o_proj",
-                        "gate_proj", "up_proj", "down_proj"],
+        target_modules=target_modules,
     )
-    model = get_peft_model(model, lora)
-    model.print_trainable_parameters()
-
-    targs = TrainingArguments(
-        output_dir=args.adapter_out,
-        num_train_epochs=args.epochs,
-        per_device_train_batch_size=args.batch_size,
-        gradient_accumulation_steps=args.grad_accum,
-        learning_rate=args.lr,
-        lr_scheduler_type="cosine",
-        warmup_ratio=0.0,
-        bf16=args.bf16,
-        fp16=not args.bf16,
-        logging_steps=25,
-        save_strategy="epoch",
-        seed=args.seed,
-        gradient_checkpointing=True,
-        report_to=[],           # no wandb by default; enable externally if wanted.
-    )
+    targs = SFTConfig(**_sft_config_kwargs(args))
 
     trainer = SFTTrainer(
-        model=model, tokenizer=tok,
-        train_dataset=ds, args=targs,
-        dataset_text_field="text", max_seq_length=args.max_seq_len,
+        model=args.base_model,
+        processing_class=tok,
+        train_dataset=ds,
+        args=targs,
+        peft_config=lora,
     )
+    trainer.model.print_trainable_parameters()
     trainer.train()
     trainer.save_model(args.adapter_out)
     print(f"[run_sft] adapter saved to {args.adapter_out}", flush=True)

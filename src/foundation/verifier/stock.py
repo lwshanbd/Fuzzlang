@@ -39,7 +39,9 @@ class StockClangVerifier(BaseVerifier):
         logical_path: str,
     ) -> VerifierResult:
         with tempfile.NamedTemporaryFile(
-            mode="w", suffix=_guess_suffix(compile_cmd), delete=False
+            mode="w",
+            suffix=_guess_suffix(compile_cmd, logical_path),
+            delete=False,
         ) as tf:
             tf.write(source)
             tmp_path = tf.name
@@ -67,10 +69,29 @@ class StockClangVerifier(BaseVerifier):
                 pass
 
 
-def _guess_suffix(compile_cmd: list[str]) -> str:
+def _guess_suffix(
+    compile_cmd: list[str], logical_path: Optional[str] = None,
+) -> str:
     for a in compile_cmd:
         if a.endswith((".cpp", ".cc", ".cxx", ".c++")):
             return ".cpp"
+    for i, a in enumerate(compile_cmd):
+        if a == "-x" and i + 1 < len(compile_cmd):
+            if compile_cmd[i + 1] in ("c++", "objective-c++"):
+                return ".cpp"
+            if compile_cmd[i + 1] in ("c", "objective-c"):
+                return ".c"
+        if a in ("-xc++", "-xobjective-c++"):
+            return ".cpp"
+        if a in ("-xc", "-xobjective-c"):
+            return ".c"
+    for a in compile_cmd:
+        if a.startswith(("-std=c++", "-std=gnu++")):
+            return ".cpp"
+    if logical_path and logical_path.lower().endswith(
+        (".cpp", ".cc", ".cxx", ".c++")
+    ):
+        return ".cpp"
     return ".c"
 
 

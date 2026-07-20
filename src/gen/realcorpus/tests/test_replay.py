@@ -110,6 +110,32 @@ def test_replay_source_accepts_fuzzlang_injector_with_typed_provenance():
     assert record.erroneous_src == "int g() { return &value; }"
 
 
+def test_replay_source_uses_project_relative_provenance_with_source_root():
+    source = "int g() { return value; }"
+    verifier = MockVerifier(
+        lambda src, cmd, logical: (
+            ok_result() if src == source else
+            _error("err_typecheck_invalid_lvalue_addrof")
+        )
+    )
+
+    outcome = replay_source(
+        source,
+        path="/p/lustre2/user/opengda/src/gda.cpp",
+        source_root="/p/lustre2/user/opengda",
+        compile_cmd=["__CLANG__", "__SRC__"],
+        language="c++",
+        recipes=[_recipe()],
+        verifier=verifier,
+        project="opengda",
+    )
+
+    record = outcome.records[0]
+    assert record.provenance.source == "opengda:src/gda.cpp"
+    assert record.provenance.detail["source_path"] == "src/gda.cpp"
+    assert record.primary_diagnostic.file == "src/gda.cpp"
+
+
 def test_replay_source_keeps_verified_near_miss_with_label():
     source = "int g() { return value; }"
     verifier = MockVerifier(

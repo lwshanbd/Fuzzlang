@@ -150,3 +150,20 @@ def test_portable_source_path_strips_checkout_prefix():
     assert portable_source_path(
         "/a/b/external/llvm-project/clang/lib/AST/AST.cpp"
     ) == "clang/lib/AST/AST.cpp"
+
+
+def test_portable_source_path_uses_explicit_project_root():
+    assert portable_source_path(
+        "/p/lustre2/user/opengda/src/network/ofi.cpp",
+        source_root="/p/lustre2/user/opengda",
+    ) == "src/network/ofi.cpp"
+
+
+def test_portable_source_path_rejects_path_outside_explicit_root():
+    import pytest
+
+    with pytest.raises(ValueError, match="outside source root"):
+        portable_source_path(
+            "/p/lustre2/user/other/src/file.cpp",
+            source_root="/p/lustre2/user/opengda",
+        )

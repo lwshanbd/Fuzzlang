@@ -10,3 +10,4 @@ total-jsons/
 tmp/
 __pycache__/
 new-docs/
+.artifacts/

@@ -108,6 +108,75 @@ def test_legacy_chat_format_remains_the_default() -> None:
     assert rendered.endswith("assistant\ngood")
 
 
+def test_training_row_masks_prompt_and_preserves_native_template_suffix() -> None:
+    class FakeTokenizer:
+        chat_template = "available"
+
+        def apply_chat_template(self, messages, **kwargs):
+            assert kwargs == {"tokenize": False, "add_generation_prompt": False}
+            return f"<user>{messages[0]['content']}<assistant>{messages[1]['content']}<eot>"
+
+    row = {"source": "bad", "error": "oops", "fix": "good"}
+
+    training_row = run_sft._make_prompt_completion(
+        row, tokenizer=FakeTokenizer(), chat_template="native"
+    )
+
+    assert training_row["prompt"].endswith("<assistant>")
+    assert training_row["completion"] == "good<eot>"
+    assert training_row["prompt"] + training_row["completion"] == (
+        run_sft._format_example(
+            row, tokenizer=FakeTokenizer(), chat_template="native"
+        )
+    )
+
+
+def test_training_config_uses_current_trl_names_and_optional_fsdp() -> None:
+    args = run_sft._parse_args(
+        [
+            "--base-model", "gemma",
+            "--data-path", "records.jsonl",
+            "--adapter-out", "adapter",
+            "--bf16",
+            "--max-steps", "1",
+            "--fsdp",
+        ]
+    )
+
+    kwargs = run_sft._sft_config_kwargs(args)
+
+    assert kwargs["max_length"] == 4096
+    assert kwargs["max_steps"] == 1
+    assert kwargs["model_init_kwargs"] == {
+        "dtype": "bfloat16",
+        "device_map": None,
+        "local_files_only": False,
+        "attn_implementation": "sdpa",
+    }
+    assert kwargs["gradient_checkpointing"] is False
+    assert kwargs["fsdp"] is True
+    assert kwargs["fsdp_config"]["version"] == 2
+    assert kwargs["fsdp_config"]["reshard_after_forward"] is True
+    assert kwargs["fsdp_config"]["auto_wrap_policy"] == "TRANSFORMER_BASED_WRAP"
+    assert kwargs["fsdp_config"]["transformer_layer_cls_to_wrap"] == (
+        "Gemma4TextDecoderLayer"
+    )
+
+
+def test_lora_targets_only_gemma_language_model_layers() -> None:
+    pattern = run_sft._LORA_TARGET_MODULES
+
+    assert __import__("re").fullmatch(
+        pattern, "model.language_model.layers.0.self_attn.q_proj"
+    )
+    assert __import__("re").fullmatch(
+        pattern, "model.language_model.layers.59.mlp.down_proj"
+    )
+    assert not __import__("re").fullmatch(
+        pattern, "model.vision_tower.vision_model.encoder.layers.0.self_attn.q_proj"
+    )
+
+
 @pytest.mark.parametrize("size", [32, 128])
 def test_prepare_smoke_examples_is_bounded_and_model_neutral(tmp_path, size) -> None:
     path = tmp_path / "records.jsonl"

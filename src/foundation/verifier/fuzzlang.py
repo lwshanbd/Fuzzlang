@@ -36,7 +36,9 @@ class FuzzlangClangVerifier(BaseVerifier):
         logical_path: str,
     ) -> VerifierResult:
         with tempfile.NamedTemporaryFile(
-            mode="w", suffix=_guess_suffix(compile_cmd), delete=False
+            mode="w",
+            suffix=_guess_suffix(compile_cmd, logical_path),
+            delete=False,
         ) as tf:
             tf.write(source)
             tmp_path = tf.name
@@ -106,22 +108,34 @@ class FuzzlangClangVerifier(BaseVerifier):
         return None
 
 
-def _guess_suffix(compile_cmd: list[str]) -> str:
+def _guess_suffix(
+    compile_cmd: list[str], logical_path: Optional[str] = None,
+) -> str:
     # 1) Explicit C++ source file path in args.
     for a in compile_cmd:
         if a.endswith((".cpp", ".cc", ".cxx", ".c++")):
             return ".cpp"
-    # 2) -std=c++... or -std=gnu++... implies C++. Stage 2 emits
-    #    compile_cmds with __SRC__ placeholder so the source path is
-    #    absent; the std flag is the next-best signal.
-    for a in compile_cmd:
-        if a.startswith(("-std=c++", "-std=gnu++")):
-            return ".cpp"
-    # 3) Explicit -x c++ language flag.
+    # 2) An explicit -x language overrides filename and standard inference.
     for i, a in enumerate(compile_cmd):
         if (a == "-x" and i + 1 < len(compile_cmd)
                 and compile_cmd[i + 1] in ("c++", "objective-c++")):
             return ".cpp"
+        if (a == "-x" and i + 1 < len(compile_cmd)
+                and compile_cmd[i + 1] in ("c", "objective-c")):
+            return ".c"
         if a in ("-xc++", "-xobjective-c++"):
             return ".cpp"
+        if a in ("-xc", "-xobjective-c"):
+            return ".c"
+    # 3) -std=c++... or -std=gnu++... implies C++. Stage 2 emits
+    #    compile_cmds with __SRC__ placeholder so the source path is absent.
+    for a in compile_cmd:
+        if a.startswith(("-std=c++", "-std=gnu++")):
+            return ".cpp"
+    # 4) Some CMake databases rely on the original .cc/.cpp filename and omit
+    #    both -x and -std.  The stable logical path retains that information.
+    if logical_path and logical_path.lower().endswith(
+        (".cpp", ".cc", ".cxx", ".c++")
+    ):
+        return ".cpp"
     return ".c"

@@ -208,10 +208,10 @@ Three independent workstreams start immediately.
 ### 5.2 Gemma SFT Smoke Test
 
 The existing Tioga setup demonstrates high-throughput Gemma-4-31B inference.
-The SFT driver now accepts canonical FuzzLang records, uses the native Gemma
-chat template, and performs an offline tokenizer preflight, but the distributed
-GPU training path is not yet validated. The first goal remains functional
-validation, not a full training run.
+The SFT driver accepts canonical FuzzLang records, uses the native Gemma chat
+template, performs an offline tokenizer preflight, and trains only on the
+assistant repair rather than charging loss to the prompt. The first goal
+remains functional validation, not a full training run.
 
 Tasks:
 
@@ -244,6 +244,20 @@ remove the distributed-training blocker.
 If 31B LoRA training is not stable within the time gate, use a smaller model
 from the same Gemma family for SFT while retaining Gemma-4-31B for local
 inference experiments. This remains an all-Gemma, zero-paid-API pipeline.
+
+Execution snapshot (2026-07-19): the 31B path reached correct text-only LoRA
+attachment (122,429,440 trainable parameters), but FSDP1 stalled during model
+preparation on Tioga's 4.18 kernel and FSDP2 failed in
+`accelerate==1.14.0` while treating a PEFT parameter as a DTensor
+(`Tensor.device_mesh`). The time gate was therefore enforced. The fallback
+`google/gemma-3-4b-it` revision
+`093f9f388b31de276ce2de164bdc2081324b9767` completed a 32-record/one-step
+LoRA smoke and a 128-record/two-step smoke, saving both adapters. The 128-record
+run had zero overlength examples (202/337.5/702 min/median/max tokens); loss
+fell from 5.600 to 2.889 and mean token accuracy rose from 0.5105 to 0.6703.
+These are bounded infrastructure smokes, not paper-level SFT results. Adapter
+reload, local serving, and compiler-verified smoke evaluation remain before
+the SFT gate is fully closed.
 
 The local Gemma README currently contains a plaintext access credential. It
 must be removed from documentation, moved to an environment/secret mechanism,
@@ -280,6 +294,17 @@ use zero test sources and have no
 source overlap with earlier releases. The more permissive 1,321-recipe literal
 variant remains experimental.
 
+The matched transfer run on held-out Abseil revision
+`1e6d60b2ca9356542fe62b73ab010424aa2796cf` used 120 clean, non-test C++ TUs
+and identical seed and replay caps. The 594-recipe arm scanned all 120 TUs,
+used 763 mutant compilations, and formally retained 97/97 exact-target records
+from 64 sources. The 1,239-recipe arm reached its 100-diagnostic cap after 71
+TUs and 548 mutant compilations; formal revalidation retained 100/100 records
+from 51 sources. Forty-six target diagnostics are outside the original
+306-diagnostic portable space, and 55 records are backed by a fresh-name
+Injector. Both arms have zero test/test-support paths, zero structural
+duplicates, and project-relative `abseil:absl/...` provenance.
+
 ## 6. Week-2 Gates and Fallback Decisions
 
 ### 6.1 FuzzLang DSL Gate
@@ -302,9 +327,12 @@ the critical path.
 The unfiltered 30-record pilot passes the acceptance and exact-target-share
 checks, the 70-diagnostic diversity run passes the LLVM-side distinct-target
 threshold, and the matched v1 experiment shows a larger reachable diagnostic
-space with lower TU and compiler-invocation cost at the 100-diagnostic cap. The
-overall gate remains open only because cross-project replay on a second C++
-project has not yet been demonstrated.
+space with lower TU and compiler-invocation cost at the 100-diagnostic cap.
+The matched Abseil replay demonstrates non-trivial second-project transfer and
+adds 46 exact-target diagnostics outside the original portable space. The
+FuzzLang DSL gate therefore passes. No broader DSL redesign is authorized on
+the critical path; the next method work is Gemma Injector synthesis and the
+matched Injector-versus-direct-edit experiment.
 
 ### 6.2 Gemma SFT Gate
 
@@ -323,6 +351,13 @@ By the end of Week 2, the training path should:
 If the 31B path fails the gate, immediately switch the SFT experiment to a
 smaller Gemma-family checkpoint rather than spending the remaining schedule on
 distributed-training infrastructure.
+
+Current status (2026-07-19): this fallback has been taken. Gemma 3 4B completed
+the bounded 32/128-record GPU smokes with zero implicit truncation and saved
+reloadable PEFT artifacts plus manifests. The 128-record smoke used only two
+optimizer steps, so it validates scale-up and decreasing finite loss but is not
+a complete epoch or an effectiveness result. Adapter loading/serving,
+parseability, and compiler-verified repair remain open gate items.
 
 ## 7. Core Experiment E1: Injector Versus Direct Edit
 
@@ -412,6 +447,13 @@ Targets are goals, not release claims:
 Multiplicity should arise from successful Injector transfer across distinct
 sources, not from flooding one diagnostic or TU. Coverage and multiplicity
 curves will be reported as functions of records, Injectors, and projects.
+
+Execution snapshot (2026-07-19): Abseil passes the build-feasibility and
+cross-project transfer screen with 159/159 clean non-test library TUs. The
+matched v0/v1 experiment above is transfer evidence, but its 100 records remain
+an experiment rather than a merged RealSource release. Abseil is therefore a
+viable C++ project for E2; a C-family project and release-scale generation are
+still required.
 
 ## 9. Core Experiment E3: Gemma Fine-Tuning Value
 

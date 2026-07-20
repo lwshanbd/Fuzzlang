@@ -146,6 +146,7 @@ def replay_source(
     injectors: Iterable[Optional[FuzzLangInjector]] = (),
     verifier: BaseVerifier,
     project: str,
+    source_root: Optional[str] = None,
     excluded_sources: set[str] | frozenset[str] = frozenset(),
     max_records: int = 5,
     max_candidates_per_recipe: int = 2,
@@ -153,7 +154,7 @@ def replay_source(
     exact_only: bool = False,
 ) -> ReplayOutcome:
     """Verify a clean TU, replay compatible recipes, and emit canonical Records."""
-    logical_path = portable_source_path(path)
+    logical_path = portable_source_path(path, source_root=source_root)
     source_key = f"{project}:{logical_path}"
     if is_test_path(path):
         return ReplayOutcome("test_source")

@@ -1,7 +1,7 @@
 # FuzzLang: Progress
 
 Status against `FuzzLang-Proposal.md` and the executable plan in `plan.md`.
-LLVM is pinned to `llvmorg-22.1.8`; the current test suite has 317 passing and
+LLVM is pinned to `llvmorg-22.1.8`; the current test suite has 325 passing and
 5 environment-dependent skips. Detailed generation history is in
 `data/gen/README.md`.
 
@@ -101,6 +101,9 @@ excluded or isolated before NatErr becomes a valid held-out evaluation set.
   serialization and hashing, stable Injector IDs, replay limits, backward v0
   compatibility, deterministic fresh identifiers, safe token-boundary
   normalization, and execution through the bounded lexical matcher.
+- **Cross-project replay:** project-root-relative provenance, non-LLVM compile
+  database replay, stable language inference for compiler commands without an
+  explicit `-std`, and formal validation on held-out Abseil source.
 - **Tier audit:** streaming Breadth/RealSource/NatErr checks for pairing,
   diagnostics, sources, overlap, schema, and test/test-support paths.
 - **Repair harness:** zero-shot, stderr-loop, typed-diagnostic loop, SFT method
@@ -108,12 +111,13 @@ excluded or isolated before NatErr becomes a valid held-out evaluation set.
   metrics.
 - **Local Gemma inference:** Gemma-4-31B is staged on Tioga and serves through a
   high-throughput local vLLM path.
-- **Gemma SFT preparation:** canonical Records now normalize to model-neutral
-  repair triples, the native Gemma chat template works offline, 32/128-example
-  dry runs are supported, and real tokenizer preflight rejects silent
-  truncation by default. A deterministic localized relative-edit target
-  round-trips to the complete source and is available through
-  `--target-format relative-edit`.
+- **Gemma SFT path:** canonical Records normalize to model-neutral repair
+  examples, the native Gemma chat template works offline, and real tokenizer
+  preflight rejects silent truncation by default. A deterministic localized
+  relative-edit target round-trips to the complete source. The current TRL API,
+  answer-only loss, text-only Gemma LoRA targeting, bounded `max_steps`, and
+  optional FSDP configuration are implemented. Gemma 3 4B completed actual
+  32/128-record GPU smokes and saved both adapters.
 - **NatErr formalization:** streaming fix recovery, source filtering, two-sided
   verification, canonical paired output, explicit rejection reasons, and
   release manifests are implemented.
@@ -164,12 +168,21 @@ The recipe system is the working precursor to FuzzLang DSL.
   Injector, and **44 diagnostics are outside the original 306-diagnostic
   portable space**. Both arms contain zero test sources and zero source overlap
   with the preceding 2,418 records.
+- In the matched cross-project replay on Abseil commit
+  `1e6d60b2ca9356542fe62b73ab010424aa2796cf`, all 159 screened non-test C++
+  library TUs compiled cleanly before mutation. With the same 120-TU sample,
+  seed, compiler budget, and 100-diagnostic cap, the 594-recipe arm used 763
+  mutant compilations and formally retained **97/97** exact-target records from
+  64 sources. The 1,239-recipe arm reached the cap after 71 TUs and 548 mutant
+  compilations and retained **100/100** from 51 sources. It reaches **46
+  diagnostics outside the original 306-diagnostic portable space**, with 55
+  fresh-name-backed records. Both arms have zero tests, zero structural
+  duplicates, zero source overlap, and project-relative Abseil provenance.
 
-These runs validate the DSL execution and release path and pass the LLVM-side
-Week-2 thresholds for exact-target share and distinct exact-target diagnostics.
-They do not test cross-project transfer or replace the matched method
-experiment. The remaining work is to synthesize/repair Injectors with local
-Gemma, test transfer on a second C++ project, and run the matched
+These runs validate the DSL execution/release path and pass the complete
+Week-2 FuzzLang DSL gate, including transfer to a second C++ project. They do
+not replace the matched method experiment. The remaining method work is to
+synthesize/repair Injectors with local Gemma and run the matched
 Injector-versus-direct-edit experiment.
 
 ## Existing Repair Results: Useful but No Longer the Main Claim
@@ -206,10 +219,28 @@ lengths 170/594/850/1,163, and every rendered native-Gemma example fits within
 4,096 tokens (min/median/p95/p99/max 201/324/406/452/701). The same target
 format must be used across matched SFT arms.
 
-No GPU LoRA run has started. The current Gemma environment lacks the training
-dependencies (`peft`, `datasets`, and `trl`), and the 31B model still needs a
-proper FSDP/distributed training path rather than inference-style model
-sharding.
+The local training environment now includes `peft==0.18.1`,
+`datasets==4.8.5`, and `trl==0.27.2`. The Gemma-4-31B path reached correct
+language-only LoRA attachment with 122,429,440 trainable parameters, but FSDP1
+stalled on Tioga's 4.18 kernel and FSDP2 failed in Accelerate while treating a
+PEFT parameter as a DTensor (`Tensor.device_mesh`). The planned time gate was
+enforced instead of spending more GPU time on the distributed stack.
+
+The smaller-family fallback is operational. `google/gemma-3-4b-it` at revision
+`093f9f388b31de276ce2de164bdc2081324b9767` completed:
+
+| smoke | token min/median/max | optimizer steps | loss | token accuracy | adapter |
+|---|---:|---:|---:|---:|---:|
+| 32 records | 255 / 330 / 405 | 1 | 5.566 | 0.5291 | 119,280,712 bytes |
+| 128 records | 202 / 337.5 / 702 | 2 | 5.600 -> 2.889 | 0.5105 -> 0.6703 | 119,280,712 bytes |
+
+Both runs use native chat formatting, the same localized relative-edit target,
+answer-only loss, BF16, LoRA rank 16, seed 42, and zero implicit truncation.
+Adapters and ignored run manifests are archived under `.artifacts/`; manifests
+contain the model revision, source-data SHA-256, adapter SHA-256, configuration,
+and metrics. These bounded smokes validate the training path but are not a full
+epoch or paper-level fine-tuning result. Adapter reload/local serving and a
+fixed compiler-verified repair smoke remain the next SFT gate items.
 
 ## Main Missing Evidence
 
@@ -218,8 +249,9 @@ The revised paper requires four results that do not yet exist:
 1. **Injector method result:** a matched comparison of FuzzLang DSL Injector
    reuse, transfer, exact-target yield, and cost against direct per-record
    Gemma editing.
-2. **Multi-project RealSource result:** Injector/hybrid generation on LLVM plus
-   held-out non-LLVM C++ and C projects, with coverage and provenance isolation.
+2. **Multi-project RealSource result:** scale the successful Abseil transfer
+   pilot into a release and add a held-out C project, with coverage and
+   provenance isolation.
 3. **Gemma SFT result:** Gemma Base versus matched-token Mechanical-SFT,
    DirectEdit-SFT, and FuzzLang-SFT, evaluated on unseen TUs/projects.
 4. **NatErr result:** a formal paired natural-error release and external-validity
@@ -244,12 +276,11 @@ value.
   32/128 preparation path, and strict token preflight;
 - preserve the completed round-trippable relative-edit representation and use
   it identically across matched SFT arms;
-- install/pin the local training dependencies and establish multi-GPU FSDP
-  LoRA training on Tioga;
-- complete actual 32- and 128-example GPU runs;
+- preserve the pinned local training dependencies and the completed Gemma 3 4B
+  32/128-record GPU smoke path;
+- keep the documented 31B FSDP incompatibility out of the critical path;
 - load the adapter into local inference and run compiler-verified repair;
-- fall back to a smaller Gemma-family checkpoint if the 31B training path
-  misses the Week-2 gate.
+- then run an approximately 1,000-record pilot before the matched SFT arms.
 
 ### C. FuzzLang DSL v1 Transfer
 
@@ -257,8 +288,7 @@ value.
   provenance (completed for the replay path);
 - preserve v0 compatibility and the verified v1 expansion to 1,239 portable
   recipes / 598 diagnostics;
-- preserve the matched formally revalidated LLVM evidence and replay the same
-  v0/v1 arms on at least one non-LLVM C++ project;
+- preserve the matched formally revalidated LLVM and Abseil evidence;
 - connect local Gemma to Injector synthesis/repair;
 - freeze v1 and use a recipe+direct-edit hybrid if cross-project transfer
   fails.
