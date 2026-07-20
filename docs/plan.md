@@ -2,7 +2,7 @@
 
 **Target:** CGO, September 2026
 **Compiler version:** `llvmorg-22.1.8` everywhere
-**Status date:** 2026-07-19
+**Status date:** 2026-07-20
 
 ## 1. Research Positioning
 
@@ -510,6 +510,11 @@ seeing more training tokens.
 The SFT arms use the same base checkpoint, LoRA configuration, optimizer,
 training-token budget, repair representation, source/project split policy, and
 evaluation budget. No arm may silently discard or truncate overlength examples.
+The primary controlled table also matches optimizer-update count. The preferred
+construction is to match both rendered tokens and record count, then use the
+same batch size and epochs; a token-aware batch sampler is an acceptable
+fallback only if its realized token and update counts are archived. Report
+loss-bearing completion tokens separately from complete rendered tokens.
 Report both:
 
 - an equal-training-token comparison measuring end-to-end dataset utility; and
@@ -522,6 +527,58 @@ This establishes that the local data-to-adapter-to-compiler path can show a
 large paired gain, but it does not replace the arms above: it has one seed, a
 small same-project slice, no matched-token construction baselines, and no
 behavioral test column.
+
+Data-arm snapshot (2026-07-20): the RealSource-Mechanical gate has passed. The
+bounded scale run scanned 250 unique LLVM sources and issued 810 compiler
+invocations: 250 clean-baseline checks and 560 mutant checks. It produced 494
+verified pairs before global retention caps and retained 297 records spanning
+59 diagnostics. At least one verified mutant was produced for 248 of the 250
+sources. The retained set has zero test/test-support sources, zero missing
+`corrected_src`, and zero API calls. Its records file has SHA-256
+`ae12cdd2cadeaff96d857550312faf7691840a46dc8b523cb357c60a44e3a2ab`.
+Measured alone against the 3,489-diagnostic code-only denominator, it covers 59
+diagnostics and reaches multiplicity three for 27. Seven diagnostic names were
+new relative to the existing RealSource plus recipe-replay pools.
+
+The strict three-arm builder now freezes **297 records and 144,710 complete
+rendered Gemma tokens per arm**. The realized loss-bearing completion-token
+totals are 58,907 Mechanical, 57,372 DirectEdit, and 57,564 FuzzLang. The arms
+cover 59/183/150 diagnostics and 240/164/222 source TUs, respectively; the
+FuzzLang arm contains 131 distinct Injector IDs. All eval-leakage checks are
+zero. Cross-arm exact localized-input, corrected/erroneous-pair, and record-ID
+overlap are also zero. The arms intentionally share 124 source TUs: this keeps
+the real-project source domain partially controlled while comparing different
+error-construction methods, and is reported explicitly rather than described
+as provenance isolation. Final evaluation remains source-disjoint from all
+three training arms.
+
+The data gate is therefore complete. All three
+matched arms completed three epochs and 57 optimizer steps with the same
+memory-safe `batch_size=1`, gradient accumulation 2 configuration. Mechanical,
+DirectEdit, and FuzzLang train losses were 0.03362, 0.05672, and 0.03799; these
+are audit values, not repair-quality evidence. The first attempt exposed a
+node ECC failure and a longest-batch OOM, after which all arms were restarted
+under the same configuration. On the fixed 32-example LLVM eval cohort, with
+all corrected sources revalidated and a common 512-token inference cap, the
+initial matched-arm result is:
+
+| Arm | Verified Fix@1 | Exact match | Degenerate compiler fixes |
+|---|---:|---:|---:|
+| Gemma Base | 5/32 (15.6%) | 0/32 | 0/5 |
+| Mechanical-SFT | 5/32 (15.6%) | 1/32 (3.1%) | 0/5 |
+| DirectEdit-SFT | 15/32 (46.9%) | 6/32 (18.8%) | 1/15 |
+| FuzzLang-SFT | 16/32 (50.0%) | 11/32 (34.4%) | 1/16 |
+
+FuzzLang and DirectEdit share 13 compiler fixes; FuzzLang has three unique
+fixes and DirectEdit two. Their compile-rate difference is therefore only one
+example and must not be presented as superiority. Exact matches are more
+directional: all six DirectEdit exact matches are shared, with five additional
+FuzzLang exact matches. The same `err_duplicate_case` line-deletion repair is
+the compiler-clean quality flag in both arms. This single-seed same-project
+slice is encouraging evidence, not the paper-level result; it still needs
+multiple seeds, a larger cohort, unseen projects, and behavior checks. TRL sequence packing remains
+disabled: the available TRL+SDPA path carries a cross-sample-attention risk,
+so the aborted packing smoke is excluded and all frozen arms train unpacked.
 
 ### 9.2 Evaluation Columns
 

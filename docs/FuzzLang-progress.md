@@ -124,6 +124,46 @@ excluded or isolated before NatErr becomes a valid held-out evaluation set.
   offline audit can recompile archived generations and measure gold-relative
   edit size, changed lines, and deletion flags. Gemma 3 4B completed 32/128-
   record GPU smokes and a formal 876-record three-epoch pilot.
+- **RealSource Mechanical:** a bounded deterministic runner samples existing
+  text mutations on corrected, non-test LLVM translation units, clean-gates
+  every parent, uses separate C/C++ drivers, and records compiler budgets and
+  rejection reasons. The scale run scanned 250 sources, issued 250 baseline
+  plus 560 mutant compiles, accepted 494 pairs before global caps, and retained
+  297 records across 59 diagnostics. Of the 250 sources, 248 produced an
+  accepted mutant. The retained output has zero test paths, zero missing
+  corrected sources, zero API use, and records SHA-256
+  `ae12cdd2cadeaff96d857550312faf7691840a46dc8b523cb357c60a44e3a2ab`.
+  It covers 59/3,489 code-only diagnostics, reaches multiplicity three for 27,
+  and adds seven diagnostic names not present in the existing RealSource plus
+  recipe-replay pools.
+- **Matched-arm construction:** a deterministic builder validates Mechanical,
+  DirectEdit, and FuzzLang generation provenance; maps legacy replay recipes to
+  canonical Injector IDs without changing replay semantics; rejects eval
+  overlap at the TU, record, full-source, paired-source, and localized-input
+  levels; counts native Gemma rendered and completion tokens; and archives
+  checksummed arm manifests. The strict frozen build contains 297 records and
+  exactly 144,710 rendered tokens in each arm. Completion-token totals are
+  58,907/57,372/57,564 for Mechanical/DirectEdit/FuzzLang. The arms contain
+  59/183/150 diagnostics and 240/164/222 source TUs; FuzzLang uses 131 distinct
+  Injector IDs. Eval leakage is zero, as are cross-arm exact localized-input,
+  corrected/erroneous-pair, and record-ID overlaps. The 124 source TUs shared
+  across arms are intentionally retained and explicitly reported as a control
+  for real-source domain, not described as full cross-arm source isolation.
+  The E3 data gate has passed. All three arms completed three epochs and 57
+  optimizer steps using the same memory-safe batch-size-one/gradient-
+  accumulation-two configuration. Their train losses are 0.03362/0.05672/
+  0.03799; these are archived run diagnostics, not repair evidence. An earlier
+  FuzzLang job hit a node ECC fault and an earlier DirectEdit job hit a longest-
+  batch OOM, so every arm was restarted uniformly. Compiler evaluation is in
+  now complete on the fixed 32-example LLVM slice. Base/Mechanical/DirectEdit/
+  FuzzLang verified Fix@1 is 5/5/15/16; exact match is 0/1/6/11. All 32 outputs
+  per arm parse, all 32 corrected sources pass the driver-correct gate, and no
+  ground-truth rows are stale. FuzzLang and DirectEdit share 13 compiler fixes,
+  with three FuzzLang-only and two DirectEdit-only; all six DirectEdit exact
+  matches are shared and FuzzLang has five additional exact matches. Mechanical
+  has zero degenerate compiler fixes; DirectEdit and FuzzLang each have one,
+  the same deletion-based `err_duplicate_case` repair. This is a one-seed,
+  32-example, same-project result and is not yet the paper-level conclusion.
 - **NatErr formalization:** streaming fix recovery, source filtering, two-sided
   verification, canonical paired output, explicit rejection reasons, and
   release manifests are implemented.
@@ -308,9 +348,9 @@ The revised paper requires four paper-level results that remain incomplete:
 2. **Multi-project RealSource result:** scale the successful Abseil transfer
    pilot into a release and add a held-out C project, with coverage and
    provenance isolation.
-3. **Gemma SFT result:** expand the promising Base-versus-RealSource-SFT pilot
-   into matched-token Mechanical-SFT, DirectEdit-SFT, and FuzzLang-SFT arms,
-   evaluated with multiple seeds on larger unseen-TU and unseen-project sets.
+3. **Gemma SFT result:** expand the completed single-seed, token- and optimizer-
+   update-matched Mechanical/DirectEdit/FuzzLang experiment to multiple seeds,
+   a larger unseen-TU cohort, and unseen-project sets.
 4. **NatErr result:** a formal paired natural-error release and external-validity
    evaluation.
 
@@ -338,6 +378,14 @@ value.
   32/128-record GPU smoke and 876-record pilot paths;
 - keep the documented 31B FSDP incompatibility out of the critical path;
 - preserve separate C/C++ compiler-driver revalidation in every evaluation;
+- preserve the completed 297-record RealSource-Mechanical control and the
+  frozen 297-record/144,710-rendered-token strict arms; the earlier short-
+  program Mechanical pool remains only a domain-shift ablation;
+- rerun the matched-arm experiment with multiple seeds and evaluate on a larger
+  unseen-TU cohort plus at least one unseen project;
+- preserve matched realized rendered tokens and optimizer-update counts,
+  archive completion-token totals separately, and keep TRL sequence packing
+  disabled because the available TRL+SDPA path risks cross-sample attention;
 - extend the completed static audit with behavioral checks for the flagged
   duplicate-case repair and a tests-based subset;
 - run the matched-token construction arms, larger project-isolated evaluation,

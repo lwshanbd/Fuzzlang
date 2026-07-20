@@ -110,6 +110,8 @@ def test_summarize_counts_parse_compile_and_exact_rates() -> None:
     assert summary == {
         "n": 3,
         "eligible": 3,
+        "eligible_compile_ok": 1,
+        "eligible_exact_match": 1,
         "parse_ok": 2,
         "parse_rate": pytest.approx(2 / 3),
         "compile_ok": 1,
@@ -140,6 +142,8 @@ def test_summarize_excludes_stale_ground_truth_from_eligible_rates() -> None:
     summary = run_adapter_eval.summarize_results(results)
 
     assert summary["eligible"] == 1
+    assert summary["eligible_compile_ok"] == 1
+    assert summary["eligible_exact_match"] == 1
     assert summary["verified_fix_rate"] == pytest.approx(0.5)
     assert summary["verified_fix_rate_eligible"] == pytest.approx(1.0)
 

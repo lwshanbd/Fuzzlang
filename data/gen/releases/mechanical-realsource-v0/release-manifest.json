@@ -1,0 +1,202 @@
+{
+  "schema_version": 1,
+  "release": "mechanical-realsource-v0",
+  "created": "2026-07-20",
+  "purpose": "RealSource Mechanical generation and matched construction-arm SFT inputs",
+  "compiler": {
+    "llvm_tag": "llvmorg-22.1.8",
+    "llvm_revision": "ca7933e47d3a3451d81e72ac174dcb5aa28b59d1",
+    "clang_cpp": "/p/lustre2/shan4/fuzzlang-clang/bin/clang++",
+    "clang_c": "/p/lustre2/shan4/fuzzlang-clang/bin/clang",
+    "clang_sha256": "8a7ada9bcd1d767fba2888142abbd396176bca207fd0ac3752e7572bb36fcd1e",
+    "diagtool": "/p/lustre2/shan4/fuzzlang-clang/bin/diagtool",
+    "diagtool_sha256": "dbb663688786f2cb12eb47ff3af1a89908d866d0547da3dd4b33f2cdee19346c"
+  },
+  "generation": {
+    "sources_scanned": 250,
+    "baseline_compiles": 250,
+    "mutant_compiles": 560,
+    "total_compiles": 810,
+    "accepted_before_global_caps": 494,
+    "retained_records": 297,
+    "distinct_diagnostics": 59,
+    "code_only_coverage": {
+      "covered": 59,
+      "covered_at_multiplicity_3": 27,
+      "denominator": 3489
+    },
+    "new_diagnostics_vs_realcorpus_and_recipe_replay": [
+      "err_addr_ovl_no_viable",
+      "err_deduced_class_template_ctor_no_viable",
+      "err_field_incomplete_or_sizeless",
+      "err_ovl_no_viable_subscript",
+      "err_typecheck_subscript_not_integer",
+      "err_unexpected_unqualified_id",
+      "err_unterm_macro_invoc"
+    ],
+    "sources_with_accepted_record": 248,
+    "test_sources": 0,
+    "corrected_src_missing": 0,
+    "uses_llm_api": false,
+    "records": {
+      "path": "data/gen/experiments/mechanical-realsource-v0/llvm-scale/records.jsonl",
+      "bytes": 21081105,
+      "sha256": "ae12cdd2cadeaff96d857550312faf7691840a46dc8b523cb357c60a44e3a2ab"
+    },
+    "rejections": {
+      "path": "data/gen/experiments/mechanical-realsource-v0/llvm-scale/rejected.jsonl",
+      "bytes": 355304,
+      "sha256": "398c01fa8bcacb9d9f00b0412875090a1c47864044ebe6953fd5e344a1866f0a"
+    }
+  },
+  "matched_sft_arms": {
+    "records_per_arm": 297,
+    "rendered_tokens_per_arm": 144710,
+    "manifest": {
+      "path": ".artifacts/sft-arms/e3-realsource-matched-count-token-window-seed42/manifest.json",
+      "bytes": 6594,
+      "sha256": "7ba98654bb5b0c9d5e5872a52a6256fe810256e7209726cc45132049870855e4"
+    },
+    "arms": {
+      "mechanical": {
+        "completion_tokens": 58907,
+        "distinct_diagnostics": 59,
+        "distinct_sources": 240,
+        "jsonl_sha256": "ce5f3bfb95dd72e3e81864001e0118d998508e42ffc36dd70e8853b5d990677a"
+      },
+      "direct_edit": {
+        "completion_tokens": 57372,
+        "distinct_diagnostics": 183,
+        "distinct_sources": 164,
+        "jsonl_sha256": "66f66d30fe1967e8c8f3835270b17b709d0e1cfee9a7c1e425c2f52d5c812385"
+      },
+      "fuzzlang": {
+        "completion_tokens": 57564,
+        "distinct_diagnostics": 150,
+        "distinct_sources": 222,
+        "distinct_injectors": 131,
+        "jsonl_sha256": "45d6ba5683719332d8f8feb4a8b020710be365eacf0180f198eb990ae1d73dbe"
+      }
+    },
+    "evaluation_overlap": 0,
+    "cross_arm_exact_localized_input_overlap": 0,
+    "cross_arm_paired_source_overlap": 0,
+    "cross_arm_record_id_overlap": 0,
+    "cross_arm_source_tu_overlap": 124,
+    "uses_paid_api": false
+  },
+  "training": {
+    "base_model": ".artifacts/models/gemma-3-4b-it",
+    "model_revision": "093f9f388b31de276ce2de164bdc2081324b9767",
+    "seed": 42,
+    "epochs": 3,
+    "optimizer_steps_per_arm": 57,
+    "batch_size": 1,
+    "gradient_accumulation_steps": 2,
+    "learning_rate": 0.0002,
+    "bf16": true,
+    "gradient_checkpointing": false,
+    "sequence_packing": false,
+    "uses_paid_api": false,
+    "arms": {
+      "mechanical": {
+        "train_loss": 0.033623582013604936,
+        "runtime_seconds": 462.6886,
+        "adapter_sha256": "249c5a0213ae59da622ecbd08504b47b2191887db4ace75709a7f61a4b4cee96",
+        "run_manifest_sha256": "2d6950b159137994568f89f91f4d60dec550c56d5d725026edb1247629178c4d"
+      },
+      "direct_edit": {
+        "train_loss": 0.056720453134754246,
+        "runtime_seconds": 468.0715,
+        "adapter_sha256": "59631c79aeeb1f35d646028416057762e9568cf71691eaeec9f88022fc833d11",
+        "run_manifest_sha256": "e3f0f3faefd959353a1928e116df40dc0bffb967566a817d639a9c4dc0f4504b"
+      },
+      "fuzzlang": {
+        "train_loss": 0.03798821967160493,
+        "runtime_seconds": 468.7669,
+        "adapter_sha256": "ad9a3f11ea96bd16fec8a77da2845d3abbdf6c860047df79f53ff1cc5430987e",
+        "run_manifest_sha256": "69890280e022fdd8a2b8955ed53502bf7363a5e59fb6a5ba92d04b7e5ae7f3f9"
+      }
+    }
+  },
+  "evaluation": {
+    "records": "data/gen/releases/realcorpus-v2/formal/eval.jsonl",
+    "records_sha256": "e0617b8881153758a8d4857aaa757584d755f5848d86a138cec0c0402f7ad4e9",
+    "cohort": "first 32 records, deterministically loaded",
+    "eligible": 32,
+    "stale_ground_truth": 0,
+    "languages": {
+      "c++": 29,
+      "c": 3
+    },
+    "max_new_tokens": 512,
+    "seed": 42,
+    "target_format": "window-rewrite",
+    "driver_aware_revalidation": true,
+    "arms": {
+      "base": {
+        "verified_fixes": 5,
+        "exact_matches": 0,
+        "degenerate_compiler_fixes": 0,
+        "summary_sha256": "ff233a83268b1a7782e6e223520ab548107b61d92c9053b3fb85990710acfe88",
+        "quality_sha256": "246fd5904c53f8c85f8b25ba7e628c10e4d30c67435384906619c41e7b5e352c"
+      },
+      "mechanical": {
+        "verified_fixes": 5,
+        "exact_matches": 1,
+        "degenerate_compiler_fixes": 0,
+        "summary_sha256": "224baca4213712de7d1cd8957ac802d46e626098ddb32575275692550c4e038b",
+        "quality_sha256": "8420db672b299df04f5a1c50604d40d09afa2f6829b5f712de4d8265263a9cd7"
+      },
+      "direct_edit": {
+        "verified_fixes": 15,
+        "exact_matches": 6,
+        "degenerate_compiler_fixes": 1,
+        "summary_sha256": "4054a624565b1d2bc204dc39b1b44bb4f3109a5f2ad5b2f6b8f81c92a4341fa8",
+        "quality_sha256": "c24f84cb3d7484ec3bf26d08c007f8213e2bd8380e73cd84034788afd5b770a1"
+      },
+      "fuzzlang": {
+        "verified_fixes": 16,
+        "exact_matches": 11,
+        "degenerate_compiler_fixes": 1,
+        "summary_sha256": "57a2846f051dd13a2bb0a0c1f56a6a9ab002b529c98351785dfaab9f88ab1331",
+        "quality_sha256": "196bd77965d6d3144f606c5259796421a7ec1aa031582b8a6a3dd29c54ebdd8a"
+      }
+    },
+    "paired_fuzzlang_vs_direct_edit": {
+      "compile_both": 13,
+      "compile_fuzzlang_only": 3,
+      "compile_direct_edit_only": 2,
+      "compile_neither": 14,
+      "exact_both": 6,
+      "exact_fuzzlang_only": 5,
+      "exact_direct_edit_only": 0,
+      "exact_neither": 21
+    },
+    "uses_paid_api": false
+  },
+  "archives": {
+    "generation": {
+      "path": "data/gen/releases/mechanical-realsource-v0/mechanical-realsource-v0.tar.zst",
+      "bytes": 1694284,
+      "sha256": "d8aa0a95230abc8d7912895e4fe57b4904b07592c64dede5b49a219f0c2ee470"
+    },
+    "matched_sft_arms": {
+      "path": "data/gen/releases/mechanical-realsource-v0/e3-matched-arms-seed42.tar.zst",
+      "bytes": 5845753,
+      "sha256": "b18961676775a5b0500acf35f3fddea17997522e784951388a1f177bb187d1c7"
+    },
+    "matched_adapters": {
+      "path": "data/gen/releases/mechanical-realsource-v0/e3-matched-adapters-seed42.tar.zst",
+      "bytes": 346178791,
+      "sha256": "901e39df621c7682f2a2774468a4956f9bd3611e66f4846ef3ab0d8bb548db17",
+      "checkpoint_directories_excluded": true
+    },
+    "matched_evaluation": {
+      "path": "data/gen/releases/mechanical-realsource-v0/e3-matched-eval32-seed42.tar.zst",
+      "bytes": 15043,
+      "sha256": "b1e198758b7b554bd16c02f94437ae4d27c3f5842db19ce08be8dbed835740ca"
+    },
+    "integrity_checked": true
+  }
+}

@@ -174,6 +174,8 @@ def summarize_results(results: Sequence[dict[str, Any]]) -> dict[str, int | floa
     return {
         "n": n,
         "eligible": eligible,
+        "eligible_compile_ok": eligible_compile_ok,
+        "eligible_exact_match": eligible_exact,
         "parse_ok": parse_ok,
         "parse_rate": parse_ok / n,
         "compile_ok": compile_ok,

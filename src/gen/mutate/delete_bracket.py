@@ -7,6 +7,8 @@ produce nothing.
 """
 from __future__ import annotations
 
+from typing import Iterable
+
 from gen.mutate.base import BaseMutation, Mutant
 from gen.mutate._scan import iter_code_chars
 
@@ -18,6 +20,9 @@ class DeleteBracket(BaseMutation):
     name = "delete_bracket"
 
     def mutate(self, src: str) -> list[Mutant]:
+        return list(self.iter_mutants(src))
+
+    def iter_mutants(self, src: str) -> Iterable[Mutant]:
         # Match pairs: a stack per opener kind holding open-char offsets.
         stacks: dict[str, list[int]] = {o: [] for o in _OPENERS}
         pairs: list[tuple[int, int]] = []  # (open_offset, close_offset)
@@ -31,16 +36,14 @@ class DeleteBracket(BaseMutation):
                     pairs.append((o, i))
         pairs.sort()
 
-        mutants = []
         for o, close in pairs:
-            mutants.append(Mutant(
+            yield Mutant(
                 src=src[:o] + src[o + 1:],
                 description=f"delete '{src[o]}' at offset {o}",
                 expected_diag="expected_bracket",
-            ))
-            mutants.append(Mutant(
+            )
+            yield Mutant(
                 src=src[:close] + src[close + 1:],
                 description=f"delete '{src[close]}' at offset {close}",
                 expected_diag="expected_bracket",
-            ))
-        return mutants
+            )

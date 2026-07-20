@@ -84,3 +84,23 @@ def test_delete_comma():
 
 def test_delete_comma_none_when_no_comma():
     assert DeleteComma().mutate("int a;") == []
+
+
+def test_bounded_mutants_are_seeded_deterministic_and_do_not_change_legacy_api():
+    mutation = DeleteSemicolon()
+    source = "int a; int b; int c; int d; int e;"
+    legacy = mutation.mutate(source)
+
+    first = mutation.bounded_mutants(source, max_candidates=2, seed=19)
+    second = mutation.bounded_mutants(source, max_candidates=2, seed=19)
+
+    assert first == second
+    assert len(first) == 2
+    assert all(mutant in legacy for mutant in first)
+    assert mutation.mutate(source) == legacy
+
+
+def test_bounded_mutants_zero_budget_does_not_iterate_candidates():
+    assert DeleteSemicolon().bounded_mutants(
+        "int a; int b;", max_candidates=0, seed=0
+    ) == []

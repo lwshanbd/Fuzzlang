@@ -6,9 +6,11 @@ separate stage (:mod:`gen.collect`).
 """
 from __future__ import annotations
 
+import hashlib
+import heapq
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
-from typing import Optional
+from typing import Iterable, Optional
 
 
 @dataclass(frozen=True)
@@ -43,3 +45,37 @@ class BaseMutation(ABC):
     @abstractmethod
     def mutate(self, src: str) -> list[Mutant]:
         """Return zero or more mutant candidates for `src`. Pure; no compilation."""
+
+    def iter_mutants(self, src: str) -> Iterable[Mutant]:
+        """Yield candidates lazily; subclasses may override to avoid a full list."""
+        yield from self.mutate(src)
+
+    def bounded_mutants(
+        self, src: str, *, max_candidates: int, seed: int,
+    ) -> list[Mutant]:
+        """Select a deterministic bottom-k sample without retaining every mutant.
+
+        Selection hashes stable mutation metadata rather than depending on Python's
+        randomized hash or traversal-side random state.  At most ``max_candidates``
+        complete source copies are retained while the iterator is consumed.
+        """
+        if max_candidates <= 0:
+            return []
+        source_hash = hashlib.sha256(src.encode("utf-8")).hexdigest()
+        selected: list[tuple[int, int, Mutant]] = []
+        for ordinal, mutant in enumerate(self.iter_mutants(src)):
+            payload = (
+                f"{seed}|{self.name}|{source_hash}|{ordinal}|"
+                f"{mutant.description}|{mutant.expected_diag or ''}"
+            ).encode("utf-8")
+            score = int.from_bytes(hashlib.sha256(payload).digest(), "big")
+            entry = (-score, -ordinal, mutant)
+            if len(selected) < max_candidates:
+                heapq.heappush(selected, entry)
+            elif entry > selected[0]:
+                heapq.heapreplace(selected, entry)
+        return [
+            mutant for _negative_score, _negative_ordinal, mutant in sorted(
+                selected, key=lambda item: (-item[0], -item[1])
+            )
+        ]

@@ -552,6 +552,7 @@ def _preflight_token_lengths(
         "total": len(rendered),
         "kept": len(kept),
         "overlong": len(overlong_indices),
+        "total_tokens": sum(lengths),
         "min_tokens": min(lengths),
         "median_tokens": statistics.median(lengths),
         "max_tokens": max(lengths),
@@ -622,6 +623,10 @@ def main(argv: Sequence[str] | None = None) -> int:
                 kept_training_rows.append(training_row)
                 remaining[text] -= 1
         training_rows = kept_training_rows
+    length_report["completion_tokens"] = sum(
+        len(tok(row["completion"], truncation=False)["input_ids"])
+        for row in training_rows
+    )
     print(
         "[run_sft] token_preflight "
         + " ".join(f"{key}={value}" for key, value in length_report.items()),

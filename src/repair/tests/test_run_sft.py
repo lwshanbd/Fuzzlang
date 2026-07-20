@@ -361,6 +361,7 @@ def test_token_length_preflight_drops_only_with_explicit_opt_in() -> None:
         "total": 2,
         "kept": 1,
         "overlong": 1,
+        "total_tokens": 29,
         "min_tokens": 5,
         "median_tokens": 14.5,
         "max_tokens": 24,
