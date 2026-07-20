@@ -1,71 +1,259 @@
-# FuzzLang: progress
+# FuzzLang: Progress
 
-Status against `FuzzLang-Proposal.md`. LLVM pinned to `llvmorg-22.1.8`; test
-suite 175 passing. Gen data detail is in `data/gen/README.md`.
+Status against `FuzzLang-Proposal.md` and the executable plan in `plan.md`.
+LLVM is pinned to `llvmorg-22.1.8`; the current test suite has 308 passing and
+5 environment-dependent skips. Detailed generation history is in
+`data/gen/README.md`.
 
-## Headline
+## Current Research Position
 
-**Diagnostic coverage (proposal's #1 metric): 1538 / 1935 in-scope C/C++ error
-diagnostics = 79.5%** (61.7% with ≥3 examples). The denominator is the 3891 error
-diagnostics in Clang's TableGen, minus invocation/environment errors (not
-code pairs) and non-C/C++ dialect/target errors (Objective-C, OpenMP, GPU, MS,
-etc.) that are out of scope by design.
+The paper is now centered on compiler-derived, reusable error generation and
+the value of the resulting data:
 
-## What's built and run
+1. distill compiler diagnostic knowledge into diagnostic-specific Injectors;
+2. represent and replay the reusable subset through a deliberately narrow
+   FuzzLang DSL;
+3. apply Injectors to correct, non-test source from real projects;
+4. validate every pair with the pinned compiler and measure diagnostic
+   coverage;
+5. fine-tune a local open Gemma model and measure repair improvement under
+   matched training-token budgets;
+6. use a smaller NatErr set of naturally occurring failures for external
+   validity.
 
-- **Foundation** — patched clang 22.1.8 emitting `DiagID` (the rebased patch),
-  diagnostic catalog (3891 errors), typed verifier, record schema, dedup. Done.
-- **Coverage** — the metric + gap list; `--code-only` and `--exclude-names`
-  filters define the in-scope denominator. Done.
-- **Gen** — all three strategies, verifier-checked, run at scale:
-  mechanical mutation; guided generation from Clang's tests (multi-config +
-  RUN-line flag mining); and model-assisted/catalog generation (gpt-5.4-mini,
-  gpt-5.5 for the hard tail). These supply the verified records behind the
-  coverage above.
-- **Dataset** — 13,745 deduped verified records, split train 10,973 /
-  dev 1,402 / eval 1,370, provenance-isolated (no source leaks across splits).
-- **Scope filter** — every diagnostic classified strict-C/C++ vs out-of-scope
-  (keywords + LLM, audited by sub-agents); list at `data/gen/out_of_scope.txt`.
-- **Repair** (metric #2) — baselines + `diag` + causal ablations run on the eval
-  split; first verified-fix-rate numbers below.
+The earlier typed-diagnostic-versus-stderr repair hypothesis is not a core
+claim. Existing evidence shows that the compiler-feedback loop helps, but a
+typed diagnostic observation does not materially outperform raw stderr for the
+tested strong hosted model.
 
-## Repair: verified fix-rate (metric #2)
+## Frozen Dataset Tiers
 
-First numbers, on the **1,282 / 1,370 eval instances that reproduce** under the
-patched clang (93.6%; all exact-diagnostic match — the rest needed `-cc1`-only
-flags we don't carry). Same base model (`gpt-5.4-mini`) for every method,
-**matched budget** E=5120 (T=5, K=4), 3 seeds, verifier = patched clang 22.1.8.
-Fix-rate is mean ± std across seeds; CI is a 95% bootstrap over the pooled instances.
+### FuzzLang-Breadth
 
-| method | fix-rate (micro) | 95% CI | macro | turns | out-tok |
-|---|---|---|---|---|---|
-| b0  zero-shot, single-shot        | 72.2 ± 0.3 | [70.7, 73.6] | 70.7 | 0.95 | 33 |
-| b1  stderr-text loop              | 92.8 ± 0.5 | [92.0, 93.6] | 94.2 | 1.21 | 258 |
-| **diag**  typed diagnostic signal | 92.9 ± 0.2 | [92.1, 93.7] | 93.4 | 1.37 | 315 |
-| −id   (structure, no diag_id)     | 93.1 ± 0.4 | [92.3, 93.9] | 93.6 | 1.38 | 315 |
-| −struct (raw stderr, diag loop)   | 92.7 ± 0.2 | [91.9, 93.5] | 92.9 | 1.22 | 262 |
+The high-coverage compiler-derived set contains **13,745 structurally
+deduplicated verified records**, split train 10,973 / dev 1,402 / eval 1,370
+with provenance isolation.
 
-**Read honestly:** the *loop* is what moves the needle (b0 72% → any loop 93%);
-the typed diagnostic signal buys nothing over raw stderr on this eval —
-**diag − b1 = +0.1 pts** (within seed noise: per-seed −0.4/+0.7/−0.1), and the
-−id / −struct ablations agree (all ~93%). diag even spends more tokens (315 vs
-258) and turns (1.37 vs 1.21) for the same rate. Per-family the effect flips
-sign and cancels (structure helps `err_module` +30, `err_static_assert` +8;
-hurts `err_module_not` −9, `err_ovl_no_viable` −7). Caveat: `gpt-5.4-mini` is a
-strong model and these are short, single-diagnostic programs where stderr
-already carries the fix — the structured signal is most likely to pay off for a
-*smaller / SFT'd* policy (b2/b3, untested) and on the harder Real split, not a
-frontier zero-shot model.
+Headline strict C/C++ coverage:
 
-## Not yet run
+- **1,538/1,935 diagnostics = 79.5%** at multiplicity at least one;
+- **1,194/1,935 diagnostics = 61.7%** at multiplicity at least three.
 
-- **Real** (metric #3, real-world eval): miners present; not reproduced this cycle.
-- **b2/b3** (SFT policy): no LoRA adapter trained yet — the setting where the
-  diagnostic signal is most likely to matter.
+The denominator starts from 3,891 Clang TableGen error diagnostics, excludes
+invocation/environment failures that cannot form broken-code/corrected-code
+pairs, and excludes non-standard-C/C++ dialect and hardware-target diagnostics
+through the audited `data/gen/out_of_scope.txt` list.
 
-## Next
+### FuzzLang-RealSource
 
-1. Reproduce a Real eval slice → run the same ladder on real failures.
-2. Train a small-model LoRA (b2/b3) and re-test diag − b1 where the base policy
-   is weaker.
-3. Raise multiplicity toward ≥3 on the covered tail.
+These are generated errors injected into correct real-project source. They are
+not naturally occurring developer errors.
+
+The current test-free LLVM releases contain:
+
+| release | records | observed diagnostics | source TUs | strict coverage |
+|---|---:|---:|---:|---:|
+| realcorpus-v2 | 1,422 | 681 | 419 | 673/1,935 |
+| recipe-replay-v1 increment | 631 | 176 | 256 | +18 over the base |
+| recipe-replay-v2 increment | 265 | 93 | 172 | +11 over v1 |
+| **combined** | **2,318** | **714** | **847** | **702/1,935 (36.3%)** |
+
+The combined set has **208 diagnostics at multiplicity at least three**. All
+three stages require `corrected_src`, have zero source overlap by construction,
+and report zero compiler/project test or test-support sources.
+
+### NatErr
+
+Stage 1 has commit-history candidate manifests for eight projects. The current
+LLVM source-only filter retained 242 candidates. Stage 2 reproduced **86 failing
+files from 75 candidates**, a 31.0% candidate reproduction rate.
+
+This output is useful but is not yet a formal NatErr release: it still needs
+corrected-source recovery from each fix commit and project/time-isolated
+splitting. A streaming formalizer now performs strict test/test-support
+exclusion, fix-commit recovery, paired compiler revalidation, canonical
+`Record` conversion, rejection logging, and manifest generation. A three-item
+read-only LLVM smoke accepted no records: two fixes were unavailable in the
+current shallow sparse checkout, and one compile command referenced a stale
+build root and missing generated header. The next NatErr step is therefore to
+provide a full historical checkout and reconstruct or relocate the Stage-2
+compile environment. The paper target remains 100--300 formal natural failures
+from two or three projects, not a large training corpus.
+
+The first executable tier audit found two NatErr test/benchmark source paths and
+14 NatErr TU identities that overlap current RealSource. Both groups must be
+excluded or isolated before NatErr becomes a valid held-out evaluation set.
+
+## What Is Implemented
+
+- **Foundation:** patched Clang 22.1.8 with `DiagID` emission, diagnostic
+  catalog, typed verifier, canonical paired `Record`, structural deduplication,
+  compile-database support, and release checks.
+- **Coverage:** strict denominator, coverage and multiplicity reports, component
+  breakdowns, and uncovered/under-covered gap lists.
+- **Breadth generation:** mechanical, compiler-evidence-guided, and
+  catalog/model-assisted strategies, all verifier checked.
+- **RealSource direct editing:** diagnostic-targeted edits on clean LLVM
+  translation units with source/test filtering and formal release gates.
+- **Reusable recipe prototype:** extraction of minimal diagnostic-specific
+  transformations from verified pairs and replay on unseen real LLVM source.
+- **FuzzLang DSL v0:** versioned narrow Injector schema, canonical serialization
+  and hashing, stable Injector IDs, replay limits, recipe compatibility, and
+  safe execution through the existing lexical matcher.
+- **Tier audit:** streaming Breadth/RealSource/NatErr checks for pairing,
+  diagnostics, sources, overlap, schema, and test/test-support paths.
+- **Repair harness:** zero-shot, stderr-loop, typed-diagnostic loop, SFT method
+  hooks, matched attempt/token envelopes, compiler verification, and bootstrap
+  metrics.
+- **Local Gemma inference:** Gemma-4-31B is staged on Tioga and serves through a
+  high-throughput local vLLM path.
+- **Gemma SFT preparation:** canonical Records now normalize to model-neutral
+  repair triples, the native Gemma chat template works offline, 32/128-example
+  dry runs are supported, and real tokenizer preflight rejects silent
+  truncation by default. A deterministic localized relative-edit target
+  round-trips to the complete source and is available through
+  `--target-format relative-edit`.
+- **NatErr formalization:** streaming fix recovery, source filtering, two-sided
+  verification, canonical paired output, explicit rejection reasons, and
+  release manifests are implemented.
+
+## Injector Prototype Results
+
+The recipe system is the working precursor to FuzzLang DSL.
+
+- 1,413 recipes are extracted from 1,422 verified realcorpus-v2 pairs.
+- v1 marks 468 recipes portable across source files, spanning 245 target
+  diagnostics.
+- v2 adds identifier bindings and bounded replacement templates, yielding 594
+  portable recipes spanning 306 target diagnostics.
+- 127 v2 recipes use identifier bindings and span 95 target diagnostics.
+- Replay v1+v2 generated **896 structurally retained records** on **428 unseen
+  LLVM TUs** without model/API calls.
+- Every retained record was recompiled on both sides; none uses a test source.
+- All **594/594** current portable recipes convert to FuzzLang DSL v0 and
+  round-trip without semantic loss.
+- The replay CLI now executes either legacy recipes or FuzzLang DSL Injectors,
+  exports canonical Injector JSONL, and stores Injector identity and schema in
+  every generated record and manifest.
+- A zero-API held-out LLVM pilot exported all 594 Injectors and generated 30
+  records. Formal revalidation accepted and structurally retained **30/30**
+  records from 11 previously unused non-test TUs, spanning 27 diagnostics with
+  zero base-source overlap. Seventeen records (56.7%) exactly matched their
+  target, spanning 16 exact-target diagnostics; all 30 carry Injector IDs.
+- A follow-up exact-target diversity run scanned 54 of 120 candidate TUs and
+  stopped at its cap of **70 records for 70 distinct target diagnostics**.
+  Formal revalidation retained **70/70** from 43 additional non-test TUs, with
+  zero source overlap or structural duplication against the preceding 2,348
+  records. Together these LLVM experiments raise multiplicity-at-three from
+  208 to 215 but add no new coverage@1 diagnostic, as expected for Injectors
+  distilled from already observed diagnostics.
+
+These runs validate the DSL execution and release path and pass the LLVM-side
+Week-2 thresholds for exact-target share and distinct exact-target diagnostics.
+They do not test cross-project transfer or replace the matched method
+experiment. The remaining work is to synthesize/repair Injectors with local
+Gemma, test transfer on a second C++ project, and run the matched
+Injector-versus-direct-edit experiment.
+
+## Existing Repair Results: Useful but No Longer the Main Claim
+
+On 1,282/1,370 reproducible Breadth eval instances with a strong hosted model,
+matched budget `E=5120`, `T=5`, `K=4`, and three seeds:
+
+| method | verified fix rate | interpretation |
+|---|---:|---|
+| zero-shot | 72.2% | single-shot baseline |
+| stderr loop | 92.8% | compiler feedback is highly useful |
+| typed diagnostic loop | 92.9% | effectively tied with stderr |
+| no diagnostic ID | 93.1% | ID is not responsible for the gain |
+| raw-stderr diagnostic-loop ablation | 92.7% | confirms the near tie |
+
+The loop improves repair by roughly 20 points, but typed diagnostics add only
+0.1 point over stderr and use more tokens. This result will be treated as an
+exploratory negative result or appendix material.
+
+For realcorpus-v2, the three-seed zero-shot run covers all 440 formal eval
+instances and reaches 72.5% mean verified repair. A matched five-method pilot on
+16 instances is directional only and is not paper-level evidence. No complete
+Gemma SFT comparison has been run.
+
+The offline Gemma tokenizer smoke succeeds on short Breadth data: 32/32 and
+128/128 prepared examples fit within 4,096 tokens (the 32-example min/median/max
+is 241/253/288 tokens). A preliminary RealSource full-TU prefix exposed a real
+representation blocker: only 2/32 examples fit, with median 12,624 and maximum
+337,379 tokens. This is now addressed by a deterministic localized window plus
+relative single-span edit. The edit is exactly round-tripped into the complete
+source before compiler evaluation. All **2,318/2,318** current RealSource
+records are eligible; localized windows have min/median/p95/max character
+lengths 170/594/850/1,163, and every rendered native-Gemma example fits within
+4,096 tokens (min/median/p95/p99/max 201/324/406/452/701). The same target
+format must be used across matched SFT arms.
+
+No GPU LoRA run has started. The current Gemma environment lacks the training
+dependencies (`peft`, `datasets`, and `trl`), and the 31B model still needs a
+proper FSDP/distributed training path rather than inference-style model
+sharding.
+
+## Main Missing Evidence
+
+The revised paper requires four results that do not yet exist:
+
+1. **Injector method result:** a matched comparison of FuzzLang DSL Injector
+   reuse, transfer, exact-target yield, and cost against direct per-record
+   Gemma editing.
+2. **Multi-project RealSource result:** Injector/hybrid generation on LLVM plus
+   held-out non-LLVM C++ and C projects, with coverage and provenance isolation.
+3. **Gemma SFT result:** Gemma Base versus matched-token Mechanical-SFT,
+   DirectEdit-SFT, and FuzzLang-SFT, evaluated on unseen TUs/projects.
+4. **NatErr result:** a formal paired natural-error release and external-validity
+   evaluation.
+
+Until these results exist, the project has a strong construction substrate and
+coverage result but not a complete paper-level causal demonstration of dataset
+value.
+
+## Immediate Parallel Work
+
+### A. Freeze Data and Evaluation
+
+- enforce Breadth/RealSource/NatErr release boundaries;
+- freeze project-, TU-, and Injector-isolated splits;
+- attach generation method and Injector identity to every new record;
+- keep the strict 1,935 denominator and release gates reproducible.
+
+### B. Gemma SFT Smoke
+
+- preserve the completed canonical-data, native-template, offline tokenizer,
+  32/128 preparation path, and strict token preflight;
+- preserve the completed round-trippable relative-edit representation and use
+  it identically across matched SFT arms;
+- install/pin the local training dependencies and establish multi-GPU FSDP
+  LoRA training on Tioga;
+- complete actual 32- and 128-example GPU runs;
+- load the adapter into local inference and run compiler-verified repair;
+- fall back to a smaller Gemma-family checkpoint if the 31B training path
+  misses the Week-2 gate.
+
+### C. FuzzLang DSL v0
+
+- integrate the completed schema with generation manifests and Record
+  provenance (completed for the replay path);
+- preserve the already verified 594/594 recipe conversion and safety limits;
+- preserve the formally revalidated 100-record held-out LLVM evidence and
+  replay on at least one non-LLVM C++ project;
+- connect local Gemma to Injector synthesis/repair;
+- freeze v0 and use a recipe+direct-edit hybrid if the Week-2 gate fails.
+
+## Targets and Schedule Guardrails
+
+- RealSource core goal: 10,000--30,000 records across at least three projects.
+- RealSource strict coverage goal: approximately 1,000/1,935 diagnostics.
+- RealSource multiplicity-at-three goal: 350--400 diagnostics; 600 is stretch.
+- NatErr goal: 100--300 formal pairs from two or three projects.
+- No paid-API dependency in the final generation, SFT, or evaluation pipeline.
+- No general AST transformation language before the main SFT result.
+- No additional full typed-diagnostic-versus-stderr sweeps.
+- No test/test-support source in RealSource or NatErr.
+
+The detailed six-week schedule, gates, experimental arms, metrics, fallback
+rules, and artifact requirements are maintained in `docs/plan.md`.

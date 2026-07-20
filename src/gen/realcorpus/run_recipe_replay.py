@@ -18,6 +18,12 @@ from pathlib import Path
 from foundation.compile_db import build_clang_argv, load_compile_db
 from foundation.record import Record
 from foundation.verifier import FuzzlangClangVerifier
+from gen.fuzzlang_dsl import (
+    FUZZLANG_DSL_SCHEMA,
+    FUZZLANG_DSL_VERSION,
+    FuzzLangInjector,
+    ReplayLimits,
+)
 from gen.realcorpus.corpus import is_test_path, sanitize_cmd
 from gen.realcorpus.finalize import portable_source_path
 from gen.realcorpus.recipes import extract_recipes
@@ -51,6 +57,23 @@ def _write_jsonl(path: Path, values) -> dict:
     }
 
 
+def _write_injector_jsonl(
+    path: Path, injectors: list[FuzzLangInjector],
+) -> dict:
+    """Write byte-stable, canonical FuzzLang DSL JSONL."""
+    path.parent.mkdir(parents=True, exist_ok=True)
+    sha = hashlib.sha256()
+    with path.open("wb") as stream:
+        for injector in injectors:
+            line = (injector.to_json() + "\n").encode("utf-8")
+            stream.write(line)
+            sha.update(line)
+    return {
+        "path": str(path), "records": len(injectors),
+        "bytes": path.stat().st_size, "sha256": sha.hexdigest(),
+    }
+
+
 def main() -> None:
     ap = argparse.ArgumentParser(
         description="Replay learned diagnostic modifiers on unseen real sources."
@@ -65,7 +88,13 @@ def main() -> None:
     ap.add_argument("--out", type=Path, required=True,
                     help="canonical replayed Record JSONL")
     ap.add_argument("--recipes-out", type=Path, default=None)
+    ap.add_argument("--injectors-out", type=Path, default=None,
+                    help="optional canonical FuzzLang DSL v0 Injector JSONL")
     ap.add_argument("--manifest-out", type=Path, default=None)
+    ap.add_argument(
+        "--replay-engine", choices=("recipe", "fuzzlang-dsl"), default="recipe",
+        help="recipe preserves legacy replay; fuzzlang-dsl replays converted Injectors",
+    )
     ap.add_argument("--project", default="llvm")
     ap.add_argument("--source-substr", default="external/llvm-project")
     ap.add_argument("--language", choices=("all", "c", "c++"), default="all")
@@ -96,9 +125,22 @@ def main() -> None:
     manifest_out = args.manifest_out or args.out.with_name(
         args.out.stem + ".manifest.json"
     )
+    injectors_out = args.injectors_out
+    if args.replay_engine == "fuzzlang-dsl" and injectors_out is None:
+        injectors_out = args.out.with_name(args.out.stem + ".injectors.jsonl")
 
     print(f"[recipe-replay] loading paired records: {args.records}", flush=True)
     training = _load_records(args.records)
+    observed_diag_ids: dict[str, set[int]] = {}
+    for record in training:
+        diag = record.primary_diagnostic
+        if diag and diag.diag_name and diag.diag_id is not None:
+            observed_diag_ids.setdefault(diag.diag_name, set()).add(diag.diag_id)
+    stable_diag_ids = {
+        name: next(iter(values))
+        for name, values in observed_diag_ids.items()
+        if len(values) == 1
+    }
     recipes = extract_recipes(
         training, context_tokens=args.context_tokens,
         max_edit_chars=args.max_edit_chars,
@@ -114,6 +156,39 @@ def main() -> None:
           f"selected={len(selected_recipes)} "
           f"diagnostics={len({r.diag_name for r in selected_recipes})}", flush=True)
     recipes_file = _write_jsonl(recipes_out, (recipe.to_dict() for recipe in recipes))
+
+    portable_injectors: list[FuzzLangInjector] = []
+    selected_injectors: list[FuzzLangInjector] = []
+    injectors_file = None
+    if injectors_out is not None:
+        try:
+            replay_limits = ReplayLimits(
+                max_edit_chars=args.max_edit_chars,
+                max_candidates=args.max_candidates_per_recipe,
+                max_verifications=args.max_verifications_per_source,
+            )
+        except ValueError as error:
+            ap.error(f"invalid FuzzLang DSL replay limit: {error}")
+        portable_injectors = [
+            FuzzLangInjector.from_recipe(
+                recipe,
+                diag_id=stable_diag_ids.get(recipe.diag_name),
+                limits=replay_limits,
+            )
+            for recipe in portable
+        ]
+        selected_recipe_ids = {recipe.recipe_id for recipe in selected_recipes}
+        selected_injectors = [
+            injector for injector in portable_injectors
+            if injector.source_recipe_id in selected_recipe_ids
+        ]
+        injectors_file = _write_injector_jsonl(
+            injectors_out, portable_injectors
+        )
+
+    selected_injector_by_recipe_id = {
+        injector.source_recipe_id: injector for injector in selected_injectors
+    }
 
     recipes_by_language = {}
     for language in ("c", "c++"):
@@ -170,12 +245,21 @@ def main() -> None:
         )
         if args.max_recipes_per_language > 0:
             scheduled = scheduled[:args.max_recipes_per_language]
+        scheduled_injectors = []
+        replay_recipes = scheduled
+        if args.replay_engine == "fuzzlang-dsl":
+            scheduled_injectors = [
+                selected_injector_by_recipe_id[recipe.recipe_id]
+                for recipe in scheduled
+            ]
+            replay_recipes = []
         outcome = replay_source(
             source,
             path=path,
             compile_cmd=command,
             language=language,
-            recipes=scheduled,
+            recipes=replay_recipes,
+            injectors=scheduled_injectors,
             verifier=verifier,
             project=args.project,
             excluded_sources=excluded_sources,
@@ -233,7 +317,10 @@ def main() -> None:
     novel_diags = sorted(actual_diags - existing_diags)
     manifest = {
         "schema_version": 1,
-        "generator": "learned_recipe_replay",
+        "generator": (
+            "fuzzlang_dsl_replay" if args.replay_engine == "fuzzlang-dsl"
+            else "learned_recipe_replay"
+        ),
         "uses_llm_api": False,
         "training": {
             "path": str(args.records),
@@ -299,6 +386,25 @@ def main() -> None:
             "required_version": "llvmorg-22.1.8",
         },
     }
+    if injectors_file is not None:
+        manifest["injectors"] = {
+            "schema": FUZZLANG_DSL_SCHEMA,
+            "schema_version": FUZZLANG_DSL_VERSION,
+            "exported": len(portable_injectors),
+            "selected": len(selected_injectors),
+            "with_diag_id": sum(
+                injector.target_diag_id is not None
+                for injector in portable_injectors
+            ),
+            "selected_diagnostics": len({
+                injector.target_diag for injector in selected_injectors
+            }),
+            "selected_ids": [
+                injector.injector_id for injector in selected_injectors
+            ],
+            "replayed": args.replay_engine == "fuzzlang-dsl",
+            "file": injectors_file,
+        }
     manifest_out.write_text(json.dumps(manifest, indent=2, sort_keys=True) + "\n")
     print(f"[recipe-replay] DONE records={len(records)} "
           f"diagnostics={len(actual_diags)} novel={len(novel_diags)}", flush=True)

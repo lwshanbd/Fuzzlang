@@ -2,16 +2,19 @@
 
 *Target venue: CGO (submission September 2026).*
 
+*Research framing revised July 2026; the executable experiment plan and gates
+are maintained in `docs/plan.md`.*
+
 ---
 
 ## 1. Vision
 
-**FuzzLang is a compiler-diagnostic-driven method for constructing, and repairing against, a large-scale dataset of compilation errors.**
+**FuzzLang is a compiler-diagnostic-driven method for constructing a large-scale compilation-error dataset and demonstrating its value through repair fine-tuning.**
 
-The compiler diagnostic is the organizing principle from end to end. It guides what data we generate (toward diagnostics we have not yet covered), it labels every record (each erroneous program carries the exact diagnostic it triggers), and it supervises repair (the diagnostic is the verifier signal an agent reacts to). Dataset and method are therefore not two projects. They are the same machinery pointed in two directions:
+The compiler is both the knowledge source and the verifier. Its diagnostic definitions specify the error space, its emission sites and regression evidence describe trigger conditions, and its frontend validates every generated pair. FuzzLang distills that knowledge into reusable diagnostic-specific Injectors, applies them to correct code, and uses the resulting data to train repair models. Dataset and method are therefore not two projects. They are the same machinery pointed in two directions:
 
-- pointed at construction, the machinery produces a broad, measured dataset of compilation errors;
-- pointed at repair, the same machinery fixes errors using compiler feedback.
+- pointed at construction, the machinery produces a broad, measured dataset of compilation errors from reusable Injectors;
+- pointed at repair, fine-tuning and evaluation measure whether that dataset improves a model's ability to fix errors.
 
 A dataset with no method is inert; a method with no dataset is unverifiable. FuzzLang is the claim that doing both, unified by the diagnostic, is what makes either one credible.
 
@@ -19,13 +22,13 @@ A dataset with no method is inert; a method with no dataset is unverifiable. Fuz
 
 ## 2. The contribution, in one sentence
 
-> We can measure how much of a compiler's diagnostic space our dataset covers, guide generation to expand that coverage using the compiler's own tests and history, validate on real-world errors we did not create, and show that diagnostic-aware repair beats stderr-text and static fine-tuning, all at matched budgets.
+> We can turn the compiler's own diagnostic knowledge into reusable Injectors, replay them on correct real-project code to build a broad and compiler-verified error dataset, and show under matched training budgets that fine-tuning an open model on this dataset improves repair on unseen and naturally occurring errors.
 
 This answers the two criticisms the project has faced before:
 
 | Past criticism | FuzzLang's answer |
 | --- | --- |
-| "Your transformations are manual, artificial, small-scope." | A quantitative coverage metric over the compiler's full diagnostic space: measured, not hand-waved. |
+| "Your transformations are manual, artificial, small-scope." | Diagnostic-specific Injectors are derived from compiler knowledge, replayed across real-project sources, and evaluated by quantitative coverage and transfer. |
 | "Your evaluation is biased because you introduced the errors." | A real-world evaluation on genuine failing commits mined from open-source history. We did not create those errors. |
 
 ## 3. Success criteria
@@ -33,7 +36,7 @@ This answers the two criticisms the project has faced before:
 The project is judged by three numbers, in priority order:
 
 1. **Diagnostic coverage:** the fraction of the compiler's diagnostic identifiers the dataset exercises, with a target multiplicity (each covered diagnostic represented several times, not once). This is the headline result.
-2. **Verified repair rate:** the fraction of broken programs an agent fixes so that the compiler accepts the result, reported with confidence intervals and broken down by diagnostic family.
+2. **Fine-tuning gain:** the change in verified repair rate from the same open Gemma base model before and after matched-token SFT on FuzzLang data, including data-source ablations.
 3. **Real-world generalization:** the verified repair rate on real failing commits from projects the model never trained on.
 
 Everything else (model scale, additional languages) is supporting evidence, not the thesis.
@@ -107,18 +110,20 @@ The work decomposes into four directions plus a shared Foundation that all four 
 **What it does.** Given a target diagnostic from the gap list, produce a record by introducing that error into correct, compiling code. This always yields a correct and broken pair plus the captured diagnostic. The strategies differ in how the error is introduced, never in whether a correct origin exists (it always does):
 
 1. **Mechanical mutation:** cheap, high-volume perturbations of correct code. Good for breadth on common diagnostics; weak on rare or semantically specific ones. (This is what prior work relied on; here it becomes one supplier among several, not the whole story.)
-2. **Guided mutation from the compiler's own evidence** (the primary new engine). For a target diagnostic, consult the compiler's regression test that exercises it and the commit that introduced it (the commit message and test files are rich context) to learn the precise code pattern that triggers it, then introduce that error into correct code, producing a correct and broken pair. The compiler's evidence guides what error to introduce and where; it is never copied in as a standalone broken sample. This is how we reach the long tail of rare diagnostics that blind mutation never hits.
-3. **Model-assisted mutation:** a model introduces a targeted error into correct code (or writes a correct program and then breaks it), for diagnostics where rule-based mutation is too rigid. Useful for diversity and gap-filling.
+2. **Direct compiler-evidence-guided mutation:** for a target diagnostic, consult its TableGen definition, compiler emission site, regression evidence, and history to learn the trigger pattern, then ask a model to introduce that error into correct code. Compiler tests are evidence only and are never copied in as final records. This existing per-record path remains a baseline and a long-tail fallback.
+3. **Reusable Injector synthesis** (the primary new engine): ask a local Gemma model to distill the same compiler evidence into one diagnostic-specific Injector represented in **FuzzLang DSL**. Replay the Injector across many correct translation units and projects, validate every candidate, and amortize the model work over all accepted records.
+4. **Hybrid long-tail generation:** use an Injector where the deliberately narrow FuzzLang DSL can express the transformation; otherwise use a direct Gemma edit, validate it, and attempt to distill the successful pair into a future Injector.
 
 Every generated candidate is verifier-checked: it enters the dataset only if the broken version triggers the intended diagnostic and the correct version compiles cleanly.
 
-**Deliverables.** A generation service that takes a target diagnostic and returns validated records, plus a record of which strategy produced what, so we can report each strategy's contribution to coverage.
+**Deliverables.** A generation service that takes a target diagnostic and returns validated records; a versioned collection of reusable Injectors; and complete method labels so we can report each strategy's contribution to coverage, transfer, and generation cost.
 
 **Key decisions.**
 - **Every record starts from correct code** and carries both versions. This is FuzzLang's defining constraint, not a tunable. Broken-only material is out of the core dataset (see §5).
-- How much of the model budget goes to guided mutation versus model-assisted mutation.
+- FuzzLang DSL v0 is intentionally limited to token/context matching, identifier bindings, and bounded local edits. General AST/type/scope transformation is not a prerequisite for the paper.
+- The final reproducible generation and repair pipeline uses a local open Gemma model rather than a paid API.
 
-**Open questions.** Mapping a diagnostic identifier to its introducing commit and its regression test is non-trivial, and the mapping may not exist for every diagnostic. What is the fallback when the compiler's history or tests do not yield usable context? How do we keep introduced errors realistic rather than degenerate?
+**Open questions.** Mapping a diagnostic identifier to useful emission sites and regression evidence is non-trivial, and the evidence may not exist for every diagnostic. How many diagnostics transfer through a narrow reusable Injector, when should the hybrid path fall back to a direct edit, and how do we keep introduced errors realistic rather than degenerate?
 
 **Dependencies.** Foundation (verifier). Consumes the gap list from COVERAGE and supplies records back. Shares synthesis machinery conceptually with REPAIR.
 
@@ -128,18 +133,18 @@ Every generated candidate is verifier-checked: it enters the dataset only if the
 
 > *Mine genuine compilation errors from real open-source projects.*
 
-**Goal.** Provide an unbiased evaluation set, plus a stream of hard, real training data, that no one can dismiss as artificial, because the errors occurred naturally in real development.
+**Goal.** Provide a smaller unbiased external-validity set that no one can dismiss as artificial, because the errors occurred naturally in real development.
 
 **What it does.**
 - Scans the commit history of buildable open-source projects for states that fail to compile, targeting commits that precede a "fix" commit, the natural sources of real breakage.
 - Reconstructs the failing state and captures the real diagnostic or diagnostics it emits.
 - Where a subsequent fix commit exists, recovers the corrected version, yielding a real (broken, fixed, diagnostic) triple.
-- Feeds two consumers: an evaluation column of real errors, and, for cases the repair agent fails, new training records folded back into the dataset.
+- Supplies a project- and/or time-isolated evaluation column. A separate continual-learning experiment may fold earlier failures into training, but never contaminates the held-out column.
 
-**Deliverables.** A harvesting pipeline producing real-world records with full provenance (project, commits, date), partitioned strictly away from any training data.
+**Deliverables.** A formal NatErr release of roughly 100--300 high-quality paired failures from two or three projects, with full provenance (project, commits, date), compiler revalidation, and strict isolation from training data.
 
 **Key decisions.**
-- **Candidate projects** (buildable, active commit history, a mix of C and C++): LLVM/Clang, PostgreSQL, FFmpeg, SQLite, DuckDB, Redis, curl, Git, Qt, and Blender. A subset supplies training-side folded records; a disjoint subset is reserved purely for evaluation, so no project appears on both sides.
+- **Candidate projects** (buildable, active commit history, a mix of C and C++): LLVM/Clang plus one or two projects selected by reproduction feasibility. NatErr does not carry the paper's scale claim, so quality and isolation matter more than raw count.
 - How many projects to include for the core paper (breadth strengthens the generalization claim) versus how much per-project reproduction effort we can afford.
 
 **Open questions.** Reproducing a historical failing build is operationally hard, since toolchains and dependencies drift. How much engineering do we invest per project, and how do we report the yield (failing commits found versus successfully reproduced)?
@@ -150,27 +155,26 @@ Every generated candidate is verifier-checked: it enters the dataset only if the
 
 ### Direction 4: REPAIR
 
-> *Fix broken programs using compiler feedback, and show the diagnostic signal is what makes it work.*
+> *Fine-tune an open model and test whether FuzzLang data improves verified repair.*
 
-**Goal.** Demonstrate the dataset's value and establish the method's core claim: **typed diagnostic feedback is a better repair signal than raw stderr text or static fine-tuning.**
+**Goal.** Demonstrate the dataset's value: **under matched training-token and inference budgets, Gemma fine-tuned on FuzzLang data should repair more unseen compilation errors than the same base model and models trained on weaker construction baselines.**
 
 **What it does.**
-- Defines a repair loop: given a broken program and its diagnostic, a policy proposes edits; the verifier checks them; feedback (the new diagnostic, or success) drives the next attempt; the loop terminates on a verified fix, exhaustion, or a detected dead-end.
-- Trains a policy on the FuzzLang dataset and compares it against a ladder of baselines and ablations:
-  - a zero-shot model, a model with a stderr-text loop, a statically fine-tuned model, fine-tuning plus the loop, and the diagnostic-aware method;
-  - causal ablations that withhold parts of the diagnostic signal (full diagnostic, versus structure without identity, versus raw stderr), to isolate what about the diagnostic helps.
-- Evaluates on both the synthetic held-out column and the real-world column from REAL.
-- Closes a loop with the dataset: failures (especially on real errors) become new records.
+- Converts paired records into diagnostic repair examples and fine-tunes a local open Gemma model. For long real-project files, the training target is a deterministic localized source window plus a relative edit that round-trips to the complete corrected source; whole files are never silently truncated.
+- Compares Gemma Base, Mechanical-SFT, DirectEdit-SFT, FuzzLang-SFT, and optionally a full Breadth+RealSource SFT arm under matched training-token budgets.
+- Evaluates on held-out translation units, an unseen project, diagnostic-tail slices, and the NatErr column from REAL.
+- Reports verified fixes together with edit minimality, degenerate deletion rate, and behavior-preservation checks on a feasible subset.
+- Retains the generic compiler-feedback repair loop as an evaluation mechanism. The typed-diagnostic-versus-stderr comparison is an exploratory negative result, not the intellectual core.
 
-**Deliverables.** The repair results table (method versus baselines, two evaluation columns), the ablation result isolating the diagnostic's contribution, and a per-diagnostic-family analysis.
+**Deliverables.** A matched-token SFT table, before/after Gemma results on RealSource and NatErr, data-source ablations, per-diagnostic-family and per-project analyses, and quality checks beyond compile success.
 
 **Key decisions.**
-- The fairness protocol: all methods compared at matched budgets (the same token and attempt envelope), so improvements cannot be dismissed as "just more compute."
-- Which model or models to fine-tune given compute constraints. Model scale is supporting evidence, not the claim.
+- The fairness protocol matches training tokens, base checkpoint, LoRA recipe, and inference budget so improvements cannot be dismissed as "just more data or compute."
+- Gemma is the common open model family for local Injector synthesis, SFT, and evaluation. Model scale is supporting evidence, not the claim.
 
 **Open questions.** A compile-clean fix is not always a correct fix. On the subset with tests, how do we measure that repairs preserve behavior, and how prominently do we caveat this?
 
-**Dependencies.** Foundation (verifier and types). Consumes the dataset (from GEN) and the real column (from REAL). Shares synthesis machinery with GEN.
+**Dependencies.** Foundation (verifier and types). Consumes Breadth and RealSource from GEN and the NatErr column from REAL.
 
 ---
 
@@ -182,20 +186,29 @@ Every record, synthetic or real, conforms to one shape:
 - **corrected program:** the compiling version, present in every core record by construction. For generated records it is the correct origin the error was introduced into; for real records it is the fix commit;
 - **compiler diagnostic:** the exact diagnostic or diagnostics emitted, with identifier, message, and location;
 - **validated repair:** the edit transforming broken into corrected, verifier-confirmed;
-- **provenance:** the origin (which generation strategy, or which project and commit), and the split it belongs to.
+- **provenance:** the origin (including generation strategy and Injector ID, or project and commit), and the split it belongs to.
 
 Records are deduplicated structurally rather than textually, to keep trivial near-duplicates from inflating coverage, and partitioned by project and source so training and evaluation never share provenance.
 
 **Correct code is mandatory for the core dataset.** A record without a paired compiling version is not a FuzzLang record. If broken-only material is ever collected (for example, a real failure whose fix cannot be recovered), it is quarantined in a clearly labelled auxiliary split, never mixed into the core paired dataset and never counted as a paired training example.
 
+The release is reported in three non-overlapping conceptual tiers:
+
+- **FuzzLang-Breadth:** compiler-derived verified pairs optimized for diagnostic coverage; programs may be self-contained.
+- **FuzzLang-RealSource:** generated errors injected into correct, non-test source from real projects; realistic source does not make these naturally occurring errors.
+- **NatErr:** naturally occurring failures reconstructed from project history with their real fixes, reserved primarily for external-validity evaluation.
+
+Coverage, scale, provenance, and repair results are reported separately for the tiers so injected real-source errors are never conflated with historical natural failures.
+
 ## 6. How the pieces compose
 
 - The Coverage and Gen loop is the construction engine: measure gaps, generate to fill them, re-measure. Coverage is both the metric and the controller.
-- Real supplies the unbiased yardstick and the hardest data.
-- Repair is at once the consumer that proves the dataset's worth and a producer, since its loop generates and validates fix data. Its diagnostic-as-signal claim is the method's intellectual core.
+- Gen produces both FuzzLang-Breadth and FuzzLang-RealSource; the latter contains injected errors in non-test real-project code but is not called naturally occurring data.
+- Real supplies NatErr, the smaller unbiased external-validity yardstick.
+- Repair/SFT is the consumer that proves the dataset's value. The central downstream claim is fine-tuning gain under matched budgets, not typed diagnostics outperforming stderr.
 - Foundation is what lets all four agree on what a diagnostic is, what a compile result is, and what a record is.
 
-Two evaluation columns keep the story honest: synthetic (held-out projects, strict isolation) and real (mined errors). A method that wins on both cannot be explained away by how we made the data.
+Two evaluation columns keep the story honest: injected RealSource errors from held-out projects under strict isolation, and naturally occurring NatErr failures. Improvement on both is harder to explain as an artifact of how the training data was generated.
 
 ## 7. Roadmap and phasing
 
@@ -205,24 +218,27 @@ Phased toward the CGO submission in September 2026, ordered by what each phase d
 | --- | --- | --- | --- |
 | **P0. Foundation** | Consolidate into one clean codebase: catalog, verifier, record format, config and tests | The substrate; reproducible builds | Core |
 | **P1. Coverage engine** | Define the diagnostic space; measure current coverage; stand up the gap list | First real coverage number | Core (headline) |
-| **P2. Guided Gen** | Target uncovered diagnostics via mutation and compiler-evidence-guided synthesis; drive coverage up | High-coverage dataset | Core (headline) |
+| **P2. Injector Gen** | Distill compiler evidence into reusable FuzzLang DSL Injectors; compare against direct editing; drive coverage up on real-project source | High-coverage Breadth and RealSource datasets + Injector artifact | Core (headline) |
 | **P3. Dataset release** | Validation, dedup, splits, provenance, public release | The artifact | Core |
-| **P4. Repair core** | Repair loop plus the key comparison (diagnostic-aware versus stderr baseline); fine-tune | Main repair result | Core (lean) |
-| **P5. Real-world eval** | Mine one or more projects; evaluate both columns; fold failures back | Generalization result | Core (lean) |
-| **P6. Ablations and scale** | Causal signal ablations, larger models, behavior-preservation check | Appendix strength | Optional |
+| **P4. Gemma SFT** | Train matched-token Gemma arms on mechanical, direct-edit, and FuzzLang data | Main dataset-value result | Core |
+| **P5. Natural-error eval** | Formalize NatErr from two or three projects and evaluate the frozen SFT arms | External-validity result | Core (lean) |
+| **P6. Ablations and scale** | Compiler-evidence ablations, model scale, continual learning, wider behavior-preservation checks | Appendix strength | Optional |
 
-For the September submission, P0 through P5 form the core of the paper: a measured, high-coverage, released dataset, the headline repair comparison, and a real-world evaluation on at least one project. The wider baseline ladder, causal ablations, and model-scale study in P6 add strength but are not required.
+For the September submission, P0 through P5 form the core of the paper: measured high-coverage datasets, a reusable Injector artifact with a direct-edit comparison, a matched-token Gemma SFT result, and a smaller natural-error evaluation. Wider evidence ablations, continual learning, and model-scale studies in P6 add strength but are not required.
 
-Coverage (P1 and P2) carries the most value and the most uncertainty, since the headline number lives there, so it starts first and gets the most room. P4 needs P2's dataset before it can begin. P5's harvesting is slow and operational, so it can run early and alongside the other work, since it does not wait on the dataset.
+Coverage and Injector generation (P1/P2) carry the main novelty, but P4 starts in parallel with a small SFT smoke so that FuzzLang DSL engineering cannot block the downstream evidence. P5 harvesting is slow and operational, so it runs early but has a bounded 100--300-record goal.
 
 ## 8. Risks and open questions
 
 - **Coverage denominator definition.** The headline percentage is only as credible as the definition of "the diagnostic space." It must be principled and stated first.
 - **Guided-generation context availability.** Not every diagnostic has a clean introducing commit or regression test; we need fallbacks and should report how often guidance was available.
+- **FuzzLang DSL scope.** A general AST/type transformation language would consume the schedule. Version 0 stays narrow, has a Week-2 gate, and falls back to recipe-v2 plus direct Gemma editing.
+- **Gemma training risk.** Local high-throughput inference is working, but multi-GPU LoRA training is not yet validated. The SFT smoke runs in parallel and falls back to a smaller Gemma-family checkpoint if necessary.
+- **RealSource sequence length.** Whole real-project translation units often exceed the training context window. The implemented localized relative-edit representation round-trips exactly and currently fits all 2,318 records under 4,096 Gemma tokens; this guarantee must be rechecked for every future release, and silent truncation remains invalid.
 - **Real-build reproduction cost.** Reconstructing historical failing builds is operationally heavy; per-project yield must be reported honestly.
 - **Compile-clean is not correct.** Verified-fix is the primary metric, but behavior preservation needs a caveat and a tests-based spot check.
 ## 9. Where input is most wanted
 
 1. The **scope of the diagnostic space** we claim coverage over. The raw count is mechanically derived from the compiler's diagnostic-definition files; what needs agreement is the subset we report against (see §4, Coverage).
-2. The **multiplicity target:** how many distinct examples per diagnostic count as "covered enough."
-3. The **project list** for real-world mining (a candidate set is proposed in §4, Real): which to include, and how to split them between training-fold and evaluation-only.
+2. The **project list** for RealSource transfer: which buildable C++ and C projects can provide stable compile databases and enough non-test translation units.
+3. The **Gemma SFT configuration and matched-token arms** after the 32/128-example smoke establishes a stable local training path.

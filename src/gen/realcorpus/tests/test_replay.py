@@ -3,6 +3,11 @@ from __future__ import annotations
 from foundation.record import Origin
 from foundation.types import DiagInfo, VerifierResult
 from foundation.verifier.mock import MockVerifier, ok_result
+from gen.fuzzlang_dsl import (
+    FUZZLANG_DSL_SCHEMA,
+    FUZZLANG_DSL_VERSION,
+    FuzzLangInjector,
+)
 from gen.realcorpus.recipes import extract_recipe
 from gen.realcorpus.replay import (
     revalidate_replay_record,
@@ -72,6 +77,37 @@ def test_replay_source_verifies_and_emits_canonical_record():
     assert rec.provenance.detail["generation_label"] == "exact_target"
     assert rec.provenance.detail["recipe_id"] == _recipe().recipe_id
     assert rec.primary_diagnostic.file == "llvm/lib/New.cpp"
+
+
+def test_replay_source_accepts_fuzzlang_injector_with_typed_provenance():
+    source = "int g() { return value; }"
+    injector = FuzzLangInjector.from_recipe(_recipe())
+    verifier = MockVerifier(
+        lambda src, cmd, logical: (
+            ok_result() if src == source else
+            _error("err_typecheck_invalid_lvalue_addrof")
+        )
+    )
+
+    outcome = replay_source(
+        source,
+        path="llvm/lib/New.cpp",
+        compile_cmd=["__CLANG__", "__SRC__"],
+        language="c++",
+        recipes=[],
+        injectors=[injector],
+        verifier=verifier,
+        project="llvm",
+    )
+
+    assert outcome.status == "accepted"
+    record = outcome.records[0]
+    assert record.provenance.detail["strategy"] == "fuzzlang_dsl_replay"
+    assert record.provenance.detail["injector_id"] == injector.injector_id
+    assert record.provenance.detail["injector_schema"] == FUZZLANG_DSL_SCHEMA
+    assert record.provenance.detail["injector_schema_version"] == FUZZLANG_DSL_VERSION
+    assert record.provenance.detail["recipe_id"] == _recipe().recipe_id
+    assert record.erroneous_src == "int g() { return &value; }"
 
 
 def test_replay_source_keeps_verified_near_miss_with_label():

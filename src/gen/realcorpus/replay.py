@@ -8,6 +8,7 @@ from typing import Iterable, Optional
 
 from foundation.record import Origin, Provenance, Record, Split
 from foundation.verifier.base import BaseVerifier
+from gen.fuzzlang_dsl import FuzzLangInjector, apply_injector
 from gen.realcorpus.collect import count_errors
 from gen.realcorpus.corpus import is_test_path
 from gen.realcorpus.finalize import portable_source_path
@@ -142,6 +143,7 @@ def replay_source(
     compile_cmd: list[str],
     language: str,
     recipes: Iterable[Optional[LearnedRecipe]],
+    injectors: Iterable[Optional[FuzzLangInjector]] = (),
     verifier: BaseVerifier,
     project: str,
     excluded_sources: set[str] | frozenset[str] = frozenset(),
@@ -169,15 +171,54 @@ def replay_source(
     candidates_verified = 0
     tokens = lex_tokens(source)
     token_index = build_token_index(tokens)
-    for recipe in recipes:
-        if recipe is None or not recipe.portable or recipe.language != language:
-            continue
-        applications = apply_recipe(
-            source, recipe, max_candidates=max_candidates_per_recipe,
-            tokens=tokens, token_index=token_index,
-        )
+    modifiers: list[tuple[LearnedRecipe | FuzzLangInjector, bool]] = [
+        (recipe, False) for recipe in recipes if recipe is not None
+    ]
+    modifiers.extend(
+        (injector, True) for injector in injectors if injector is not None
+    )
+    for modifier, is_injector in modifiers:
+        if is_injector:
+            injector = modifier
+            if not isinstance(injector, FuzzLangInjector):
+                continue
+            if not injector.portable or injector.language != language:
+                continue
+            applications = apply_injector(
+                source, injector,
+                max_candidates=max_candidates_per_recipe,
+                tokens=tokens, token_index=token_index,
+            )
+            target_diag = injector.target_diag
+            modifier_id = injector.injector_id
+            support = injector.support
+            operation = injector.operation
+            exemplars = injector.exemplar_ids
+            source_recipe_id = injector.source_recipe_id or injector.injector_id
+            strategy = "fuzzlang_dsl_replay"
+            verification_limit = min(
+                max_verifications, injector.limits.max_verifications
+            )
+        else:
+            recipe = modifier
+            if not isinstance(recipe, LearnedRecipe):
+                continue
+            if not recipe.portable or recipe.language != language:
+                continue
+            applications = apply_recipe(
+                source, recipe, max_candidates=max_candidates_per_recipe,
+                tokens=tokens, token_index=token_index,
+            )
+            target_diag = recipe.diag_name
+            modifier_id = recipe.recipe_id
+            support = recipe.support
+            operation = recipe.operation
+            exemplars = recipe.exemplar_ids
+            source_recipe_id = recipe.recipe_id
+            strategy = "learned_recipe_replay"
+            verification_limit = max_verifications
         for application in applications:
-            if candidates_verified >= max_verifications:
+            if candidates_verified >= verification_limit:
                 return ReplayOutcome(
                     "accepted" if records else "verification_cap",
                     tuple(records), candidates_verified,
@@ -189,7 +230,7 @@ def replay_source(
             if result.ok or result.diag is None or not result.diag.diag_name:
                 continue
             diag = replace(result.diag, file=logical_path)
-            target_match = diag.diag_name == recipe.diag_name
+            target_match = diag.diag_name == target_diag
             if exact_only and not target_match:
                 continue
             # One instance per actual diagnostic per TU prevents a generic
@@ -200,7 +241,7 @@ def replay_source(
             cascade_size = max(1, count_errors(result.raw_stderr))
             record = Record(
                 record_id=_record_id(
-                    project, logical_path, recipe.recipe_id, application.src
+                    project, logical_path, modifier_id, application.src
                 ),
                 erroneous_src=application.src,
                 corrected_src=source,
@@ -209,12 +250,12 @@ def replay_source(
                     origin=Origin.MUTATE,
                     source=source_key,
                     detail={
-                        "strategy": "learned_recipe_replay",
-                        "recipe_id": recipe.recipe_id,
-                        "recipe_support": recipe.support,
-                        "recipe_operation": recipe.operation,
-                        "recipe_exemplars": list(recipe.exemplar_ids[:5]),
-                        "target_diag": recipe.diag_name,
+                        "strategy": strategy,
+                        "recipe_id": source_recipe_id,
+                        "recipe_support": support,
+                        "recipe_operation": operation,
+                        "recipe_exemplars": list(exemplars[:5]),
+                        "target_diag": target_diag,
                         "primary_matches_target": target_match,
                         "generation_label": (
                             "exact_target" if target_match else "near_miss"
@@ -227,6 +268,11 @@ def replay_source(
                             "end": application.end,
                             "replacement": application.replacement,
                         },
+                        **({
+                            "injector_id": injector.injector_id,
+                            "injector_schema": injector.schema,
+                            "injector_schema_version": injector.schema_version,
+                        } if is_injector else {}),
                     },
                 ),
                 split=Split.EVAL,
