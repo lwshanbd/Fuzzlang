@@ -64,8 +64,8 @@ def test_recipe_conversion_is_lossless_and_versioned():
     )
 
     assert injector.schema == FUZZLANG_DSL_SCHEMA
-    assert injector.schema_version == FUZZLANG_DSL_VERSION == 0
-    assert injector.injector_id.startswith("fuzzlang-v0-")
+    assert injector.schema_version == FUZZLANG_DSL_VERSION == 1
+    assert injector.injector_id.startswith("fuzzlang-v1-")
     assert injector.target_diag == recipe.diag_name
     assert injector.target_diag_id == 17
     assert injector.to_recipe() == recipe
@@ -176,6 +176,71 @@ def test_replay_delegates_identifier_binding_to_existing_recipe_matcher():
     assert mismatched == []
 
 
+def test_v1_fresh_identifier_round_trip_and_replay():
+    recipe = extract_recipe(
+        _record(
+            "int f(){ return value; }",
+            "int f(){ int temporary = 0; return temporary + value; }",
+        ),
+        allow_fresh_identifiers=True,
+    )
+    assert recipe is not None and recipe.portable
+
+    injector = FuzzLangInjector.from_recipe(recipe)
+    restored = FuzzLangInjector.from_json(injector.to_json())
+    applications = apply_injector(
+        "int g(){ return item; }", restored,
+    )
+
+    assert restored.schema_version == 1
+    assert restored.injector_id.startswith("fuzzlang-v1-")
+    assert [application.src for application in applications] == [
+        "int g(){ int fuzzlang_tmp = 0; return fuzzlang_tmp + item; }"
+    ]
+
+
+def test_parser_retains_backward_compatible_v0_injectors():
+    current = FuzzLangInjector.from_recipe(_binding_recipe())
+    legacy = FuzzLangInjector(
+        target_diag=current.target_diag,
+        target_diag_id=current.target_diag_id,
+        language=current.language,
+        operation=current.operation,
+        old_patterns=current.old_patterns,
+        new_text=current.new_text,
+        left_context=current.left_context,
+        right_context=current.right_context,
+        portable=current.portable,
+        replacement_parts=current.replacement_parts,
+        limits=current.limits,
+        support=current.support,
+        exemplar_ids=current.exemplar_ids,
+        source_recipe_id=current.source_recipe_id,
+        schema_version=0,
+    )
+
+    restored = FuzzLangInjector.from_json(legacy.to_json())
+
+    assert restored == legacy
+    assert restored.injector_id.startswith("fuzzlang-v0-")
+
+
+def test_v0_parser_rejects_v1_fresh_identifier_semantics():
+    recipe = extract_recipe(
+        _record(
+            "int f(){ return value; }",
+            "int f(){ int temporary = 0; return temporary + value; }",
+        ),
+        allow_fresh_identifiers=True,
+    )
+    payload = FuzzLangInjector.from_recipe(recipe).to_dict()
+    payload["schema_version"] = 0
+    payload.pop("injector_id")
+
+    with pytest.raises(ValueError, match="replacement part"):
+        FuzzLangInjector.from_dict(payload)
+
+
 def test_replay_enforces_injector_candidate_and_edit_limits():
     injector = FuzzLangInjector.from_recipe(
         extract_recipe(_record("return x;", "return &x;"), context_tokens=1),
@@ -199,7 +264,8 @@ def test_replay_enforces_injector_candidate_and_edit_limits():
 @pytest.mark.parametrize(
     ("field", "value"),
     [
-        ("schema_version", 1),
+        ("schema_version", 2),
+        ("schema_version", True),
         ("language", "python"),
         ("operation", "rename"),
     ],

@@ -170,32 +170,97 @@ def build_token_index(tokens: Iterable[LexToken]) -> dict[str, tuple[int, ...]]:
 
 
 def _replacement_template(
-    text: str, identifier_labels: dict[str, str],
+    text: str,
+    identifier_labels: dict[str, str],
+    *,
+    allow_fresh_identifiers: bool = False,
+    allow_literal_payloads: bool = False,
 ) -> tuple[tuple[tuple[str, str], ...], bool]:
     if not text:
         return (), True
     mask = code_mask(text)
     # Comments and string/character literals deliberately do not become fixed
     # replay payloads.  Whitespace in them is harmless; any other masked byte is not.
-    if any(not keep and not char.isspace() for char, keep in zip(text, mask)):
+    if (not allow_literal_payloads and any(
+        not keep and not char.isspace() for char, keep in zip(text, mask)
+    )):
         return (("literal", text),), False
     parts: list[tuple[str, str]] = []
+    fresh_labels: dict[str, str] = {}
     cursor = 0
     for token in lex_tokens(text):
         if token.kind != "id":
             continue
         label = identifier_labels.get(token.text)
         if label is None:
-            return (("literal", text),), False
+            if not allow_fresh_identifiers:
+                return (("literal", text),), False
+            label = fresh_labels.setdefault(
+                token.text, f"FRESH{len(fresh_labels)}"
+            )
+            kind = "fresh"
+        else:
+            kind = "binding"
         if token.start > cursor:
             parts.append(("literal", text[cursor:token.start]))
-        parts.append(("binding", label))
+        parts.append((kind, label))
         cursor = token.end
     if cursor < len(text):
         parts.append(("literal", text[cursor:]))
     if not parts:
         parts.append(("literal", text))
     return tuple(parts), True
+
+
+def _normalize_edit_to_token_span(
+    corrected: str,
+    erroneous: str,
+    tokens: list[LexToken],
+    start: int,
+    old_text: str,
+    new_text: str,
+) -> tuple[int, str, str]:
+    """Expand an intra-token character edit to one complete token span.
+
+    The expansion is accepted only when the reconstructed erroneous source is
+    byte-identical to the original pair.  Edits that begin or end in
+    whitespace between tokens remain unchanged because the token replay engine
+    cannot represent those boundaries faithfully.
+    """
+
+    end = start + len(old_text)
+    if old_text:
+        edited = [
+            token for token in tokens
+            if token.end > start and token.start < end
+        ]
+        if not edited:
+            return start, old_text, new_text
+        expanded_start = edited[0].start
+        expanded_end = edited[-1].end
+        if expanded_start > start or expanded_end < end:
+            return start, old_text, new_text
+    else:
+        enclosing = next(
+            (token for token in tokens if token.start < start < token.end),
+            None,
+        )
+        if enclosing is None:
+            return start, old_text, new_text
+        expanded_start, expanded_end = enclosing.start, enclosing.end
+
+    expanded_old = corrected[expanded_start:expanded_end]
+    expanded_new = (
+        corrected[expanded_start:start]
+        + new_text
+        + corrected[end:expanded_end]
+    )
+    rebuilt = (
+        corrected[:expanded_start] + expanded_new + corrected[expanded_end:]
+    )
+    if rebuilt != erroneous:
+        return start, old_text, new_text
+    return expanded_start, expanded_old, expanded_new
 
 
 def _edit_is_token_aligned(
@@ -235,7 +300,13 @@ def _bind_identifier_patterns(
 
 
 def extract_recipe(
-    record: Record, *, context_tokens: int = 2, max_edit_chars: int = 256,
+    record: Record,
+    *,
+    context_tokens: int = 2,
+    max_edit_chars: int = 256,
+    allow_fresh_identifiers: bool = False,
+    allow_literal_payloads: bool = False,
+    normalize_token_edits: bool = False,
 ) -> Optional[LearnedRecipe]:
     """Extract one lexical recipe from a verified paired Record."""
     if record.corrected_src is None or record.primary_diagnostic is None:
@@ -250,6 +321,16 @@ def extract_recipe(
         return None
     tokens = lex_tokens(record.corrected_src)
     aligned, edited_tokens = _edit_is_token_aligned(tokens, start, old_text)
+    if normalize_token_edits and not aligned:
+        start, old_text, new_text = _normalize_edit_to_token_span(
+            record.corrected_src,
+            record.erroneous_src,
+            tokens,
+            start,
+            old_text,
+            new_text,
+        )
+        aligned, edited_tokens = _edit_is_token_aligned(tokens, start, old_text)
     end = start + len(old_text)
     left_tokens = tuple(
         [token for token in tokens if token.end <= start][-context_tokens:]
@@ -261,7 +342,10 @@ def extract_recipe(
         _bind_identifier_patterns(left_tokens, edited_tokens, right_tokens)
     )
     replacement_parts, replacement_portable = _replacement_template(
-        new_text, identifier_labels
+        new_text,
+        identifier_labels,
+        allow_fresh_identifiers=allow_fresh_identifiers,
+        allow_literal_payloads=allow_literal_payloads,
     )
     portable = bool(
         aligned and (left_context or right_context or old_patterns)
@@ -292,14 +376,24 @@ def extract_recipe(
 
 
 def extract_recipes(
-    records: Iterable[Record], *, context_tokens: int = 2,
+    records: Iterable[Record],
+    *,
+    context_tokens: int = 2,
     max_edit_chars: int = 256,
+    allow_fresh_identifiers: bool = False,
+    allow_literal_payloads: bool = False,
+    normalize_token_edits: bool = False,
 ) -> list[LearnedRecipe]:
     """Extract and aggregate identical diagnostic-specific lexical recipes."""
     grouped: dict[tuple, LearnedRecipe] = {}
     for record in records:
         recipe = extract_recipe(
-            record, context_tokens=context_tokens, max_edit_chars=max_edit_chars
+            record,
+            context_tokens=context_tokens,
+            max_edit_chars=max_edit_chars,
+            allow_fresh_identifiers=allow_fresh_identifiers,
+            allow_literal_payloads=allow_literal_payloads,
+            normalize_token_edits=normalize_token_edits,
         )
         if recipe is None:
             continue
@@ -359,15 +453,32 @@ def _is_placeholder(pattern: str) -> bool:
 
 
 def _render_replacement(
-    recipe: LearnedRecipe, bindings: dict[str, str],
+    recipe: LearnedRecipe,
+    bindings: dict[str, str],
+    used_identifiers: set[str],
 ) -> Optional[str]:
     parts = recipe.replacement_parts or (("literal", recipe.new_text),)
     rendered: list[str] = []
+    fresh: dict[str, str] = {}
+
+    def fresh_identifier(label: str) -> str:
+        if label in fresh:
+            return fresh[label]
+        suffix = 0
+        while True:
+            candidate = "fuzzlang_tmp" if suffix == 0 else f"fuzzlang_tmp_{suffix}"
+            if candidate not in used_identifiers and candidate not in fresh.values():
+                fresh[label] = candidate
+                return candidate
+            suffix += 1
+
     for kind, value in parts:
         if kind == "literal":
             rendered.append(value)
         elif kind == "binding" and value in bindings:
             rendered.append(bindings[value])
+        elif kind == "fresh" and re.fullmatch(r"FRESH\d+", value):
+            rendered.append(fresh_identifier(value))
         else:
             return None
     return "".join(rendered)
@@ -405,6 +516,7 @@ def apply_recipe(
         return []
     tokens = tokens if tokens is not None else lex_tokens(source)
     token_index = token_index if token_index is not None else build_token_index(tokens)
+    used_identifiers = {token.text for token in tokens if token.kind == "id"}
     candidates = _candidate_edit_indices(tokens, recipe, token_index)
     applications: list[RecipeApplication] = []
     seen_spans: set[tuple[int, int]] = set()
@@ -418,7 +530,7 @@ def apply_recipe(
             )
             if bindings is None:
                 continue
-            replacement = _render_replacement(recipe, bindings)
+            replacement = _render_replacement(recipe, bindings, used_identifiers)
             if replacement is None:
                 continue
             if i < len(tokens):
@@ -454,7 +566,7 @@ def apply_recipe(
         )
         if bindings is None:
             continue
-        replacement = _render_replacement(recipe, bindings)
+        replacement = _render_replacement(recipe, bindings, used_identifiers)
         if replacement is None:
             continue
         start, end = tokens[i].start, tokens[i + width - 1].end

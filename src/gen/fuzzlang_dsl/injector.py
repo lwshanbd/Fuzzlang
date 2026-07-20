@@ -1,8 +1,9 @@
-"""Versioned FuzzLang DSL v0 schema and compatibility adapter.
+"""Versioned FuzzLang DSL schema and compatibility adapter.
 
-Version 0 intentionally only formalizes the lexical transformations already
-implemented by :mod:`gen.realcorpus.recipes`.  It does not evaluate generated
-code or implement an AST, type, or symbol-table transformation language.
+Version 1 adds deterministic payload-local fresh identifiers while retaining
+the deliberately narrow lexical transformation model from version 0.  It does
+not evaluate generated code or implement an AST, type, or symbol-table
+transformation language.
 """
 from __future__ import annotations
 
@@ -21,12 +22,17 @@ from gen.realcorpus.recipes import (
 
 
 FUZZLANG_DSL_SCHEMA = "fuzzlang.injector"
-FUZZLANG_DSL_VERSION = 0
+FUZZLANG_DSL_VERSION = 1
+_SUPPORTED_VERSIONS = frozenset({0, 1})
 
 _OPERATIONS = frozenset({"insert", "delete", "replace"})
 _LANGUAGES = frozenset({"c", "c++"})
-_PART_KINDS = frozenset({"literal", "binding"})
+_PART_KINDS_BY_VERSION = {
+    0: frozenset({"literal", "binding"}),
+    1: frozenset({"literal", "binding", "fresh"}),
+}
 _BINDING_RE = re.compile(r"ID\d+")
+_FRESH_RE = re.compile(r"FRESH\d+")
 _BOUND_PATTERN_RE = re.compile(r"<(ID\d+)>")
 
 
@@ -73,7 +79,7 @@ class ReplayLimits:
 
 @dataclass(frozen=True)
 class FuzzLangInjector:
-    """One diagnostic-specific FuzzLang DSL v0 transformation.
+    """One diagnostic-specific FuzzLang DSL transformation.
 
     ``injector_id`` hashes transformation semantics and the edit safety bound.
     Evidence metadata and per-run replay budgets are intentionally excluded,
@@ -97,7 +103,7 @@ class FuzzLangInjector:
     exemplar_ids: tuple[str, ...] = ()
     source_recipe_id: Optional[str] = None
     schema: str = field(default=FUZZLANG_DSL_SCHEMA, init=False)
-    schema_version: int = field(default=FUZZLANG_DSL_VERSION, init=False)
+    schema_version: int = FUZZLANG_DSL_VERSION
     injector_id: str = field(init=False)
 
     def __post_init__(self) -> None:
@@ -114,11 +120,21 @@ class FuzzLangInjector:
         digest = hashlib.sha256(
             _canonical_json(self._identity_dict()).encode("utf-8")
         ).hexdigest()
-        object.__setattr__(self, "injector_id", f"fuzzlang-v0-{digest[:16]}")
+        object.__setattr__(
+            self,
+            "injector_id",
+            f"fuzzlang-v{self.schema_version}-{digest[:16]}",
+        )
 
     def _validate(self) -> None:
         if not isinstance(self.target_diag, str) or not self.target_diag:
             raise ValueError("target_diag must be a non-empty string")
+        if (isinstance(self.schema_version, bool)
+                or not isinstance(self.schema_version, int)
+                or self.schema_version not in _SUPPORTED_VERSIONS):
+            raise ValueError(
+                f"unsupported FuzzLang DSL version: {self.schema_version!r}"
+            )
         if self.target_diag_id is not None and (
             isinstance(self.target_diag_id, bool)
             or not isinstance(self.target_diag_id, int)
@@ -169,7 +185,8 @@ class FuzzLangInjector:
             if len(part) != 2:
                 raise ValueError("replacement parts must be (kind, value) pairs")
             kind, value = part
-            if kind not in _PART_KINDS or not isinstance(value, str):
+            if (kind not in _PART_KINDS_BY_VERSION[self.schema_version]
+                    or not isinstance(value, str)):
                 raise ValueError(f"invalid replacement part: {part!r}")
             if kind == "binding":
                 if not _BINDING_RE.fullmatch(value):
@@ -178,6 +195,8 @@ class FuzzLangInjector:
                     raise ValueError(
                         f"replacement binding {value} is absent from match patterns"
                     )
+            elif kind == "fresh" and not _FRESH_RE.fullmatch(value):
+                raise ValueError(f"invalid fresh identifier label {value!r}")
         if self.operation == "delete" and any(
             kind != "literal" or value for kind, value in self.replacement_parts
         ):
@@ -235,9 +254,12 @@ class FuzzLangInjector:
     def from_dict(cls, value: Mapping[str, Any]) -> "FuzzLangInjector":
         if value.get("schema") != FUZZLANG_DSL_SCHEMA:
             raise ValueError(f"unsupported FuzzLang DSL schema: {value.get('schema')!r}")
-        if value.get("schema_version") != FUZZLANG_DSL_VERSION:
+        schema_version = value.get("schema_version")
+        if (isinstance(schema_version, bool)
+                or not isinstance(schema_version, int)
+                or schema_version not in _SUPPORTED_VERSIONS):
             raise ValueError(
-                f"unsupported FuzzLang DSL version: {value.get('schema_version')!r}"
+                f"unsupported FuzzLang DSL version: {schema_version!r}"
             )
         try:
             target = value["target"]
@@ -266,6 +288,7 @@ class FuzzLangInjector:
                 support=provenance.get("support", 1),
                 exemplar_ids=tuple(provenance.get("exemplar_ids", ())),
                 source_recipe_id=provenance.get("source_recipe_id"),
+                schema_version=schema_version,
             )
         except (KeyError, TypeError) as error:
             raise ValueError(f"invalid FuzzLang DSL object: {error}") from error
@@ -363,7 +386,7 @@ def apply_injector(
     tokens: Optional[list[LexToken]] = None,
     token_index: Optional[dict[str, tuple[int, ...]]] = None,
 ) -> list[RecipeApplication]:
-    """Replay v0 through the existing bounded lexical recipe implementation."""
+    """Replay a supported DSL version through the bounded lexical matcher."""
     if not isinstance(injector, FuzzLangInjector):
         raise TypeError("injector must be a FuzzLangInjector")
     requested = injector.limits.max_candidates

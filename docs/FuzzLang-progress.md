@@ -1,7 +1,7 @@
 # FuzzLang: Progress
 
 Status against `FuzzLang-Proposal.md` and the executable plan in `plan.md`.
-LLVM is pinned to `llvmorg-22.1.8`; the current test suite has 308 passing and
+LLVM is pinned to `llvmorg-22.1.8`; the current test suite has 317 passing and
 5 environment-dependent skips. Detailed generation history is in
 `data/gen/README.md`.
 
@@ -97,9 +97,10 @@ excluded or isolated before NatErr becomes a valid held-out evaluation set.
   translation units with source/test filtering and formal release gates.
 - **Reusable recipe prototype:** extraction of minimal diagnostic-specific
   transformations from verified pairs and replay on unseen real LLVM source.
-- **FuzzLang DSL v0:** versioned narrow Injector schema, canonical serialization
-  and hashing, stable Injector IDs, replay limits, recipe compatibility, and
-  safe execution through the existing lexical matcher.
+- **FuzzLang DSL v0/v1:** versioned narrow Injector schemas, canonical
+  serialization and hashing, stable Injector IDs, replay limits, backward v0
+  compatibility, deterministic fresh identifiers, safe token-boundary
+  normalization, and execution through the bounded lexical matcher.
 - **Tier audit:** streaming Breadth/RealSource/NatErr checks for pairing,
   diagnostics, sources, overlap, schema, and test/test-support paths.
 - **Repair harness:** zero-shot, stderr-loop, typed-diagnostic loop, SFT method
@@ -132,6 +133,13 @@ The recipe system is the working precursor to FuzzLang DSL.
 - Every retained record was recompiled on both sides; none uses a test source.
 - All **594/594** current portable recipes convert to FuzzLang DSL v0 and
   round-trip without semantic loss.
+- FuzzLang DSL v1 optionally templates payload-local identifiers with
+  collision-free fresh names and normalizes byte-exact intra-token edits. This
+  increases the portable set from **594/306 diagnostics** to **1,239/598**.
+  Of the 645 additional recipes, 617 use fresh identifiers and 28 come from
+  token normalization. A more permissive literal-payload experiment reaches
+  1,321/652, but remains opt-in and is not promoted to the main method without
+  transfer evidence.
 - The replay CLI now executes either legacy recipes or FuzzLang DSL Injectors,
   exports canonical Injector JSONL, and stores Injector identity and schema in
   every generated record and manifest.
@@ -147,6 +155,15 @@ The recipe system is the working precursor to FuzzLang DSL.
   records. Together these LLVM experiments raise multiplicity-at-three from
   208 to 215 but add no new coverage@1 diagnostic, as expected for Injectors
   distilled from already observed diagnostics.
+- In a matched exact-target comparison on the same 120 held-out LLVM candidate
+  TUs and identical compiler budgets, the 594-recipe arm needed 91 TUs and 436
+  mutant compilations to reach 100 diagnostics; formal revalidation retained
+  99 after removing one structural duplicate. The 1,239-recipe v1 arm reached
+  100 diagnostics after 64 TUs and 393 mutant compilations, and formal
+  revalidation retained **100/100**. Fifty retained records use a fresh-name
+  Injector, and **44 diagnostics are outside the original 306-diagnostic
+  portable space**. Both arms contain zero test sources and zero source overlap
+  with the preceding 2,418 records.
 
 These runs validate the DSL execution and release path and pass the LLVM-side
 Week-2 thresholds for exact-target share and distinct exact-target diagnostics.
@@ -234,15 +251,17 @@ value.
 - fall back to a smaller Gemma-family checkpoint if the 31B training path
   misses the Week-2 gate.
 
-### C. FuzzLang DSL v0
+### C. FuzzLang DSL v1 Transfer
 
 - integrate the completed schema with generation manifests and Record
   provenance (completed for the replay path);
-- preserve the already verified 594/594 recipe conversion and safety limits;
-- preserve the formally revalidated 100-record held-out LLVM evidence and
-  replay on at least one non-LLVM C++ project;
+- preserve v0 compatibility and the verified v1 expansion to 1,239 portable
+  recipes / 598 diagnostics;
+- preserve the matched formally revalidated LLVM evidence and replay the same
+  v0/v1 arms on at least one non-LLVM C++ project;
 - connect local Gemma to Injector synthesis/repair;
-- freeze v0 and use a recipe+direct-edit hybrid if the Week-2 gate fails.
+- freeze v1 and use a recipe+direct-edit hybrid if cross-project transfer
+  fails.
 
 ## Targets and Schedule Guardrails
 

@@ -120,7 +120,7 @@ Every generated candidate is verifier-checked: it enters the dataset only if the
 
 **Key decisions.**
 - **Every record starts from correct code** and carries both versions. This is FuzzLang's defining constraint, not a tunable. Broken-only material is out of the core dataset (see §5).
-- FuzzLang DSL v0 is intentionally limited to token/context matching, identifier bindings, and bounded local edits. General AST/type/scope transformation is not a prerequisite for the paper.
+- FuzzLang DSL remains limited to token/context matching, identifier bindings, deterministic payload-local fresh names, byte-exact token-boundary normalization, and bounded local edits. General AST/type/scope transformation is not a prerequisite for the paper, and permissive literal payloads remain experimental until transfer is established.
 - The final reproducible generation and repair pipeline uses a local open Gemma model rather than a paid API.
 
 **Open questions.** Mapping a diagnostic identifier to useful emission sites and regression evidence is non-trivial, and the evidence may not exist for every diagnostic. How many diagnostics transfer through a narrow reusable Injector, when should the hybrid path fall back to a direct edit, and how do we keep introduced errors realistic rather than degenerate?
@@ -232,7 +232,7 @@ Coverage and Injector generation (P1/P2) carry the main novelty, but P4 starts i
 
 - **Coverage denominator definition.** The headline percentage is only as credible as the definition of "the diagnostic space." It must be principled and stated first.
 - **Guided-generation context availability.** Not every diagnostic has a clean introducing commit or regression test; we need fallbacks and should report how often guidance was available.
-- **FuzzLang DSL scope.** A general AST/type transformation language would consume the schedule. Version 0 stays narrow, has a Week-2 gate, and falls back to recipe-v2 plus direct Gemma editing.
+- **FuzzLang DSL scope.** A general AST/type transformation language would consume the schedule. Version 1 remains a single-site lexical language, adds only fresh local names and safe token normalization, and falls back to recipe plus direct Gemma editing if cross-project transfer fails.
 - **Gemma training risk.** Local high-throughput inference is working, but multi-GPU LoRA training is not yet validated. The SFT smoke runs in parallel and falls back to a smaller Gemma-family checkpoint if necessary.
 - **RealSource sequence length.** Whole real-project translation units often exceed the training context window. The implemented localized relative-edit representation round-trips exactly and currently fits all 2,318 records under 4,096 Gemma tokens; this guarantee must be rechecked for every future release, and silent truncation remains invalid.
 - **Real-build reproduction cost.** Reconstructing historical failing builds is operationally heavy; per-project yield must be reported honestly.

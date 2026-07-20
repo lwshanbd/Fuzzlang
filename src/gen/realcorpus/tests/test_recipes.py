@@ -91,6 +91,84 @@ def test_fixed_user_identifier_in_new_text_is_not_portable():
     assert recipe.portable is False
 
 
+def test_opt_in_fresh_identifiers_make_payload_local_names_portable():
+    rec = _record(
+        "a",
+        "int f(){ return value; }",
+        "int f(){ int temporary = 0; return temporary + value; }",
+        diag="err_x",
+    )
+
+    recipe = extract_recipe(
+        rec, context_tokens=2, allow_fresh_identifiers=True,
+    )
+
+    assert recipe is not None and recipe.portable
+    fresh_parts = [part for part in recipe.replacement_parts if part[0] == "fresh"]
+    assert fresh_parts == [("fresh", "FRESH0"), ("fresh", "FRESH0")]
+    applications = apply_recipe(
+        "int g(){ return item; }", recipe,
+    )
+    assert [app.src for app in applications] == [
+        "int g(){ int fuzzlang_tmp = 0; return fuzzlang_tmp + item; }"
+    ]
+
+
+def test_fresh_identifier_avoids_existing_source_names():
+    rec = _record(
+        "a",
+        "int f(){ return value; }",
+        "int f(){ int temporary = 0; return temporary + value; }",
+        diag="err_x",
+    )
+    recipe = extract_recipe(rec, allow_fresh_identifiers=True)
+
+    applications = apply_recipe(
+        "int fuzzlang_tmp; int g(){ return item; }", recipe,
+    )
+
+    assert applications
+    assert "int fuzzlang_tmp_1 = 0" in applications[0].src
+
+
+def test_literal_payloads_remain_opt_in():
+    rec = _record(
+        "a",
+        "int f(){ return value; }",
+        'int f(){ static_assert(false, "injected"); return value; }',
+        diag="err_x",
+    )
+
+    conservative = extract_recipe(rec, allow_fresh_identifiers=True)
+    expanded = extract_recipe(
+        rec,
+        allow_fresh_identifiers=True,
+        allow_literal_payloads=True,
+    )
+
+    assert conservative is not None and not conservative.portable
+    assert expanded is not None and expanded.portable
+    assert '"injected"' in apply_recipe(
+        "int g(){ return item; }", expanded,
+    )[0].src
+
+
+def test_opt_in_token_normalization_expands_partial_numeric_edit():
+    rec = _record(
+        "a", "int f(){ return 1234; }", "int f(){ return 1294; }", diag="err_x"
+    )
+
+    conservative = extract_recipe(rec)
+    normalized = extract_recipe(rec, normalize_token_edits=True)
+
+    assert conservative is not None and not conservative.portable
+    assert normalized is not None and normalized.portable
+    assert normalized.old_patterns == ("<NUM>",)
+    assert [app.src for app in apply_recipe(
+        "int g(){ return 5678; }", normalized,
+    )] == ["int g(){ return 1294; }"]
+
+
 def test_new_identifier_reused_from_context_becomes_metavariable():
     rec = _record(
         "a",

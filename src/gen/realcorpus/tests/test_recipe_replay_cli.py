@@ -98,3 +98,42 @@ def test_recipe_replay_cli_defaults_remain_legacy(tmp_path, monkeypatch):
     assert report["generator"] == "learned_recipe_replay"
     assert "injectors" not in report
     assert not list(tmp_path.glob("*.injectors.jsonl"))
+
+
+def test_fuzzlang_dsl_cli_can_opt_into_expanded_recipe_extraction(
+    tmp_path, monkeypatch,
+):
+    training = _record(
+        "training",
+        "int f(){ return value; }",
+        "int f(){ int temporary = 0; return temporary + value; }",
+    )
+    records = tmp_path / "training.jsonl"
+    records.write_text(json.dumps(training.to_dict()) + "\n")
+    compile_db = tmp_path / "compile_commands.json"
+    compile_db.write_text("[]\n")
+    output = tmp_path / "records.jsonl"
+    manifest = tmp_path / "manifest.json"
+    monkeypatch.setattr(sys, "argv", [
+        "run_recipe_replay.py",
+        "--records", str(records),
+        "--compile-db", str(compile_db),
+        "--clang-bin", "/unused/clang",
+        "--diagtool-bin", "/unused/diagtool",
+        "--out", str(output),
+        "--manifest-out", str(manifest),
+        "--replay-engine", "fuzzlang-dsl",
+        "--allow-fresh-identifiers",
+        "--normalize-token-edits",
+        "--n-files", "0",
+    ])
+
+    main()
+
+    report = json.loads(manifest.read_text())
+    assert report["recipes"]["portable"] == 1
+    assert report["recipes"]["extraction"] == {
+        "allow_fresh_identifiers": True,
+        "allow_literal_payloads": False,
+        "normalize_token_edits": True,
+    }

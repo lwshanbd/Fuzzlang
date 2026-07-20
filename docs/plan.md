@@ -128,7 +128,7 @@ Gemma should normally be invoked once to synthesize or repair an Injector, not
 once per output record. The same accepted Injector can then be replayed on many
 translation units and projects.
 
-## 4. FuzzLang DSL v0: Deliberately Narrow Scope
+## 4. FuzzLang DSL: Deliberately Narrow Scope
 
 FuzzLang DSL must not become a general-purpose source transformation language
 on the paper's critical path. Version 0 formalizes the capabilities already
@@ -150,7 +150,22 @@ demonstrated by the recipe replay system.
 - deterministic serialization, hashing, replay, and backward compatibility
   with existing v1/v2 recipes.
 
-### 4.2 Explicit Non-Goals for v0
+### 4.2 Controlled v1 Expansion
+
+Version 1 retains the v0 single-site lexical model and adds only two
+evidence-backed capabilities:
+
+- payload-local identifiers are rendered as deterministic, collision-free
+  fresh names and may be reused within the replacement payload;
+- byte-exact intra-token edits may be expanded to complete token boundaries
+  when reconstructing the original erroneous source proves equivalence.
+
+Both capabilities are opt-in at extraction time, remain subject to the same
+edit/candidate/verification limits, and preserve parsing of archived v0
+Injectors. Literal string/comment payloads have a separate experimental flag;
+they are not part of the main v1 method until held-out transfer justifies them.
+
+### 4.3 Explicit Non-Goals
 
 - a general AST query language;
 - arbitrary type inference;
@@ -164,7 +179,7 @@ defined same-scope declaration selector may be added if a measured diagnostic
 gap cannot be reached otherwise. General AST/type/scope support is deferred
 until after the main dataset and SFT results exist.
 
-### 4.3 Hybrid Fallback
+### 4.4 Hybrid Fallback
 
 FuzzLang uses a hybrid generation policy:
 
@@ -234,7 +249,7 @@ The local Gemma README currently contains a plaintext access credential. It
 must be removed from documentation, moved to an environment/secret mechanism,
 and rotated before artifact preparation.
 
-### 5.3 FuzzLang DSL v0
+### 5.3 FuzzLang DSL v1
 
 - define the v0 schema and parser;
 - convert all existing portable recipes into versioned Injectors;
@@ -254,6 +269,16 @@ one-record-per-diagnostic diversity cap and produced 70 additional records for
 70 distinct targets from 43 new non-test TUs. Formal revalidation retained all
 70 with no overlap or structural duplicate against the preceding 2,348
 records. No paid API was used in either run.
+
+The controlled v1 extraction expands 594 portable recipes spanning 306
+diagnostics to 1,239 recipes spanning 598 diagnostics. In a matched LLVM run,
+the 594-recipe baseline required 91 TUs and 436 mutant compilations to reach
+100 exact targets, whereas v1 required 64 TUs and 393 compilations. Formal
+revalidation retained 99 baseline-arm records and 100/100 v1-arm records; v1
+reached 44 diagnostics outside the old portable diagnostic space. Both arms
+use zero test sources and have no
+source overlap with earlier releases. The more permissive 1,321-recipe literal
+variant remains experimental.
 
 ## 6. Week-2 Gates and Fallback Decisions
 
@@ -275,9 +300,11 @@ recipe-v2 plus Gemma direct-edit hybrid. No general DSL redesign is allowed on
 the critical path.
 
 The unfiltered 30-record pilot passes the acceptance and exact-target-share
-checks, and the 70-diagnostic diversity run passes the LLVM-side distinct
-exact-target threshold. The overall gate remains open only because
-cross-project replay on a second C++ project has not yet been demonstrated.
+checks, the 70-diagnostic diversity run passes the LLVM-side distinct-target
+threshold, and the matched v1 experiment shows a larger reachable diagnostic
+space with lower TU and compiler-invocation cost at the 100-diagnostic cap. The
+overall gate remains open only because cross-project replay on a second C++
+project has not yet been demonstrated.
 
 ### 6.2 Gemma SFT Gate
 
@@ -488,7 +515,8 @@ external-validity comparison.
 
 - freeze dataset definitions and evaluation protocol;
 - complete Gemma 32/128-example SFT smoke;
-- implement FuzzLang DSL v0 over current recipe capabilities;
+- preserve FuzzLang DSL v0 compatibility and complete the controlled v1
+  fresh-name/token-normalization expansion;
 - begin build-feasibility screening for new projects.
 
 ### Week 2: Gates and Core Pilot

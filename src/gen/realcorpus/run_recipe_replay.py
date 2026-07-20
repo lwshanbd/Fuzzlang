@@ -89,7 +89,7 @@ def main() -> None:
                     help="canonical replayed Record JSONL")
     ap.add_argument("--recipes-out", type=Path, default=None)
     ap.add_argument("--injectors-out", type=Path, default=None,
-                    help="optional canonical FuzzLang DSL v0 Injector JSONL")
+                    help="optional canonical FuzzLang DSL Injector JSONL")
     ap.add_argument("--manifest-out", type=Path, default=None)
     ap.add_argument(
         "--replay-engine", choices=("recipe", "fuzzlang-dsl"), default="recipe",
@@ -105,6 +105,21 @@ def main() -> None:
     ap.add_argument("--context-tokens", type=int, default=2)
     ap.add_argument("--max-edit-chars", type=int, default=256,
                     help="portable recipes cannot replace/insert a larger span")
+    ap.add_argument(
+        "--allow-fresh-identifiers",
+        action="store_true",
+        help="template unbound payload identifiers as collision-free local names",
+    )
+    ap.add_argument(
+        "--allow-literal-payloads",
+        action="store_true",
+        help="retain strings/comments inside bounded replacement payloads",
+    )
+    ap.add_argument(
+        "--normalize-token-edits",
+        action="store_true",
+        help="expand safe intra-token character diffs to complete token spans",
+    )
     ap.add_argument("--max-recipes-per-language", type=int, default=0,
                     help="0 keeps every portable recipe")
     ap.add_argument("--recipe-mode", choices=("all", "bindings"), default="all",
@@ -142,8 +157,12 @@ def main() -> None:
         if len(values) == 1
     }
     recipes = extract_recipes(
-        training, context_tokens=args.context_tokens,
+        training,
+        context_tokens=args.context_tokens,
         max_edit_chars=args.max_edit_chars,
+        allow_fresh_identifiers=args.allow_fresh_identifiers,
+        allow_literal_payloads=args.allow_literal_payloads,
+        normalize_token_edits=args.normalize_token_edits,
     )
     portable = [recipe for recipe in recipes if recipe.portable]
     selected_recipes = portable
@@ -336,6 +355,11 @@ def main() -> None:
             "portable": len(portable),
             "portable_diagnostics": len({recipe.diag_name for recipe in portable}),
             "max_edit_chars": args.max_edit_chars,
+            "extraction": {
+                "allow_fresh_identifiers": args.allow_fresh_identifiers,
+                "allow_literal_payloads": args.allow_literal_payloads,
+                "normalize_token_edits": args.normalize_token_edits,
+            },
             "mode": args.recipe_mode,
             "selected": len(selected_recipes),
             "selected_diagnostics": len({r.diag_name for r in selected_recipes}),
