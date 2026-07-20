@@ -219,27 +219,33 @@ Tasks:
 2. use the native Gemma chat template;
 3. run a real-tokenizer length preflight and reject silent truncation by
    default;
-4. use the implemented deterministic localized source window plus relative
-   single-span edit target for RealSource training; require exact round-trip to
-   the complete corrected source and use the same representation across
-   matched SFT arms;
+4. use a deterministic localized source window and reconstruct every model
+   answer into the complete translation unit before verification. The primary
+   target is a JSON `corrected_window`; retain the offset-based relative edit
+   as a representation ablation. Require exact round-trip for gold targets and
+   use the same chosen representation across matched SFT arms;
 5. establish multi-GPU LoRA training on the eight MI250X GCDs, using an
    appropriate distributed strategy rather than inference-style
    `device_map="auto"`;
 6. train on 32 examples, then 128 examples;
 7. verify finite/decreasing loss, adapter saving and loading, and valid output;
-8. serve the adapter through the local vLLM path and run compiler-verified
-   repair on a fixed smoke set;
+8. reload the adapter into local inference and run compiler-verified repair on
+   a fixed smoke set; endpoint serving is an engineering optimization, not a
+   scientific gate;
 9. scale to approximately 1,000 training examples only after the pipeline is
    stable.
 
 Whole real-project translation units are expected to exceed a 4K-token context
 frequently. Truncating a full-file prompt or answer can remove the diagnostic or
 the repair itself, so overlength handling remains explicit and measured. The
-localized relative-edit representation currently retains all 2,318 RealSource
-records, round-trips exactly, and puts every rendered example below 4,096 Gemma
-tokens (maximum 701). This removes the data-representation blocker; it does not
-remove the distributed-training blocker.
+offset-based localized representation retains all 2,318 RealSource records,
+round-trips exactly, and puts every rendered example below 4,096 Gemma tokens
+(maximum 701), but a controlled pilot showed that exact character offsets are
+poor targets for held-out generation. The bounded `corrected_window` target is
+therefore the primary representation. On the 876-record formal training split,
+all 876 examples fit below 1,024 tokens (228/491/878 min/median/max) with zero
+truncation. Every generated window is spliced into the original full source and
+the resulting translation unit is verified by the pinned compiler.
 
 If 31B LoRA training is not stable within the time gate, use a smaller model
 from the same Gemma family for SFT while retaining Gemma-4-31B for local
@@ -255,9 +261,32 @@ preparation on Tioga's 4.18 kernel and FSDP2 failed in
 LoRA smoke and a 128-record/two-step smoke, saving both adapters. The 128-record
 run had zero overlength examples (202/337.5/702 min/median/max tokens); loss
 fell from 5.600 to 2.889 and mean token accuracy rose from 0.5105 to 0.6703.
-These are bounded infrastructure smokes, not paper-level SFT results. Adapter
-reload, local serving, and compiler-verified smoke evaluation remain before
-the SFT gate is fully closed.
+These were bounded infrastructure smokes rather than paper-level SFT results.
+
+Execution snapshot (2026-07-20): adapter reload and compiler-verified local
+evaluation now work. A matched 32-record, 10-epoch training-set diagnostic
+reached 3/8 exact compiler fixes with the offset representation and 5/8 with
+`corrected_window`. The formal 876-record, three-epoch offset pilot then
+produced 0/29 eligible fixes on a fixed 32-record held-out slice. With all
+other data/model/optimizer choices held fixed, the `corrected_window` pilot
+trained for 165 optimizer steps in 698.8 seconds and reached 19/29 eligible
+compiler fixes (65.5%) and 12/29 eligible exact matches (41.4%). The unfine-
+tuned Gemma base reached 5/29 compiler fixes (17.2%) and 0 exact matches on the
+same eligible examples: a +48.3-point paired pilot gain, with 14 SFT-only
+successes, no base-only success, and five successes shared by both. Three of
+the 32 nominal examples were excluded from the eligible denominator because
+their archived corrected source no longer compiled under the fixed verifier.
+
+All 32 outputs in both arms were parseable. The SFT outputs were 125--264
+tokens, so its 1,024-token ceiling never bound; the base was capped at 512,
+which still exceeds twice the largest 247-token gold target. The 876-record
+run required activation checkpointing to be disabled after a reproducible
+ROCm recomputation-metadata failure; this stability choice is recorded in the
+run manifest and did not change the experimental data or LoRA recipe. These
+single-seed, small-slice results close the local training/inference pipeline
+gate, but not the evaluation-release gate: the stale records and non-exact
+compiler-clean outputs still require data/behavior audits. This remains a
+pilot, not the final matched-token multi-arm E3 result.
 
 The local Gemma README currently contains a plaintext access credential. It
 must be removed from documentation, moved to an environment/secret mechanism,
@@ -343,8 +372,8 @@ By the end of Week 2, the training path should:
 - round-trip the chosen RealSource edit/patch representation back to a
   compiler-verifiable complete source file;
 - save and reload an adapter;
-- serve the adapter through a local inference endpoint;
-- emit parseable source-only repairs;
+- reload the adapter through local inference (directly or through an endpoint);
+- emit a parseable bounded repair object and reconstruct a complete source;
 - complete a fixed compiler-verified evaluation without infrastructure errors;
 - archive configuration, logs, model revision, and random seed.
 
@@ -352,12 +381,16 @@ If the 31B path fails the gate, immediately switch the SFT experiment to a
 smaller Gemma-family checkpoint rather than spending the remaining schedule on
 distributed-training infrastructure.
 
-Current status (2026-07-19): this fallback has been taken. Gemma 3 4B completed
-the bounded 32/128-record GPU smokes with zero implicit truncation and saved
-reloadable PEFT artifacts plus manifests. The 128-record smoke used only two
-optimizer steps, so it validates scale-up and decreasing finite loss but is not
-a complete epoch or an effectiveness result. Adapter loading/serving,
-parseability, and compiler-verified repair remain open gate items.
+Current status (2026-07-20): this fallback has been taken and the bounded
+training/inference path has passed. Gemma 3 4B completed the 32/128-record
+infrastructure smokes, the 32-record representation diagnostic, and the
+876-record three-epoch pilot.
+Adapters reload in a separate process, all evaluated answers were parseable,
+and the fixed compiler-verified slice improved from 5/29 eligible fixes for
+the base model to 19/29 after SFT. The remaining work is the paper experiment:
+quarantine or repair of three stale eval records, matched-token construction
+arms, larger and project-isolated evaluation, multiple seeds, and
+quality/NatErr checks.
 
 ## 7. Core Experiment E1: Injector Versus Direct Edit
 
@@ -477,6 +510,13 @@ Report both:
 - an equal-training-token comparison measuring end-to-end dataset utility; and
 - a matched-diagnostic subset comparison isolating construction quality from
   diagnostic coverage.
+
+Pilot signal (2026-07-20): one RealSource arm on a fixed 29-example eligible
+slice improved verified Fix@1 from 5/29 for Gemma Base to 19/29 after SFT.
+This establishes that the local data-to-adapter-to-compiler path can show a
+large paired gain, but it does not replace the arms above: it has one seed, a
+small same-project slice, no matched-token construction baselines, and no
+behavioral test column.
 
 ### 9.2 Evaluation Columns
 

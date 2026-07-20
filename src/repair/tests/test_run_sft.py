@@ -163,6 +163,21 @@ def test_training_config_uses_current_trl_names_and_optional_fsdp() -> None:
     )
 
 
+def test_training_config_can_disable_gradient_checkpointing() -> None:
+    args = run_sft._parse_args(
+        [
+            "--base-model", "gemma",
+            "--data-path", "records.jsonl",
+            "--adapter-out", "adapter",
+            "--no-gradient-checkpointing",
+        ]
+    )
+
+    kwargs = run_sft._sft_config_kwargs(args)
+
+    assert kwargs["gradient_checkpointing"] is False
+
+
 def test_lora_targets_only_gemma_language_model_layers() -> None:
     pattern = run_sft._LORA_TARGET_MODULES
 
@@ -175,6 +190,46 @@ def test_lora_targets_only_gemma_language_model_layers() -> None:
     assert not __import__("re").fullmatch(
         pattern, "model.vision_tower.vision_model.encoder.layers.0.self_attn.q_proj"
     )
+
+
+def test_write_run_manifest_archives_data_and_adapter_hashes(tmp_path) -> None:
+    data = tmp_path / "train.jsonl"
+    data.write_text('{"record_id":"r1"}\n')
+    adapter = tmp_path / "adapter"
+    adapter.mkdir()
+    (adapter / "adapter_model.safetensors").write_bytes(b"adapter")
+    args = run_sft._parse_args(
+        [
+            "--base-model", "gemma",
+            "--model-revision", "abc123",
+            "--data-path", str(data),
+            "--adapter-out", str(adapter),
+            "--target-format", "relative-edit",
+            "--seed", "7",
+            "--no-gradient-checkpointing",
+        ]
+    )
+
+    path = run_sft._write_run_manifest(
+        args,
+        n_train=1,
+        token_report={"total": 1, "kept": 1, "overlong": 0},
+        train_metrics={"train_loss": 1.25},
+        trainable_parameters=99,
+    )
+
+    manifest = json.loads(path.read_text())
+    assert manifest["base_model"] == "gemma"
+    assert manifest["model_revision"] == "abc123"
+    assert manifest["n_train"] == 1
+    assert manifest["seed"] == 7
+    assert manifest["target_format"] == "relative-edit"
+    assert manifest["gradient_checkpointing"] is False
+    assert manifest["attn_implementation"] == "sdpa"
+    assert manifest["train_metrics"] == {"train_loss": 1.25}
+    assert manifest["trainable_parameters"] == 99
+    assert len(manifest["data_sha256"]) == 64
+    assert len(manifest["adapter_sha256"]) == 64
 
 
 @pytest.mark.parametrize("size", [32, 128])
@@ -216,6 +271,41 @@ def test_load_examples_can_opt_in_to_localized_relative_edit(tmp_path) -> None:
             "record_id": "r1",
         }
     ]
+
+
+def test_load_examples_can_train_on_corrected_window_rewrite(tmp_path) -> None:
+    path = tmp_path / "records.jsonl"
+    row = _canonical_row()
+    row["erroneous_src"] = "before\nint x = missing;\nafter\n"
+    row["corrected_src"] = "before\nint x = 0;\nafter\n"
+    path.write_text(json.dumps(row) + "\n")
+
+    examples = run_sft._load_examples(
+        path,
+        target_format="window-rewrite",
+        context_lines=0,
+        max_window_chars=100,
+        max_edit_chars=100,
+    )
+
+    assert examples[0]["source"] == "int x = missing;\n"
+    assert json.loads(examples[0]["fix"]) == {
+        "corrected_window": "int x = 0;\n"
+    }
+
+
+def test_window_rewrite_prompt_requests_one_corrected_window_object() -> None:
+    row = {
+        "source": "int x = missing;\n",
+        "error": "undeclared identifier",
+        "fix": '{"corrected_window":"int x = 0;\\n"}',
+    }
+
+    rendered = run_sft._format_example(row, target_format="window-rewrite")
+
+    assert "corrected_window" in rendered
+    assert "complete corrected source window" in rendered
+    assert rendered.endswith(f"assistant\n{row['fix']}")
 
 
 def test_dry_run_prepares_32_examples_without_training_imports(tmp_path) -> None:

@@ -160,13 +160,15 @@ Every generated candidate is verifier-checked: it enters the dataset only if the
 **Goal.** Demonstrate the dataset's value: **under matched training-token and inference budgets, Gemma fine-tuned on FuzzLang data should repair more unseen compilation errors than the same base model and models trained on weaker construction baselines.**
 
 **What it does.**
-- Converts paired records into diagnostic repair examples and fine-tunes a local open Gemma model. For long real-project files, the training target is a deterministic localized source window plus a relative edit that round-trips to the complete corrected source; whole files are never silently truncated.
+- Converts paired records into diagnostic repair examples and fine-tunes a local open Gemma model. For long real-project files, the primary target is a deterministic localized source-window rewrite that is spliced back into the complete translation unit before compiler verification; whole files are never silently truncated. An offset-based relative edit is retained as a representation ablation because it round-trips exactly but proved difficult for the model to generalize.
 - Compares Gemma Base, Mechanical-SFT, DirectEdit-SFT, FuzzLang-SFT, and optionally a full Breadth+RealSource SFT arm under matched training-token budgets.
 - Evaluates on held-out translation units, an unseen project, diagnostic-tail slices, and the NatErr column from REAL.
 - Reports verified fixes together with edit minimality, degenerate deletion rate, and behavior-preservation checks on a feasible subset.
 - Retains the generic compiler-feedback repair loop as an evaluation mechanism. The typed-diagnostic-versus-stderr comparison is an exploratory negative result, not the intellectual core.
 
 **Deliverables.** A matched-token SFT table, before/after Gemma results on RealSource and NatErr, data-source ablations, per-diagnostic-family and per-project analyses, and quality checks beyond compile success.
+
+**Current feasibility evidence.** A single-seed 876-record Gemma 3 4B pilot on a fixed 29-example eligible RealSource slice improved verified Fix@1 from 5/29 for the base model to 19/29 after SFT, while the offset-target SFT arm reached 0/29. This is evidence that the chosen representation and local pipeline work, not the final dataset-value result: the matched-token construction arms, larger project-isolated evaluation, multiple seeds, and behavior/NatErr columns remain required.
 
 **Key decisions.**
 - The fairness protocol matches training tokens, base checkpoint, LoRA recipe, and inference budget so improvements cannot be dismissed as "just more data or compute."
@@ -205,7 +207,7 @@ Coverage, scale, provenance, and repair results are reported separately for the 
 - The Coverage and Gen loop is the construction engine: measure gaps, generate to fill them, re-measure. Coverage is both the metric and the controller.
 - Gen produces both FuzzLang-Breadth and FuzzLang-RealSource; the latter contains injected errors in non-test real-project code but is not called naturally occurring data.
 - Real supplies NatErr, the smaller unbiased external-validity yardstick.
-- Repair/SFT is the consumer that proves the dataset's value. The central downstream claim is fine-tuning gain under matched budgets, not typed diagnostics outperforming stderr.
+- Repair/SFT is the consumer intended to establish the dataset's value. The central downstream claim requires fine-tuning gain under matched budgets, not typed diagnostics outperforming stderr; the current single-arm pilot is feasibility evidence rather than completion of that claim.
 - Foundation is what lets all four agree on what a diagnostic is, what a compile result is, and what a record is.
 
 Two evaluation columns keep the story honest: injected RealSource errors from held-out projects under strict isolation, and naturally occurring NatErr failures. Improvement on both is harder to explain as an artifact of how the training data was generated.
@@ -233,8 +235,8 @@ Coverage and Injector generation (P1/P2) carry the main novelty, but P4 starts i
 - **Coverage denominator definition.** The headline percentage is only as credible as the definition of "the diagnostic space." It must be principled and stated first.
 - **Guided-generation context availability.** Not every diagnostic has a clean introducing commit or regression test; we need fallbacks and should report how often guidance was available.
 - **FuzzLang DSL scope.** A general AST/type transformation language would consume the schedule. Version 1 remains a single-site lexical language, adds only fresh local names and safe token normalization, and falls back to recipe plus direct Gemma editing if cross-project transfer fails.
-- **Gemma training risk.** Gemma-4-31B inference works locally, but its FSDP LoRA path is incompatible with the current Tioga kernel/runtime stack. The planned fallback is active: Gemma 3 4B has completed bounded 32/128-record LoRA smokes with saved adapters and decreasing finite loss. Adapter inference and compiler-verified evaluation remain to close the gate; model scale is not part of the claim.
-- **RealSource sequence length.** Whole real-project translation units often exceed the training context window. The implemented localized relative-edit representation round-trips exactly and currently fits all 2,318 records under 4,096 Gemma tokens; this guarantee must be rechecked for every future release, and silent truncation remains invalid.
+- **Gemma training risk.** Gemma-4-31B inference works locally, but its FSDP LoRA path is incompatible with the current Tioga kernel/runtime stack. The planned fallback is active: Gemma 3 4B has completed bounded smokes, a three-epoch 876-record run, adapter reload, and compiler-verified base/SFT evaluation. ROCm activation-checkpoint recomputation failed on variable-length batches, so the successful pilot disabled activation checkpointing and archived that choice. Model scale is not part of the claim; the open risk is now completing the matched-token multi-arm study rather than basic trainability.
+- **RealSource sequence length and repair representation.** Whole real-project translation units often exceed the training context window. Both implemented localized targets reconstruct a complete source file and reject silent truncation. The offset form fits all 2,318 current records but produced 0/29 eligible held-out fixes in the controlled pilot; the bounded window-rewrite form produced 19/29 and is now primary. Its length guarantee must be rechecked for every future release.
 - **Real-build reproduction cost.** Reconstructing historical failing builds is operationally heavy; per-project yield must be reported honestly.
 - **Compile-clean is not correct.** Verified-fix is the primary metric, but behavior preservation needs a caveat and a tests-based spot check.
 ## 9. Where input is most wanted

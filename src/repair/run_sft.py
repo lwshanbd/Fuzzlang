@@ -14,6 +14,8 @@ from __future__ import annotations
 
 import argparse
 from collections import Counter
+from datetime import datetime, timezone
+import hashlib
 import json
 import statistics
 import sys
@@ -47,6 +49,12 @@ _RELATIVE_EDIT_INSTRUCTION = (
     "to the source window."
 )
 
+_WINDOW_REWRITE_INSTRUCTION = (
+    "You are an expert C/C++ programmer. Given an erroneous source window and "
+    "the compiler diagnostic, return exactly one JSON object with a single "
+    "corrected_window string containing the complete corrected source window."
+)
+
 # Gemma 3/4 are multimodal models.  A suffix-only PEFT target such as ``q_proj``
 # also matches their vision tower, which is both unnecessary and expensive for
 # this text-only experiment.  This expression deliberately selects only the
@@ -68,6 +76,10 @@ def _parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
     p.add_argument(
         "--base-model",
         help="Local path or Hugging Face identifier for any causal language model.",
+    )
+    p.add_argument(
+        "--model-revision",
+        help="Immutable upstream model revision recorded in the run manifest.",
     )
     p.add_argument(
         "--data-path",
@@ -111,11 +123,11 @@ def _parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
     )
     p.add_argument(
         "--target-format",
-        choices=("full-source", "relative-edit"),
+        choices=("full-source", "relative-edit", "window-rewrite"),
         default="full-source",
         help=(
-            "Train on the complete corrected source or an exactly replayable "
-            "JSON edit relative to a bounded source window."
+            "Train on the complete corrected source, an offset-based relative "
+            "edit, or a complete corrected bounded source window."
         ),
     )
     p.add_argument("--context-lines", type=int, default=8)
@@ -151,6 +163,15 @@ def _parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
         help="Attention backend used when loading the base model.",
     )
     p.add_argument(
+        "--no-gradient-checkpointing",
+        action="store_false",
+        dest="gradient_checkpointing",
+        help=(
+            "Disable activation checkpointing. This uses more memory but avoids "
+            "ROCm recomputation failures observed for some variable-length batches."
+        ),
+    )
+    p.add_argument(
         "--fsdp",
         action="store_true",
         help="Enable full-shard FSDP for models that do not fit on one device.",
@@ -180,13 +201,23 @@ def _normalize_example(
 ) -> dict[str, str]:
     """Convert a legacy triple or canonical Record mapping to one repair triple."""
 
-    if target_format == "relative-edit":
-        return make_localized_repair_example(
+    if target_format in {"relative-edit", "window-rewrite"}:
+        localized = make_localized_repair_example(
             row,
             context_lines=context_lines,
             max_window_chars=max_window_chars,
             max_edit_chars=max_edit_chars,
-        ).to_training_example()
+        )
+        result = localized.to_training_example()
+        if target_format == "window-rewrite":
+            corrected_window = localized.target.apply(localized.source_window)
+            result["fix"] = json.dumps(
+                {"corrected_window": corrected_window},
+                ensure_ascii=False,
+                sort_keys=True,
+                separators=(",", ":"),
+            )
+        return result
     if target_format != "full-source":
         raise ValueError(f"unknown target format: {target_format}")
 
@@ -268,6 +299,9 @@ def _messages_for_example(
     elif target_format == "relative-edit":
         instruction = _RELATIVE_EDIT_INSTRUCTION
         source_label = "Source window"
+    elif target_format == "window-rewrite":
+        instruction = _WINDOW_REWRITE_INSTRUCTION
+        source_label = "Source window"
     else:
         raise ValueError(f"unknown target format: {target_format}")
     user = (
@@ -292,6 +326,12 @@ def _format_example(
         if target_format == "relative-edit":
             return (
                 f"system\n{_RELATIVE_EDIT_INSTRUCTION}\n"
+                f"user\nSource window:\n```\n{row['source']}\n```\n"
+                f"Error:\n{row['error']}\nassistant\n{row['fix']}"
+            )
+        if target_format == "window-rewrite":
+            return (
+                f"system\n{_WINDOW_REWRITE_INSTRUCTION}\n"
                 f"user\nSource window:\n```\n{row['source']}\n```\n"
                 f"Error:\n{row['error']}\nassistant\n{row['fix']}"
             )
@@ -370,7 +410,7 @@ def _sft_config_kwargs(args: argparse.Namespace) -> dict[str, Any]:
         "logging_steps": 1 if args.max_steps > 0 else 25,
         "save_strategy": "no" if args.max_steps > 0 else "epoch",
         "seed": args.seed,
-        "gradient_checkpointing": not args.fsdp,
+        "gradient_checkpointing": args.gradient_checkpointing and not args.fsdp,
         "report_to": [],
         "max_length": args.max_seq_len,
         "completion_only_loss": True,
@@ -412,6 +452,66 @@ def _write_prepared(path: str | Path, examples: Sequence[dict[str, str]]) -> Non
     with output.open("w") as f:
         for example in examples:
             f.write(json.dumps(example, sort_keys=True) + "\n")
+
+
+def _sha256_file(path: str | Path) -> str:
+    digest = hashlib.sha256()
+    with Path(path).open("rb") as f:
+        for chunk in iter(lambda: f.read(1024 * 1024), b""):
+            digest.update(chunk)
+    return digest.hexdigest()
+
+
+def _write_run_manifest(
+    args: argparse.Namespace,
+    *,
+    n_train: int,
+    token_report: dict[str, int | float],
+    train_metrics: dict[str, Any],
+    trainable_parameters: int,
+) -> Path:
+    """Archive enough immutable metadata to reproduce one adapter run."""
+
+    output = Path(args.adapter_out)
+    adapter_path = output / "adapter_model.safetensors"
+    if not adapter_path.is_file():
+        raise ValueError(f"saved adapter is missing: {adapter_path}")
+    manifest = {
+        "schema_version": 1,
+        "created_utc": datetime.now(timezone.utc).isoformat(),
+        "base_model": args.base_model,
+        "model_revision": args.model_revision,
+        "data_path": args.data_path,
+        "data_sha256": _sha256_file(args.data_path),
+        "adapter_sha256": _sha256_file(adapter_path),
+        "adapter_size_bytes": adapter_path.stat().st_size,
+        "n_train": n_train,
+        "token_report": token_report,
+        "train_metrics": train_metrics,
+        "trainable_parameters": trainable_parameters,
+        "seed": args.seed,
+        "target_format": args.target_format,
+        "chat_template": args.chat_template,
+        "context_lines": args.context_lines,
+        "max_window_chars": args.max_window_chars,
+        "max_edit_chars": args.max_edit_chars,
+        "max_seq_len": args.max_seq_len,
+        "max_steps": args.max_steps,
+        "epochs": args.epochs,
+        "batch_size": args.batch_size,
+        "gradient_accumulation_steps": args.grad_accum,
+        "gradient_checkpointing": args.gradient_checkpointing and not args.fsdp,
+        "learning_rate": args.lr,
+        "bf16": args.bf16,
+        "attn_implementation": args.attn_implementation,
+        "lora_rank": args.lora_rank,
+        "lora_alpha": args.lora_alpha,
+        "fsdp": args.fsdp,
+        "fsdp_version": args.fsdp_version if args.fsdp else None,
+    }
+    path = output / "run-manifest.json"
+    path.write_text(json.dumps(manifest, indent=2, sort_keys=True, default=str) + "\n")
+    return path
 
 
 def _preflight_token_lengths(
@@ -565,10 +665,23 @@ def main(argv: Sequence[str] | None = None) -> int:
         args=targs,
         peft_config=lora,
     )
+    trainable_parameters = sum(
+        parameter.numel()
+        for parameter in trainer.model.parameters()
+        if parameter.requires_grad
+    )
     trainer.model.print_trainable_parameters()
-    trainer.train()
+    train_output = trainer.train()
     trainer.save_model(args.adapter_out)
+    manifest_path = _write_run_manifest(
+        args,
+        n_train=len(training_rows),
+        token_report=length_report,
+        train_metrics=dict(train_output.metrics),
+        trainable_parameters=trainable_parameters,
+    )
     print(f"[run_sft] adapter saved to {args.adapter_out}", flush=True)
+    print(f"[run_sft] manifest saved to {manifest_path}", flush=True)
     return 0
 
 

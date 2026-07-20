@@ -1,7 +1,7 @@
 # FuzzLang: Progress
 
 Status against `FuzzLang-Proposal.md` and the executable plan in `plan.md`.
-LLVM is pinned to `llvmorg-22.1.8`; the current test suite has 325 passing and
+LLVM is pinned to `llvmorg-22.1.8`; the current test suite has 341 passing and
 5 environment-dependent skips. Detailed generation history is in
 `data/gen/README.md`.
 
@@ -111,13 +111,17 @@ excluded or isolated before NatErr becomes a valid held-out evaluation set.
   metrics.
 - **Local Gemma inference:** Gemma-4-31B is staged on Tioga and serves through a
   high-throughput local vLLM path.
-- **Gemma SFT path:** canonical Records normalize to model-neutral repair
-  examples, the native Gemma chat template works offline, and real tokenizer
-  preflight rejects silent truncation by default. A deterministic localized
-  relative-edit target round-trips to the complete source. The current TRL API,
-  answer-only loss, text-only Gemma LoRA targeting, bounded `max_steps`, and
-  optional FSDP configuration are implemented. Gemma 3 4B completed actual
-  32/128-record GPU smokes and saved both adapters.
+- **Gemma SFT and evaluation path:** canonical Records normalize to
+  model-neutral repair examples, the native Gemma chat template works offline,
+  and real tokenizer preflight rejects silent truncation by default. Both a
+  localized offset edit and a bounded JSON `corrected_window` reconstruct the
+  complete translation unit; the latter is now primary after the offset target
+  failed held-out generalization. The current TRL API, answer-only loss,
+  text-only Gemma LoRA targeting, bounded `max_steps`, optional FSDP, explicit
+  activation-checkpoint control, immutable run manifests, adapter reload, base-
+  only control, structured-output parsing, and pinned-Clang evaluation are
+  implemented. Gemma 3 4B completed 32/128-record GPU smokes and a formal
+  876-record three-epoch pilot.
 - **NatErr formalization:** streaming fix recovery, source filtering, two-sided
   verification, canonical paired output, explicit rejection reasons, and
   release manifests are implemented.
@@ -204,20 +208,29 @@ exploratory negative result or appendix material.
 
 For realcorpus-v2, the three-seed zero-shot run covers all 440 formal eval
 instances and reaches 72.5% mean verified repair. A matched five-method pilot on
-16 instances is directional only and is not paper-level evidence. No complete
-Gemma SFT comparison has been run.
+16 instances is directional only and is not paper-level evidence. A local
+Gemma Base-versus-SFT pilot has now been run on 32 formal eval records, but the
+complete matched-token construction-arm comparison has not.
 
 The offline Gemma tokenizer smoke succeeds on short Breadth data: 32/32 and
 128/128 prepared examples fit within 4,096 tokens (the 32-example min/median/max
 is 241/253/288 tokens). A preliminary RealSource full-TU prefix exposed a real
 representation blocker: only 2/32 examples fit, with median 12,624 and maximum
-337,379 tokens. This is now addressed by a deterministic localized window plus
-relative single-span edit. The edit is exactly round-tripped into the complete
-source before compiler evaluation. All **2,318/2,318** current RealSource
-records are eligible; localized windows have min/median/p95/max character
-lengths 170/594/850/1,163, and every rendered native-Gemma example fits within
-4,096 tokens (min/median/p95/p99/max 201/324/406/452/701). The same target
-format must be used across matched SFT arms.
+337,379 tokens. Localization addresses the length blocker: the offset edit
+exactly round-trips all **2,318/2,318** current RealSource records into the
+complete source; localized windows have min/median/p95/max character lengths
+170/594/850/1,163, and every rendered native-Gemma offset example fits within
+4,096 tokens (min/median/p95/p99/max 201/324/406/452/701). It did not address
+learnability: the 876-record, three-epoch offset pilot produced parseable JSON
+but **0/29 eligible compiler fixes** on the fixed formal eval slice.
+
+The primary target is now a bounded JSON `corrected_window`, which asks the
+model to reproduce the corrected localized code instead of counting character
+offsets. It is spliced into the original erroneous translation unit before the
+pinned compiler evaluates it. All 876 formal training examples pass the native
+Gemma preflight under 1,024 tokens (228/491/878 min/median/max) with no
+truncation. This representation must be used consistently across the remaining
+matched SFT arms; the offset form remains a recorded representation ablation.
 
 The local training environment now includes `peft==0.18.1`,
 `datasets==4.8.5`, and `trl==0.27.2`. The Gemma-4-31B path reached correct
@@ -234,17 +247,48 @@ The smaller-family fallback is operational. `google/gemma-3-4b-it` at revision
 | 32 records | 255 / 330 / 405 | 1 | 5.566 | 0.5291 | 119,280,712 bytes |
 | 128 records | 202 / 337.5 / 702 | 2 | 5.600 -> 2.889 | 0.5105 -> 0.6703 | 119,280,712 bytes |
 
-Both runs use native chat formatting, the same localized relative-edit target,
-answer-only loss, BF16, LoRA rank 16, seed 42, and zero implicit truncation.
-Adapters and ignored run manifests are archived under `.artifacts/`; manifests
-contain the model revision, source-data SHA-256, adapter SHA-256, configuration,
-and metrics. These bounded smokes validate the training path but are not a full
-epoch or paper-level fine-tuning result. Adapter reload/local serving and a
-fixed compiler-verified repair smoke remain the next SFT gate items.
+Those two infrastructure runs used native chat formatting, the localized
+offset target, answer-only loss, BF16, LoRA rank 16, seed 42, and zero implicit
+truncation. They validated training and adapter saving, not repair quality.
+
+The 2026-07-20 representation and effectiveness pilots add the missing local
+adapter-inference and compiler-verification path:
+
+| arm | train setting | eval denominator | verified fix | exact match |
+|---|---:|---:|---:|---:|
+| offset overfit diagnostic | 32 records, 10 epochs | 8 training examples | 3/8 | 3/8 |
+| window overfit diagnostic | 32 records, 10 epochs | 8 training examples | 5/8 | 5/8 |
+| offset SFT | 876 records, 3 epochs | 29 eligible formal eval | 0/29 | 0/29 |
+| window Gemma Base | no SFT | 29 eligible formal eval | 5/29 (17.2%) | 0/29 |
+| window SFT | 876 records, 3 epochs | 29 eligible formal eval | **19/29 (65.5%)** | **12/29 (41.4%)** |
+
+The window SFT run used 165 optimizer steps, completed in 698.8 seconds, and
+ended at train loss 0.03121. This low loss is not itself evidence of repair
+quality. On the paired eligible examples there are 14 SFT-only successes, zero
+base-only successes, five shared successes, and ten shared failures. The train
+and 32-record eval slice have zero source-TU or record-ID overlap, but both are
+from the current LLVM RealSource corpus; unseen-project transfer is not tested.
+
+All 32 base and SFT outputs were parseable. Three nominal eval records have
+stale corrected sources under the pinned verifier and are excluded from the
+29-example primary denominator; they must be repaired or explicitly rejected
+before a release-level evaluation. Seven SFT fixes and all five base fixes
+compile without exact-matching the archived correction, so deletion/behavioral
+audits remain mandatory. SFT responses were 125--264 tokens, below the
+512-token base cap and below half of the SFT run's 1,024 cap, so the comparison
+is not explained by an SFT truncation advantage.
+
+Adapters, per-instance outputs, summaries, and ignored run manifests are
+archived under `.artifacts/`; manifests contain model revision, source-data
+SHA-256, adapter SHA-256, configuration, and metrics. A ROCm activation-
+checkpoint recomputation error affected the first full window attempt; the
+successful run explicitly disabled activation checkpointing and recorded that
+choice. No paid API was used. This is a strong single-seed feasibility signal,
+not the paper-level matched-token result.
 
 ## Main Missing Evidence
 
-The revised paper requires four results that do not yet exist:
+The revised paper requires four paper-level results that remain incomplete:
 
 1. **Injector method result:** a matched comparison of FuzzLang DSL Injector
    reuse, transfer, exact-target yield, and cost against direct per-record
@@ -252,8 +296,9 @@ The revised paper requires four results that do not yet exist:
 2. **Multi-project RealSource result:** scale the successful Abseil transfer
    pilot into a release and add a held-out C project, with coverage and
    provenance isolation.
-3. **Gemma SFT result:** Gemma Base versus matched-token Mechanical-SFT,
-   DirectEdit-SFT, and FuzzLang-SFT, evaluated on unseen TUs/projects.
+3. **Gemma SFT result:** expand the promising Base-versus-RealSource-SFT pilot
+   into matched-token Mechanical-SFT, DirectEdit-SFT, and FuzzLang-SFT arms,
+   evaluated with multiple seeds on larger unseen-TU and unseen-project sets.
 4. **NatErr result:** a formal paired natural-error release and external-validity
    evaluation.
 
@@ -270,17 +315,21 @@ value.
 - attach generation method and Injector identity to every new record;
 - keep the strict 1,935 denominator and release gates reproducible.
 
-### B. Gemma SFT Smoke
+### B. Gemma SFT Main Experiment
 
 - preserve the completed canonical-data, native-template, offline tokenizer,
   32/128 preparation path, and strict token preflight;
-- preserve the completed round-trippable relative-edit representation and use
-  it identically across matched SFT arms;
+- use the completed bounded `corrected_window` representation identically
+  across matched SFT arms; retain offset edits only as the completed negative
+  representation ablation;
 - preserve the pinned local training dependencies and the completed Gemma 3 4B
-  32/128-record GPU smoke path;
+  32/128-record GPU smoke and 876-record pilot paths;
 - keep the documented 31B FSDP incompatibility out of the critical path;
-- load the adapter into local inference and run compiler-verified repair;
-- then run an approximately 1,000-record pilot before the matched SFT arms.
+- quarantine or repair the three stale eval records and archive rejection
+  accounting;
+- audit the non-exact compiler-clean fixes for deletion and behavior loss;
+- run the matched-token construction arms, larger project-isolated evaluation,
+  and multiple seeds.
 
 ### C. FuzzLang DSL v1 Transfer
 
