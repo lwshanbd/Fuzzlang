@@ -159,9 +159,11 @@ def test_adapter_is_optional_for_base_model_control() -> None:
             "--base-model", "gemma",
             "--data-path", "eval.jsonl",
             "--clang-bin", "clang++",
+            "--clang-c-bin", "clang",
             "--diagtool-bin", "diagtool",
             "--out", "base.json",
         ]
     )
 
     assert args.adapter is None
+    assert args.clang_c_bin == "clang"

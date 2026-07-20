@@ -1,7 +1,7 @@
 # FuzzLang: Progress
 
 Status against `FuzzLang-Proposal.md` and the executable plan in `plan.md`.
-LLVM is pinned to `llvmorg-22.1.8`; the current test suite has 341 passing and
+LLVM is pinned to `llvmorg-22.1.8`; the current test suite has 349 passing and
 5 environment-dependent skips. Detailed generation history is in
 `data/gen/README.md`.
 
@@ -120,8 +120,10 @@ excluded or isolated before NatErr becomes a valid held-out evaluation set.
   text-only Gemma LoRA targeting, bounded `max_steps`, optional FSDP, explicit
   activation-checkpoint control, immutable run manifests, adapter reload, base-
   only control, structured-output parsing, and pinned-Clang evaluation are
-  implemented. Gemma 3 4B completed 32/128-record GPU smokes and a formal
-  876-record three-epoch pilot.
+  implemented. The verifier can select separate patched C/C++ drivers, and an
+  offline audit can recompile archived generations and measure gold-relative
+  edit size, changed lines, and deletion flags. Gemma 3 4B completed 32/128-
+  record GPU smokes and a formal 876-record three-epoch pilot.
 - **NatErr formalization:** streaming fix recovery, source filtering, two-sided
   verification, canonical paired output, explicit rejection reasons, and
   release manifests are implemented.
@@ -222,7 +224,7 @@ complete source; localized windows have min/median/p95/max character lengths
 170/594/850/1,163, and every rendered native-Gemma offset example fits within
 4,096 tokens (min/median/p95/p99/max 201/324/406/452/701). It did not address
 learnability: the 876-record, three-epoch offset pilot produced parseable JSON
-but **0/29 eligible compiler fixes** on the fixed formal eval slice.
+but **0/32 compiler fixes** on the fixed formal eval slice.
 
 The primary target is now a bounded JSON `corrected_window`, which asks the
 model to reproduce the corrected localized code instead of counting character
@@ -258,23 +260,33 @@ adapter-inference and compiler-verification path:
 |---|---:|---:|---:|---:|
 | offset overfit diagnostic | 32 records, 10 epochs | 8 training examples | 3/8 | 3/8 |
 | window overfit diagnostic | 32 records, 10 epochs | 8 training examples | 5/8 | 5/8 |
-| offset SFT | 876 records, 3 epochs | 29 eligible formal eval | 0/29 | 0/29 |
-| window Gemma Base | no SFT | 29 eligible formal eval | 5/29 (17.2%) | 0/29 |
-| window SFT | 876 records, 3 epochs | 29 eligible formal eval | **19/29 (65.5%)** | **12/29 (41.4%)** |
+| offset SFT | 876 records, 3 epochs | 32 formal eval | 0/32 | 0/32 |
+| window Gemma Base | no SFT | 32 formal eval | 5/32 (15.6%) | 0/32 |
+| window SFT | 876 records, 3 epochs | 32 formal eval | **20/32 (62.5%)** | **13/32 (40.6%)** |
 
 The window SFT run used 165 optimizer steps, completed in 698.8 seconds, and
 ended at train loss 0.03121. This low loss is not itself evidence of repair
-quality. On the paired eligible examples there are 14 SFT-only successes, zero
-base-only successes, five shared successes, and ten shared failures. The train
+quality. On the paired examples there are 15 SFT-only successes, zero base-only
+successes, five shared successes, and 12 shared failures. The train
 and 32-record eval slice have zero source-TU or record-ID overlap, but both are
 from the current LLVM RealSource corpus; unseen-project transfer is not tested.
 
-All 32 base and SFT outputs were parseable. Three nominal eval records have
-stale corrected sources under the pinned verifier and are excluded from the
-29-example primary denominator; they must be repaired or explicitly rejected
-before a release-level evaluation. Seven SFT fixes and all five base fixes
-compile without exact-matching the archived correction, so deletion/behavioral
-audits remain mandatory. SFT responses were 125--264 tokens, below the
+All 32 base and SFT outputs were parseable. The first evaluation passed
+`clang++` for every `__CLANG__` placeholder and made three records from the C
+file `llvm/lib/Support/BLAKE3/blake3_dispatch.c` appear stale. The verifier now
+selects distinct patched `clang`/`clang++` drivers from the compile language;
+model-free revalidation confirms that all 32 corrected sources compile and
+changes one exact SFT output from compile-fail to compile-clean. No model output
+was regenerated.
+
+Seven SFT fixes and all five base fixes compile without exact-matching the
+archived correction. The reproducible gold-aware audit reports edit-size
+min/median/max 1/30/64 for the 20 SFT fixes and 2/20/37 for the five base fixes.
+It flags **1/20** SFT fixes and **0/5** base fixes: the non-exact
+`err_duplicate_case` repair deletes two lines (56 characters), 5.09 times the
+gold edit size. No fix is an empty or unexpected large-window deletion. The
+flagged case still requires behavioral review; compile-clean alone is not
+semantic correctness. SFT responses were 125--264 tokens, below the
 512-token base cap and below half of the SFT run's 1,024 cap, so the comparison
 is not explained by an SFT truncation advantage.
 
@@ -325,9 +337,9 @@ value.
 - preserve the pinned local training dependencies and the completed Gemma 3 4B
   32/128-record GPU smoke and 876-record pilot paths;
 - keep the documented 31B FSDP incompatibility out of the critical path;
-- quarantine or repair the three stale eval records and archive rejection
-  accounting;
-- audit the non-exact compiler-clean fixes for deletion and behavior loss;
+- preserve separate C/C++ compiler-driver revalidation in every evaluation;
+- extend the completed static audit with behavioral checks for the flagged
+  duplicate-case repair and a tests-based subset;
 - run the matched-token construction arms, larger project-isolated evaluation,
   and multiple seeds.
 

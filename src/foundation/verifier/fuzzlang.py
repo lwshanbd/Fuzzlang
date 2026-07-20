@@ -23,10 +23,23 @@ _DIAG_ID_LINE = re.compile(r"^DiagID:\s*(\d+)\s*$", re.MULTILINE)
 
 
 class FuzzlangClangVerifier(BaseVerifier):
-    def __init__(self, clang_bin: str, diagtool_bin: str, timeout_s: float = 10.0):
+    def __init__(
+        self,
+        clang_bin: str,
+        diagtool_bin: str,
+        timeout_s: float = 10.0,
+        *,
+        clang_c_bin: Optional[str] = None,
+    ):
         self.clang_bin = clang_bin
+        self.clang_c_bin = clang_c_bin or clang_bin
         self.diagtool_bin = diagtool_bin
         self.timeout_s = timeout_s
+
+    def _compiler_for(self, compile_cmd: list[str], logical_path: str) -> str:
+        if _guess_suffix(compile_cmd, logical_path) == ".c":
+            return self.clang_c_bin
+        return self.clang_bin
 
     def verify(
         self,
@@ -35,15 +48,17 @@ class FuzzlangClangVerifier(BaseVerifier):
         *,
         logical_path: str,
     ) -> VerifierResult:
+        suffix = _guess_suffix(compile_cmd, logical_path)
+        compiler = self._compiler_for(compile_cmd, logical_path)
         with tempfile.NamedTemporaryFile(
             mode="w",
-            suffix=_guess_suffix(compile_cmd, logical_path),
+            suffix=suffix,
             delete=False,
         ) as tf:
             tf.write(source)
             tmp_path = tf.name
         try:
-            cmd = [self.clang_bin if a == "__CLANG__" else
+            cmd = [compiler if a == "__CLANG__" else
                    tmp_path if a == PLACEHOLDER else a
                    for a in compile_cmd]
             try:

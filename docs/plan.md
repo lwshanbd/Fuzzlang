@@ -267,15 +267,19 @@ Execution snapshot (2026-07-20): adapter reload and compiler-verified local
 evaluation now work. A matched 32-record, 10-epoch training-set diagnostic
 reached 3/8 exact compiler fixes with the offset representation and 5/8 with
 `corrected_window`. The formal 876-record, three-epoch offset pilot then
-produced 0/29 eligible fixes on a fixed 32-record held-out slice. With all
+produced 0/32 fixes on a fixed 32-record held-out slice. With all
 other data/model/optimizer choices held fixed, the `corrected_window` pilot
-trained for 165 optimizer steps in 698.8 seconds and reached 19/29 eligible
-compiler fixes (65.5%) and 12/29 eligible exact matches (41.4%). The unfine-
-tuned Gemma base reached 5/29 compiler fixes (17.2%) and 0 exact matches on the
-same eligible examples: a +48.3-point paired pilot gain, with 14 SFT-only
-successes, no base-only success, and five successes shared by both. Three of
-the 32 nominal examples were excluded from the eligible denominator because
-their archived corrected source no longer compiled under the fixed verifier.
+trained for 165 optimizer steps in 698.8 seconds and reached 20/32 compiler
+fixes (62.5%) and 13/32 exact matches (40.6%). The unfine-tuned Gemma base
+reached 5/32 compiler fixes (15.6%) and 0 exact matches on the same examples: a
++46.9-point paired pilot gain, with 15 SFT-only successes, no base-only
+success, five successes shared by both, and 12 shared failures.
+
+The first evaluation incorrectly used `clang++` for every `__CLANG__`
+placeholder and made three records from one C translation unit appear stale.
+The verifier now accepts distinct patched C and C++ drivers, and model-free
+revalidation of all archived outputs confirms that all 32 corrected sources
+compile. No generated response changed.
 
 All 32 outputs in both arms were parseable. The SFT outputs were 125--264
 tokens, so its 1,024-token ceiling never bound; the base was capped at 512,
@@ -284,9 +288,11 @@ run required activation checkpointing to be disabled after a reproducible
 ROCm recomputation-metadata failure; this stability choice is recorded in the
 run manifest and did not change the experimental data or LoRA recipe. These
 single-seed, small-slice results close the local training/inference pipeline
-gate, but not the evaluation-release gate: the stale records and non-exact
-compiler-clean outputs still require data/behavior audits. This remains a
-pilot, not the final matched-token multi-arm E3 result.
+gate. A gold-aware static audit flags 1/20 SFT compiler fixes (a non-exact
+duplicate-case repair that deletes two lines) and 0/5 base fixes for unexpected
+line deletion or an edit over five times the gold size. That case still needs
+behavioral review. This remains a pilot, not the final matched-token multi-arm
+E3 result.
 
 The local Gemma README currently contains a plaintext access credential. It
 must be removed from documentation, moved to an environment/secret mechanism,
@@ -386,11 +392,10 @@ training/inference path has passed. Gemma 3 4B completed the 32/128-record
 infrastructure smokes, the 32-record representation diagnostic, and the
 876-record three-epoch pilot.
 Adapters reload in a separate process, all evaluated answers were parseable,
-and the fixed compiler-verified slice improved from 5/29 eligible fixes for
-the base model to 19/29 after SFT. The remaining work is the paper experiment:
-quarantine or repair of three stale eval records, matched-token construction
-arms, larger and project-isolated evaluation, multiple seeds, and
-quality/NatErr checks.
+and the driver-correct fixed compiler slice improved from 5/32 fixes for the
+base model to 20/32 after SFT. The remaining work is the paper experiment:
+matched-token construction arms, larger and project-isolated evaluation,
+multiple seeds, and behavior/NatErr checks.
 
 ## 7. Core Experiment E1: Injector Versus Direct Edit
 
@@ -511,8 +516,8 @@ Report both:
 - a matched-diagnostic subset comparison isolating construction quality from
   diagnostic coverage.
 
-Pilot signal (2026-07-20): one RealSource arm on a fixed 29-example eligible
-slice improved verified Fix@1 from 5/29 for Gemma Base to 19/29 after SFT.
+Pilot signal (2026-07-20): one RealSource arm on a fixed 32-example slice
+improved verified Fix@1 from 5/32 for Gemma Base to 20/32 after SFT.
 This establishes that the local data-to-adapter-to-compiler path can show a
 large paired gain, but it does not replace the arms above: it has one seed, a
 small same-project slice, no matched-token construction baselines, and no

@@ -193,7 +193,11 @@ def _parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
         help="Optional PEFT adapter. Omit it to evaluate the unfine-tuned base model.",
     )
     parser.add_argument("--data-path", required=True)
-    parser.add_argument("--clang-bin", required=True)
+    parser.add_argument("--clang-bin", required=True, help="C++ compiler driver.")
+    parser.add_argument(
+        "--clang-c-bin",
+        help="Optional C compiler driver; defaults to --clang-bin.",
+    )
     parser.add_argument("--diagtool-bin", required=True)
     parser.add_argument("--out", required=True)
     parser.add_argument("--max-instances", type=int, default=8)
@@ -289,6 +293,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         clang_bin=args.clang_bin,
         diagtool_bin=args.diagtool_bin,
         timeout_s=30.0,
+        clang_c_bin=args.clang_c_bin,
     )
     results: list[dict[str, Any]] = []
     started = time.time()
@@ -362,6 +367,8 @@ def main(argv: Sequence[str] | None = None) -> int:
             "base_model": args.base_model,
             "adapter": args.adapter,
             "data_path": args.data_path,
+            "clang_bin": args.clang_bin,
+            "clang_c_bin": args.clang_c_bin or args.clang_bin,
             "seed": args.seed,
             "max_new_tokens": args.max_new_tokens,
             "target_format": args.target_format,

@@ -25,6 +25,16 @@ def test_guess_suffix_respects_explicit_language_over_logical_path():
     ) == ".c"
 
 
+def test_verifier_can_select_distinct_c_and_cxx_drivers() -> None:
+    verifier = FuzzlangClangVerifier(
+        "clang++", "diagtool", clang_c_bin="clang"
+    )
+    command = ["__CLANG__", "-fsyntax-only", "__SRC__"]
+
+    assert verifier._compiler_for(command, "src/runtime.c") == "clang"
+    assert verifier._compiler_for(command, "src/runtime.cc") == "clang++"
+
+
 def test_verify_tolerates_non_utf8_stderr(tmp_path):
     fake = tmp_path / "fakeclang"
     # Emits an error line containing a raw 0xb2 byte, then a DiagID, exits 1.
