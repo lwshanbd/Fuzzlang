@@ -245,11 +245,11 @@ single FuzzLang DSL Injector rather than editing every output record. Replay
 then accepts only a clean parent / failed mutant pair whose primary typed
 diagnostic exactly equals the Injector target. No paid API is used.
 
-Eight completed campaigns use two clean, source-overlap-excluded LLVM pools
-(2,213 and 2,100 TUs; zero test/test-support paths). They archive **457**
-paired, structurally unique core records from **13** diagnostics and **207**
-source TUs (464 raw records before seven structural duplicates were removed),
-produced by 13 record-emitting Injectors. The audit found zero missing
+Nine completed campaigns use two clean, source-overlap-excluded LLVM pools
+(2,213 and 2,100 TUs; zero test/test-support paths). They archive **604**
+paired, structurally unique core records from **16** diagnostics and **210**
+source TUs (614 raw records before ten structural duplicates were removed),
+produced by 16 record-emitting Injectors. The audit found zero missing
 `corrected_src`, zero test paths, and six diagnostic names not present in the
 frozen RealSource/replay releases. The campaign-level synthesis/replay
 manifests, record checksums, model revision, and aggregate audit are pinned in

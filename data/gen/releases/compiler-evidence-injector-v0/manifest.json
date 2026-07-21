@@ -1,7 +1,7 @@
 {
   "aggregate_audit": {
-    "core_records": 457,
-    "diagnostics": 13,
+    "core_records": 604,
+    "diagnostics": 16,
     "missing_corrected_src": 0,
     "new_diagnostics_vs_frozen_realsource": [
       "err_alias_declaration_pack_expansion",
@@ -12,12 +12,12 @@
       "err_unexpected_qualified_namespace_alias"
     ],
     "new_diagnostics_vs_frozen_realsource_count": 6,
-    "raw_records": 464,
-    "structural_duplicates_removed": 7,
-    "structurally_deduplicated_records": 457,
+    "raw_records": 614,
+    "structural_duplicates_removed": 10,
+    "structurally_deduplicated_records": 604,
     "test_or_test_support_sources": 0,
-    "unique_injectors": 13,
-    "unique_source_tus": 207
+    "unique_injectors": 16,
+    "unique_source_tus": 210
   },
   "archive_root": "data/gen/experiments/compiler-evidence-injector-v0",
   "campaigns": [
@@ -147,6 +147,22 @@
       "synthesis_manifest": {
         "path": "data/gen/experiments/compiler-evidence-injector-v0/synthesis/cpp-batch7-real/manifest.json",
         "sha256": "4ec32a39168b7a19ea642dd914e701e438a1e296629a6af00838c647f9f7a6dc"
+      }
+    },
+    {
+      "name": "cpp-batch8-real-v1pool",
+      "records": {
+        "count": 150,
+        "path": "data/gen/experiments/compiler-evidence-injector-v0/replay/cpp-batch8-real-v1pool/records.jsonl",
+        "sha256": "709ba884d4161f5b4e4c8a89f7b9ed672a676022cd4b8f0cf62e01d0e3ba8964"
+      },
+      "replay_manifest": {
+        "path": "data/gen/experiments/compiler-evidence-injector-v0/replay/cpp-batch8-real-v1pool/manifest.json",
+        "sha256": "487a834b3287c05a26d48d8180b02d632b7d92d4f4c46d27f6fbb5d053148d8c"
+      },
+      "synthesis_manifest": {
+        "path": "data/gen/experiments/compiler-evidence-injector-v0/synthesis/cpp-batch8-real/manifest.json",
+        "sha256": "7955def5e113817496495122ee9d54341e91940e310909bd84a1a9c6a017bd9d"
       }
     }
   ],

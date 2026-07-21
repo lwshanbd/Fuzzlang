@@ -372,9 +372,9 @@ matched Injector-versus-direct-edit experiment.
 Execution snapshot (2026-07-20): the new offline `google/gemma-4-31B-it`
 compiler-evidence loop has synthesized and replayed 13 record-emitting
 Injectors on two clean, test-free, source-overlap-excluded LLVM pools (2,213
-and 2,100 TUs). Eight archived campaigns yielded 457 structurally unique
-paired records (464 raw before structural deduplication) across 13 diagnostics
-and 207 source TUs; each accepted record has `corrected_src` and an exact
+and 2,100 TUs). Nine archived campaigns yielded 604 structurally unique
+paired records (614 raw before structural deduplication) across 16 diagnostics
+and 210 source TUs; each accepted record has `corrected_src` and an exact
 primary diagnostic match, and the audit found zero test paths. The archive
 manifest pins every synthesis/replay manifest and checksum. This is an
 in-progress construction result, not an E1 comparison: the matched DirectEdit
