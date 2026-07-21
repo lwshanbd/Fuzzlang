@@ -170,3 +170,50 @@ def test_cli_accepts_clean_source_pool_as_a_non_dataset_input(tmp_path, monkeypa
     assert payload["source_policy"]["clean_source_tu_allowed"] is True
     assert record.provenance.detail["source_pool"] == "clean_source_tu"
     assert "parent_record_id" not in record.provenance.detail
+
+
+def test_cli_can_limit_replay_to_requested_injector_ids(tmp_path, monkeypatch):
+    injectors = tmp_path / "injectors.jsonl"
+    sources = tmp_path / "sources.jsonl"
+    records = tmp_path / "records.jsonl"
+    rejections = tmp_path / "rejections.jsonl"
+    manifest = tmp_path / "manifest.json"
+    selected = _injector()
+    unselected = FuzzLangInjector(
+        target_diag="err_other_target",
+        target_diag_id=72,
+        language="c++",
+        operation="replace",
+        old_patterns=("<NUM>",),
+        new_text="bad_other",
+        left_context=("return",),
+        right_context=(";",),
+        portable=True,
+        replacement_parts=(("literal", "bad_other"),),
+    )
+    injectors.write_text(selected.to_json() + "\n" + unselected.to_json() + "\n")
+    sources.write_text(json.dumps(_source().to_dict(), sort_keys=True) + "\n")
+    monkeypatch.setattr(cli, "FuzzlangClangVerifier", _Verifier)
+
+    assert cli.main([
+        "--injectors", str(injectors),
+        "--injector-id", selected.injector_id,
+        "--sources", str(sources),
+        "--clang-bin", "/mock/clang++",
+        "--clang-c-bin", "/mock/clang",
+        "--diagtool-bin", "/mock/diagtool",
+        "--records-out", str(records),
+        "--rejections-out", str(rejections),
+        "--manifest-out", str(manifest),
+    ]) == 0
+
+    payload = json.loads(manifest.read_text())
+    assert payload["inputs"]["injectors"]["records"] == 2
+    assert payload["injector_selection"] == {
+        "requested_injector_ids": [selected.injector_id],
+        "selected_input_rows": 1,
+        "selected_injector_ids": [selected.injector_id],
+    }
+    assert [item["injector_id"] for item in payload["injectors"]] == [
+        selected.injector_id,
+    ]

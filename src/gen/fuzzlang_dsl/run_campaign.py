@@ -29,6 +29,15 @@ def _positive_int(value: str) -> int:
 def _parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--injectors", required=True, help="canonical Injector JSONL")
+    parser.add_argument(
+        "--injector-id",
+        dest="injector_ids",
+        action="append",
+        help=(
+            "replay only this Injector ID; repeat to shard a campaign across "
+            "workers"
+        ),
+    )
     parser.add_argument("--sources", help="canonical paired Record JSONL")
     parser.add_argument(
         "--clean-sources",
@@ -83,6 +92,22 @@ def _file_info(path: Path, *, rows: int | None = None) -> dict[str, Any]:
     return info
 
 
+def _select_injectors(
+    injectors, requested_ids: Sequence[str] | None,
+):
+    """Select requested Injector rows while retaining input-order determinism."""
+    if not requested_ids:
+        return list(injectors)
+    requested = set(requested_ids)
+    available = {injector.injector_id for injector in injectors}
+    missing = sorted(requested - available)
+    if missing:
+        raise ValueError(
+            "--injector-id not found in --injectors: " + ", ".join(missing)
+        )
+    return [injector for injector in injectors if injector.injector_id in requested]
+
+
 def main(argv: Sequence[str] | None = None) -> int:
     args = _parser().parse_args(argv)
     if args.timeout <= 0:
@@ -107,7 +132,8 @@ def main(argv: Sequence[str] | None = None) -> int:
     if output_paths & input_paths:
         raise ValueError("campaign outputs must not overwrite an input JSONL")
 
-    injectors = load_injectors_jsonl(injector_path)
+    all_injectors = load_injectors_jsonl(injector_path)
+    injectors = _select_injectors(all_injectors, args.injector_ids)
     source_records = load_records_jsonl(source_path) if source_path else []
     clean_sources = (
         load_clean_sources_jsonl(clean_source_path) if clean_source_path else []
@@ -177,7 +203,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         },
         "injectors": [item.to_dict() for item in result.injector_metrics],
         "inputs": {
-            "injectors": _file_info(injector_path, rows=len(injectors)),
+            "injectors": _file_info(injector_path, rows=len(all_injectors)),
             **(
                 {"sources": _file_info(source_path, rows=len(source_records))}
                 if source_path is not None else {}
@@ -188,6 +214,13 @@ def main(argv: Sequence[str] | None = None) -> int:
                 )}
                 if clean_source_path is not None else {}
             ),
+        },
+        "injector_selection": {
+            "requested_injector_ids": sorted(set(args.injector_ids or ())),
+            "selected_input_rows": len(injectors),
+            "selected_injector_ids": sorted({
+                injector.injector_id for injector in injectors
+            }),
         },
         "outputs": {
             "records": _file_info(records_path, rows=record_count),
