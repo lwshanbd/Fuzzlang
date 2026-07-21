@@ -61,6 +61,9 @@ def test_is_test_path_flags_test_and_example_dirs():
     assert is_test_path("/x/llvm/tools/llvm-c-test/main.c")
     assert is_test_path("/x/llvm/tools/bugpoint-passes/TestPasses.cpp")
     assert is_test_path("/x/llvm/tools/llvm-cov/TestingSupport.cpp")
+    assert is_test_path(
+        "/x/clang/lib/StaticAnalyzer/Checkers/TaintTesterChecker.cpp"
+    )
     assert not is_test_path("/x/llvm/lib/Support/APInt.cpp")
     assert not is_test_path("/x/clang/lib/Sema/SemaDecl.cpp")
 

@@ -1,0 +1,129 @@
+{
+  "aggregate_audit": {
+    "core_records": 249,
+    "diagnostics": 10,
+    "missing_corrected_src": 0,
+    "new_diagnostics_vs_frozen_realsource": [
+      "err_alias_declaration_pack_expansion",
+      "err_decltype_auto_initializer_list",
+      "err_destructor_not_member",
+      "err_misplaced_ellipsis_in_declaration",
+      "err_unexpected_nested_namespace_attribute"
+    ],
+    "new_diagnostics_vs_frozen_realsource_count": 5,
+    "raw_records": 249,
+    "structural_duplicates_removed": 0,
+    "structurally_deduplicated_records": 249,
+    "test_or_test_support_sources": 0,
+    "unique_injectors": 10,
+    "unique_source_tus": 113
+  },
+  "archive_root": "data/gen/experiments/compiler-evidence-injector-v0",
+  "campaigns": [
+    {
+      "name": "cpp-batch4",
+      "records": {
+        "count": 33,
+        "path": "data/gen/experiments/compiler-evidence-injector-v0/replay/cpp-batch4/records.jsonl",
+        "sha256": "41c199fc67785c45024889399a53aedd54cef4a0b982886f56aef494161c33b3"
+      },
+      "replay_manifest": {
+        "path": "data/gen/experiments/compiler-evidence-injector-v0/replay/cpp-batch4/manifest.json",
+        "sha256": "f7f11dbee8e83b7232b9d2f2d4b21737abe1ae585df75d0d71a5222f15af6b53"
+      },
+      "synthesis_manifest": {
+        "path": "data/gen/experiments/compiler-evidence-injector-v0/synthesis/cpp-batch4/manifest.json",
+        "sha256": "69ddcd118757083d892f59d6e074c1d3e0faa4db33b2e2136ecb98f4dbe0aad1"
+      }
+    },
+    {
+      "name": "cpp-batch4-retry1",
+      "records": {
+        "count": 20,
+        "path": "data/gen/experiments/compiler-evidence-injector-v0/replay/cpp-batch4-retry1/records.jsonl",
+        "sha256": "d30dde01fbdf1c4fa2c5943fa94f661373fa2b4bc09a7288f33e477de4dbbaf5"
+      },
+      "replay_manifest": {
+        "path": "data/gen/experiments/compiler-evidence-injector-v0/replay/cpp-batch4-retry1/manifest.json",
+        "sha256": "ecb037b825395d280fedf5c7ed69d25249a73391a9132940e9c2eedeabb90506"
+      },
+      "synthesis_manifest": {
+        "path": "data/gen/experiments/compiler-evidence-injector-v0/synthesis/cpp-batch4-retry1/manifest.json",
+        "sha256": "39c74478673b783298d000b608c920c6ff26969f3e7d8db5926666463641eaef"
+      }
+    },
+    {
+      "name": "cpp-batch4-retry2",
+      "records": {
+        "count": 46,
+        "path": "data/gen/experiments/compiler-evidence-injector-v0/replay/cpp-batch4-retry2/records.jsonl",
+        "sha256": "cdb9b804bdb31b34feefc1459868d675025421f8a5bfca84059da831b157ad0c"
+      },
+      "replay_manifest": {
+        "path": "data/gen/experiments/compiler-evidence-injector-v0/replay/cpp-batch4-retry2/manifest.json",
+        "sha256": "7fbc5ae5bb3742a60fb4acb2409e85ae28afb960825dc1ca30f2f93c1d88177d"
+      },
+      "synthesis_manifest": {
+        "path": "data/gen/experiments/compiler-evidence-injector-v0/synthesis/cpp-batch4-retry2/manifest.json",
+        "sha256": "7336f16e5cda60fdd453db496f208848bf4e93587258f252f15b1f36cdf18d19"
+      }
+    },
+    {
+      "name": "cpp-batch5",
+      "records": {
+        "count": 50,
+        "path": "data/gen/experiments/compiler-evidence-injector-v0/replay/cpp-batch5/records.jsonl",
+        "sha256": "d7393054c6d17ff1a4916f2443e2e0992cc129810afbb0109c6cdcc4ce6b7a3f"
+      },
+      "replay_manifest": {
+        "path": "data/gen/experiments/compiler-evidence-injector-v0/replay/cpp-batch5/manifest.json",
+        "sha256": "120ca3895af48afaa3f71ae71ffabd1accc977248b2cf5db4941e98f36a478da"
+      },
+      "synthesis_manifest": {
+        "path": "data/gen/experiments/compiler-evidence-injector-v0/synthesis/cpp-batch5/manifest.json",
+        "sha256": "af7b87c7fa485dc01ef4d7b0a56a6623d61658411fa8a9ceffbed32625b092f7"
+      }
+    },
+    {
+      "name": "cpp-batch6-real",
+      "records": {
+        "count": 100,
+        "path": "data/gen/experiments/compiler-evidence-injector-v0/replay/cpp-batch6-real/records.jsonl",
+        "sha256": "1e11ac60787933fbbe063b03dcd976cef96cc75928a671ddf08c138a97522802"
+      },
+      "replay_manifest": {
+        "path": "data/gen/experiments/compiler-evidence-injector-v0/replay/cpp-batch6-real/manifest.json",
+        "sha256": "8cc6d6eb198f131170adc22bd34a13098f3a4a8b5b732f148b4c9ccd8726172e"
+      },
+      "synthesis_manifest": {
+        "path": "data/gen/experiments/compiler-evidence-injector-v0/synthesis/cpp-batch6-real/manifest.json",
+        "sha256": "215975a533062680a45057463909a44a8b980fb03ddc6de35b1bbd3e612f6ab4"
+      }
+    }
+  ],
+  "compiler": {
+    "acceptance_rule": "correct parent compiles; mutant fails; primary typed diagnostic name exactly equals Injector target",
+    "llvm_version": "llvmorg-22.1.8"
+  },
+  "generation": {
+    "method": "local_gemma_compiler_evidence_to_fuzzlang_dsl_injector_then_replay",
+    "model": "google/gemma-4-31B-it",
+    "model_revision": "518276fb130dc81caf9a4f772e65e63ef2526493",
+    "paid_api_calls": false
+  },
+  "release_status": "experimental_archive_not_frozen_for_training_or_paper_aggregate",
+  "schema": "fuzzlang.compiler_evidence_injector_archive",
+  "schema_version": 1,
+  "source_policy": {
+    "clean_parent_verified": true,
+    "corrected_src_required": true,
+    "source_pool": {
+      "accepted_clean_sources": 2213,
+      "manifest_path": "data/gen/source-pools/llvm-22.1.8-unseen-v0/manifest.json",
+      "manifest_sha256": "b32da5337fbc33cd80fab17e634fa63548fb630f88b62407e621a149dba5f19c",
+      "project": "llvm",
+      "source_overlap_with_frozen_realsource_excluded": true
+    },
+    "test_and_test_support_excluded": true
+  }
+}

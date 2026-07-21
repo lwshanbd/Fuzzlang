@@ -1,7 +1,7 @@
 # FuzzLang: Progress
 
 Status against `FuzzLang-Proposal.md` and the executable plan in `plan.md`.
-LLVM is pinned to `llvmorg-22.1.8`; the current test suite has 349 passing and
+LLVM is pinned to `llvmorg-22.1.8`; the current test suite has 399 passing and
 5 environment-dependent skips. Detailed generation history is in
 `data/gen/README.md`.
 
@@ -101,6 +101,10 @@ excluded or isolated before NatErr becomes a valid held-out evaluation set.
   serialization and hashing, stable Injector IDs, replay limits, backward v0
   compatibility, deterministic fresh identifiers, safe token-boundary
   normalization, and execution through the bounded lexical matcher.
+- **Compiler-evidence Injector synthesis:** an offline Gemma-4-31B loop reads
+  TableGen/emission evidence plus verbatim correct production snippets, emits
+  one constrained FuzzLang Injector, semantically gates it on the supplied
+  snippets, and replays it only through the paired compiler verifier.
 - **Cross-project replay:** project-root-relative provenance, non-LLVM compile
   database replay, stable language inference for compiler commands without an
   explicit `-std`, and formal validation on held-out Abseil source.
@@ -230,6 +234,27 @@ Week-2 FuzzLang DSL gate, including transfer to a second C++ project. They do
 not replace the matched method experiment. The remaining method work is to
 synthesize/repair Injectors with local Gemma and run the matched
 Injector-versus-direct-edit experiment.
+
+### Local-Gemma Compiler-Evidence Campaign
+
+The new synthesis path is now running as a separately archived, **not yet
+frozen** experiment. For each target, the largest local model
+`google/gemma-4-31B-it` receives TableGen and emission-site evidence plus two
+verbatim snippets from clean LLVM production translation units; it proposes a
+single FuzzLang DSL Injector rather than editing every output record. Replay
+then accepts only a clean parent / failed mutant pair whose primary typed
+diagnostic exactly equals the Injector target. No paid API is used.
+
+The first five completed campaigns use a pool of 2,213 clean, source-overlap-
+excluded LLVM TUs (zero test/test-support paths). They archive **249** paired,
+structurally unique core records from **10** diagnostics and **113** source
+TUs, produced by 10 record-emitting Injectors. The audit found zero missing
+`corrected_src`, zero test paths, and five diagnostic names not present in the
+frozen RealSource/replay releases. The campaign-level synthesis/replay
+manifests, record checksums, model revision, and aggregate audit are pinned in
+`data/gen/releases/compiler-evidence-injector-v0/manifest.json` while the JSONL
+archives remain outside Git. This is construction evidence only: it is not yet
+a merged training release or the matched Injector-versus-DirectEdit result.
 
 ## Existing Repair Results: Useful but No Longer the Main Claim
 

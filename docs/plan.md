@@ -369,6 +369,17 @@ FuzzLang DSL gate therefore passes. No broader DSL redesign is authorized on
 the critical path; the next method work is Gemma Injector synthesis and the
 matched Injector-versus-direct-edit experiment.
 
+Execution snapshot (2026-07-20): the new offline `google/gemma-4-31B-it`
+compiler-evidence loop has synthesized and replayed ten record-emitting
+Injectors on a clean, test-free pool of 2,213 source-overlap-excluded LLVM TUs.
+Five archived campaigns yielded 249 structurally unique paired records across
+ten diagnostics and 113 source TUs; each accepted record has `corrected_src`
+and an exact primary diagnostic match, and the audit found zero test paths.
+The archive manifest pins every synthesis/replay manifest and checksum. This
+is an in-progress construction result, not an E1 comparison: the matched
+DirectEdit arm and cross-project replay of these synthesized Injectors remain
+required.
+
 ### 6.2 Gemma SFT Gate
 
 By the end of Week 2, the training path should:

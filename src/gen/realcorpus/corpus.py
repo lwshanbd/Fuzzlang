@@ -23,8 +23,8 @@ _SRC_EXTS = (".c", ".cc", ".cpp", ".cxx", ".c++")
 # Path components whose files are NOT proper project source (tests, test tools,
 # examples, benchmarks, fuzzers, vendored gtest/gmock).  Match the token even
 # inside names such as c-index-test, llvm-c-test, TestPasses.cpp, and
-# TestingSupport.cpp: those are compiled by LLVM but are still test-oriented
-# code and must not enter the real-project corpus.
+# TestingSupport.cpp, and TaintTesterChecker.cpp: those are compiled by LLVM
+# but are still test-oriented code and must not enter the real-project corpus.
 _TEST_COMPONENTS = frozenset({
     "test", "tests", "unittest", "unittests", "gtest", "gmock",
     "googletest", "googlemock", "example", "examples", "benchmark",
@@ -33,7 +33,7 @@ _TEST_COMPONENTS = frozenset({
 _TEST_HYPHEN_TOKEN_RE = re.compile(
     r"(?:^|-)(?:test|tests|gtest|gmock|example|examples|benchmark|benchmarks|"
     r"fuzz|fuzzer|fuzzing)(?:-|$)", re.I)
-_TEST_CAMEL_RE = re.compile(r"(?:Testing|Test)(?:[A-Z]|$)")
+_TEST_CAMEL_RE = re.compile(r"(?:Testing|Tester|Test)(?:[A-Z]|$)")
 
 
 def is_test_path(path: str) -> bool:
