@@ -370,15 +370,15 @@ the critical path; the next method work is Gemma Injector synthesis and the
 matched Injector-versus-direct-edit experiment.
 
 Execution snapshot (2026-07-20): the new offline `google/gemma-4-31B-it`
-compiler-evidence loop has synthesized and replayed ten record-emitting
-Injectors on a clean, test-free pool of 2,213 source-overlap-excluded LLVM TUs.
-Five archived campaigns yielded 249 structurally unique paired records across
-ten diagnostics and 113 source TUs; each accepted record has `corrected_src`
-and an exact primary diagnostic match, and the audit found zero test paths.
-The archive manifest pins every synthesis/replay manifest and checksum. This
-is an in-progress construction result, not an E1 comparison: the matched
-DirectEdit arm and cross-project replay of these synthesized Injectors remain
-required.
+compiler-evidence loop has synthesized and replayed 13 record-emitting
+Injectors on two clean, test-free, source-overlap-excluded LLVM pools (2,213
+and 2,100 TUs). Eight archived campaigns yielded 457 structurally unique
+paired records (464 raw before structural deduplication) across 13 diagnostics
+and 207 source TUs; each accepted record has `corrected_src` and an exact
+primary diagnostic match, and the audit found zero test paths. The archive
+manifest pins every synthesis/replay manifest and checksum. This is an
+in-progress construction result, not an E1 comparison: the matched DirectEdit
+arm and cross-project replay of these synthesized Injectors remain required.
 
 ### 6.2 Gemma SFT Gate
 
