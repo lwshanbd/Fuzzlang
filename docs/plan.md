@@ -380,6 +380,12 @@ manifest pins every synthesis/replay manifest and checksum. This is an
 in-progress construction result, not an E1 comparison: the matched DirectEdit
 arm and cross-project replay of these synthesized Injectors remain required.
 
+For reproducible gap-driven queue construction, `run_build_requests.py` now
+filters a TableGen gap list, retrieves two matching snippets from verified,
+non-test production TUs, and resolves the pinned compiler's diagnostic IDs.
+Archived recipes are retrieval-only feasibility seeds: their edits are never
+placed in the model prompt and never copied into a synthesized Injector.
+
 ### 6.2 Gemma SFT Gate
 
 By the end of Week 2, the training path should:

@@ -257,6 +257,11 @@ manifests, record checksums, model revision, and aggregate audit are pinned in
 archives remain outside Git. This is construction evidence only: it is not yet
 a merged training release or the matched Injector-versus-DirectEdit result.
 
+The checked-in request builder makes the next queue reproducible from a
+TableGen gap list and verified clean production code. Its optional archived
+recipe input only retrieves a real syntax shape; no recipe edit is passed to
+Gemma or reused as an Injector.
+
 ## Existing Repair Results: Useful but No Longer the Main Claim
 
 On 1,282/1,370 reproducible Breadth eval instances with a strong hosted model,
