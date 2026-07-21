@@ -70,6 +70,7 @@ def test_prompt_contains_diagnostic_evidence_real_snippets_and_v1_contract():
     assert "exactly one lexer token" in messages[0]["content"]
     assert "must itself appear as an exact match token" in messages[0]["content"]
     assert "identifier spellings do not match" in messages[0]["content"]
+    assert "An insert must use operation='insert', old_patterns=[]" in messages[0]["content"]
     assert '"value":"ID0"' in messages[0]["content"]
     assert "Set provenance.source_recipe_id to null" in messages[0]["content"]
     assert "FRESH0, FRESH1" in messages[0]["content"]
