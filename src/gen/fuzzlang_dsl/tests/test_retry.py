@@ -122,6 +122,7 @@ def test_select_replay_retry_requests_uses_compiler_feedback_and_prior_injector(
     assert "err_observed_instead" in feedback
     assert '"injector_id"' not in feedback
     assert '"target"' in feedback
+    assert "differ in at least one match or edit field" in feedback
     assert summary["retry_targets"] == 1
     assert summary["targets_with_exact_records"] == 1
 
