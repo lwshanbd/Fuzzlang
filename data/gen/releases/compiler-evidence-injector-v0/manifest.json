@@ -1,23 +1,24 @@
 {
   "aggregate_audit": {
-    "core_records": 827,
-    "diagnostics": 19,
+    "core_records": 837,
+    "diagnostics": 20,
     "missing_corrected_src": 0,
     "new_diagnostics_vs_frozen_realsource": [
       "err_alias_declaration_pack_expansion",
       "err_decltype_auto_initializer_list",
       "err_destructor_not_member",
       "err_misplaced_ellipsis_in_declaration",
+      "err_typecheck_subscript_not_integer",
       "err_unexpected_nested_namespace_attribute",
       "err_unexpected_qualified_namespace_alias"
     ],
-    "new_diagnostics_vs_frozen_realsource_count": 6,
-    "raw_records": 864,
+    "new_diagnostics_vs_frozen_realsource_count": 7,
+    "raw_records": 874,
     "structural_duplicates_removed": 37,
-    "structurally_deduplicated_records": 827,
+    "structurally_deduplicated_records": 837,
     "test_or_test_support_sources": 0,
-    "unique_injectors": 21,
-    "unique_source_tus": 210
+    "unique_injectors": 22,
+    "unique_source_tus": 216
   },
   "archive_root": "data/gen/experiments/compiler-evidence-injector-v0",
   "campaigns": [
@@ -180,6 +181,24 @@
       "synthesis_manifest": {
         "path": "data/gen/experiments/compiler-evidence-injector-v0/synthesis/cpp-batch11-witness-real/manifest.json",
         "sha256": "b6f34b85af8f5e18c6fd4685c56d1882ca6e9be5fbe2bd6b4c64cbad8cceab35"
+      },
+      "trigger_witness_is_dataset_source": false
+    },
+    {
+      "name": "cpp-batch12-witness-real-v1pool",
+      "evidence_mode": "tablegen_emission_real_snippets_compiler_validated_trigger_witness",
+      "records": {
+        "count": 10,
+        "path": "data/gen/experiments/compiler-evidence-injector-v0/replay/cpp-batch12-witness-real-v1pool/records.jsonl",
+        "sha256": "416470c751f2e07fb239d82ad61e2f6fcbfb962582b91ac3bb8d53d58525929a"
+      },
+      "replay_manifest": {
+        "path": "data/gen/experiments/compiler-evidence-injector-v0/replay/cpp-batch12-witness-real-v1pool/manifest.json",
+        "sha256": "f4a43008aa74341d56237be5ea8bb3328451b2dbaa265b52e77423b167ae3fcb"
+      },
+      "synthesis_manifest": {
+        "path": "data/gen/experiments/compiler-evidence-injector-v0/synthesis/cpp-batch12-witness-real/manifest.json",
+        "sha256": "454338801b99e9998cdf7a17ab81140a6b6f69475f45d47a300fc8c8e9743bfa"
       },
       "trigger_witness_is_dataset_source": false
     }

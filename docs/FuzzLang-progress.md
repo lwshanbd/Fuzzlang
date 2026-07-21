@@ -245,11 +245,11 @@ single FuzzLang DSL Injector rather than editing every output record. Replay
 then accepts only a clean parent / failed mutant pair whose primary typed
 diagnostic exactly equals the Injector target. No paid API is used.
 
-Ten completed campaigns use two clean LLVM production pools (2,213 and 2,100
+Eleven completed campaigns use two clean LLVM production pools (2,213 and 2,100
 TUs; zero test/test-support paths) built with source exclusions against the
-frozen RealSource release. They archive **827** paired, structurally unique
-core records from **19** diagnostics and **210** source TUs (864 raw records
-before 37 structural duplicates were removed), produced by 21 record-emitting
+frozen RealSource release. They archive **837** paired, structurally unique
+core records from **20** diagnostics and **216** source TUs (874 raw records
+before 37 structural duplicates were removed), produced by 22 record-emitting
 Injectors. The audit found zero missing `corrected_src` and zero test paths.
 The latest 250-record campaign uses a compiler-validated trigger witness only
 as synthesis evidence: all retained dataset pairs still come from real clean
