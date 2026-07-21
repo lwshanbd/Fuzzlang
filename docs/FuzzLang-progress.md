@@ -245,12 +245,15 @@ single FuzzLang DSL Injector rather than editing every output record. Replay
 then accepts only a clean parent / failed mutant pair whose primary typed
 diagnostic exactly equals the Injector target. No paid API is used.
 
-Eleven completed campaigns use two clean LLVM production pools (2,213 and 2,100
-TUs; zero test/test-support paths) built with source exclusions against the
-frozen RealSource release. They archive **837** paired, structurally unique
-core records from **20** diagnostics and **216** source TUs (874 raw records
-before 37 structural duplicates were removed), produced by 22 record-emitting
-Injectors. The audit found zero missing `corrected_src` and zero test paths.
+Twelve completed campaigns use two clean LLVM production pools (2,213 and
+2,100 TUs; zero test/test-support paths) built with source exclusions against
+the frozen RealSource release, plus one screened Abseil cross-project input.
+They archive **931** paired, structurally unique core records from **20**
+diagnostics and **233** source TUs (999 raw records before 68 structural
+duplicates were removed), produced by 22 record-emitting Injectors. The audit
+found zero missing `corrected_src` and zero test paths. The Abseil replay
+reverified each corrected parent before mutation and retained 125 raw
+exact-target outputs, providing a first cross-project transfer measurement.
 The latest 250-record campaign uses a compiler-validated trigger witness only
 as synthesis evidence: all retained dataset pairs still come from real clean
 LLVM production sources. The campaign-level synthesis/replay manifests, record

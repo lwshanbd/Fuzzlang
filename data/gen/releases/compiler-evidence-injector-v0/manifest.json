@@ -1,6 +1,6 @@
 {
   "aggregate_audit": {
-    "core_records": 837,
+    "core_records": 931,
     "diagnostics": 20,
     "missing_corrected_src": 0,
     "new_diagnostics_vs_frozen_realsource": [
@@ -13,12 +13,12 @@
       "err_unexpected_qualified_namespace_alias"
     ],
     "new_diagnostics_vs_frozen_realsource_count": 7,
-    "raw_records": 874,
-    "structural_duplicates_removed": 37,
-    "structurally_deduplicated_records": 837,
+    "raw_records": 999,
+    "structural_duplicates_removed": 68,
+    "structurally_deduplicated_records": 931,
     "test_or_test_support_sources": 0,
     "unique_injectors": 22,
-    "unique_source_tus": 216
+    "unique_source_tus": 233
   },
   "archive_root": "data/gen/experiments/compiler-evidence-injector-v0",
   "campaigns": [
@@ -201,6 +201,25 @@
         "sha256": "454338801b99e9998cdf7a17ab81140a6b6f69475f45d47a300fc8c8e9743bfa"
       },
       "trigger_witness_is_dataset_source": false
+    },
+    {
+      "name": "cpp-batch11-witness-abseil-v0",
+      "dataset_source_project": "abseil",
+      "evidence_mode": "tablegen_emission_real_snippets_compiler_validated_trigger_witness",
+      "records": {
+        "count": 125,
+        "path": "data/gen/experiments/compiler-evidence-injector-v0/replay/cpp-batch11-witness-abseil-v0/records.jsonl",
+        "sha256": "14a9147490670960021ba8c6c734e888188441e262d649485d7f2fe1a3d018e7"
+      },
+      "replay_manifest": {
+        "path": "data/gen/experiments/compiler-evidence-injector-v0/replay/cpp-batch11-witness-abseil-v0/manifest.json",
+        "sha256": "cfb2cf2fb439f40f766994effe1b2c778e42c25bf7fb4e115eb10c38a892dc16"
+      },
+      "synthesis_manifest": {
+        "path": "data/gen/experiments/compiler-evidence-injector-v0/synthesis/cpp-batch11-witness-real/manifest.json",
+        "sha256": "b6f34b85af8f5e18c6fd4685c56d1882ca6e9be5fbe2bd6b4c64cbad8cceab35"
+      },
+      "trigger_witness_is_dataset_source": false
     }
   ],
   "compiler": {
@@ -235,6 +254,16 @@
         "source_overlap_with_frozen_realsource_excluded": true,
         "prior_injector_campaign_sources_excluded_at_pool_creation": true,
         "later_campaigns_may_reuse_pool_sources": true
+      }
+    ],
+    "source_record_inputs": [
+      {
+        "corrected_sources_reverified_clean": true,
+        "input_records": 100,
+        "path": "data/gen/experiments/fuzzlang-dsl-v1/abseil-matched-expanded/formal/records.jsonl",
+        "project": "abseil",
+        "sha256": "14bc775841c9296f9413941796de24142906daf4c8d5e82d2bf7b5ba75321ebf",
+        "test_and_test_support_excluded": true
       }
     ],
     "test_and_test_support_excluded": true

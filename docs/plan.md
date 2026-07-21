@@ -372,9 +372,10 @@ matched Injector-versus-direct-edit experiment.
 Execution snapshot (2026-07-21): the offline `google/gemma-4-31B-it`
 compiler-evidence loop has synthesized and replayed 22 record-emitting
 Injectors on two clean, test-free LLVM production pools (2,213 and 2,100 TUs)
-that exclude frozen-RealSource overlaps. Eleven archived campaigns yielded 837
-structurally unique paired records (874 raw before structural deduplication)
-across 20 diagnostics and 216 source TUs; each accepted record has
+that exclude frozen-RealSource overlaps, with a first screened Abseil
+cross-project replay. Twelve archived campaigns yielded 931 structurally unique
+paired records (999 raw before structural deduplication) across 20 diagnostics
+and 233 source TUs; each accepted record has
 `corrected_src` and an exact primary diagnostic match, and the audit found zero
 test paths. The latest campaign gives Gemma a compiler-validated trigger
 witness as synthesis evidence only; retained data still originates solely from
