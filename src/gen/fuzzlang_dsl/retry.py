@@ -220,8 +220,16 @@ def select_replay_retry_requests(
             for injector_id in target_ids
             for diagnostic in observed_by_id[injector_id]
         }) or {"none; candidate mutants compiled cleanly"}) + ".\n"
+        prior_candidates: list[dict[str, Any]] = []
+        for injector_id in target_ids:
+            candidate = dict(injector_by_id[injector_id])
+            # The ID is derived from the transformation.  Showing it in the
+            # repair prompt encourages a model to copy a stale identity after
+            # changing the edit, which the schema correctly rejects.
+            candidate.pop("injector_id", None)
+            prior_candidates.append(candidate)
         feedback += "Prior Injector candidates:\n" + json.dumps(
-            [dict(injector_by_id[injector_id]) for injector_id in target_ids],
+            prior_candidates,
             ensure_ascii=False,
             sort_keys=True,
         )

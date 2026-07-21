@@ -120,7 +120,8 @@ def test_select_replay_retry_requests_uses_compiler_feedback_and_prior_injector(
     assert [row["diag_name"] for row in selected] == ["err_target"]
     feedback = selected[0]["emission_evidence"]
     assert "err_observed_instead" in feedback
-    assert "injector-near-miss" in feedback
+    assert '"injector_id"' not in feedback
+    assert '"target"' in feedback
     assert summary["retry_targets"] == 1
     assert summary["targets_with_exact_records"] == 1
 
