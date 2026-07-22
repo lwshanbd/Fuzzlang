@@ -15,6 +15,7 @@ from pathlib import Path
 from typing import Any, Iterable, Mapping, Sequence
 
 from foundation.compile_db import build_clang_argv
+from foundation.record import Record
 from foundation.verifier.base import BaseVerifier
 from gen.realcorpus.corpus import is_test_path, sanitize_cmd
 from gen.realcorpus.finalize import portable_source_path
@@ -258,4 +259,138 @@ def build_clean_source_pool(
             "attempted_clean_gates": len(candidates),
             "accepted_clean_sources": len(sources),
         },
+    )
+
+
+def build_clean_source_pool_from_records(
+    records: Iterable[Record],
+    verifier: BaseVerifier,
+    *,
+    project: str,
+    excluded_source_ids: Iterable[str] = (),
+    max_files: int | None = None,
+    workers: int = 8,
+    baseline_compiler: str = "llvmorg-22.1.8",
+) -> CleanSourcePoolResult:
+    """Revalidate correct parents archived in paired real-source records.
+
+    This lets a prior paired corpus seed a new, *clean-only* source pool for a
+    later campaign without trusting its historical compiler result.  Each
+    source is deduplicated by its stable ``project:path`` identity and passed
+    through the current verifier before it becomes a :class:`CleanSourceTU`.
+    The original compile command is retained only when it already uses the
+    placeholders required by the clean-pool schema.
+    """
+    if not project:
+        raise ValueError("project must be non-empty")
+    if max_files is not None and max_files < 0:
+        raise ValueError("max_files must be non-negative or None")
+    if workers <= 0:
+        raise ValueError("workers must be positive")
+
+    prefix = f"{project}:"
+    excluded = set(excluded_source_ids)
+    candidates: dict[str, tuple[str, str, str, tuple[str, ...]]] = {}
+    rejections: list[CleanSourceRejection] = []
+    counts: dict[str, int] = {
+        "record_candidates": 0,
+        "matching_project_records": 0,
+        "unique_source_candidates": 0,
+        "duplicate_parent_records": 0,
+        "test_sources": 0,
+        "invalid_record_provenance": 0,
+        "excluded_known_sources": 0,
+    }
+
+    for record in records:
+        counts["record_candidates"] += 1
+        source_id = record.provenance.source
+        if not source_id.startswith(prefix):
+            continue
+        counts["matching_project_records"] += 1
+        detail = record.provenance.detail
+        path = detail.get("source_path") if isinstance(detail, dict) else None
+        command = detail.get("compile_cmd") if isinstance(detail, dict) else None
+        expected_path = source_id[len(prefix):]
+        if (
+            not isinstance(path, str)
+            or not path
+            or path != expected_path
+            or not isinstance(command, list)
+            or not _valid_compile_cmd(command)
+            or not record.corrected_src
+            or record.language not in ("c", "c++")
+        ):
+            counts["invalid_record_provenance"] += 1
+            rejections.append(CleanSourceRejection(
+                "invalid_record_provenance", source_id,
+                path if isinstance(path, str) and path else expected_path,
+            ))
+            continue
+        if is_test_path(path) or is_test_path(source_id):
+            counts["test_sources"] += 1
+            continue
+        candidate = (path, record.language, record.corrected_src, tuple(command))
+        previous = candidates.get(source_id)
+        if previous is not None:
+            if previous == candidate:
+                counts["duplicate_parent_records"] += 1
+            else:
+                counts["invalid_record_provenance"] += 1
+                rejections.append(CleanSourceRejection(
+                    "conflicting_parent_snapshot", source_id, path,
+                ))
+            continue
+        candidates[source_id] = candidate
+
+    counts["unique_source_candidates"] = len(candidates)
+    scheduled: list[tuple[str, str, str, str, tuple[str, ...]]] = []
+    for source_id, (path, language, corrected_src, command) in sorted(candidates.items()):
+        if source_id in excluded:
+            counts["excluded_known_sources"] += 1
+            continue
+        scheduled.append((source_id, path, language, corrected_src, command))
+    if max_files is not None:
+        scheduled = scheduled[:max_files]
+
+    def process(item: tuple[str, str, str, str, tuple[str, ...]]):
+        source_id, path, language, corrected_src, command = item
+        try:
+            baseline = verifier.verify(
+                corrected_src, list(command), logical_path=path,
+            )
+        except Exception as error:  # retain a source-specific audit trail
+            return None, CleanSourceRejection(
+                "baseline_verifier_error", source_id, path,
+                f"{type(error).__name__}: {error}",
+            )
+        if not baseline.ok:
+            return None, CleanSourceRejection(
+                "corrected_not_clean", source_id, path,
+                observed_diag=(baseline.diag.diag_name if baseline.diag else None),
+            )
+        return CleanSourceTU(
+            source_id=source_id,
+            project=project,
+            source_path=path,
+            language=language,
+            corrected_src=corrected_src,
+            compile_cmd=command,
+            source_sha256=_source_sha256(corrected_src),
+            baseline_compiler=baseline_compiler,
+        ), None
+
+    sources: list[CleanSourceTU] = []
+    with ThreadPoolExecutor(max_workers=workers) as executor:
+        for source, rejection in executor.map(process, scheduled):
+            if source is not None:
+                sources.append(source)
+            elif rejection is not None:
+                rejections.append(rejection)
+    counts["attempted_clean_gates"] = len(scheduled)
+    counts["accepted_clean_sources"] = len(sources)
+    return CleanSourcePoolResult(
+        sources=tuple(sources),
+        rejections=tuple(rejections),
+        counts=counts,
     )
