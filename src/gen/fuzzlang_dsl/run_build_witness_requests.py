@@ -48,6 +48,28 @@ def _write_jsonl(path: Path, rows: Iterable[dict[str, object]]) -> int:
     return encoded.count("\n")
 
 
+def _excluded_target_diagnostics(paths: Iterable[Path]) -> set[str]:
+    """Load target names from earlier request queues for breadth-first batching."""
+    excluded: set[str] = set()
+    for path in paths:
+        for line_number, line in enumerate(path.read_text().splitlines(), 1):
+            if not line.strip():
+                continue
+            try:
+                value = json.loads(line)
+            except json.JSONDecodeError as error:
+                raise ValueError(
+                    f"{path}:{line_number}: invalid target JSON"
+                ) from error
+            name = value.get("diag_name") if isinstance(value, dict) else None
+            if not isinstance(name, str) or not name:
+                raise ValueError(
+                    f"{path}:{line_number}: expected non-empty diag_name"
+                )
+            excluded.add(name)
+    return excluded
+
+
 def _parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--recipes", type=Path, required=True)
@@ -58,6 +80,10 @@ def _parser() -> argparse.ArgumentParser:
     parser.add_argument("--out", type=Path, required=True)
     parser.add_argument("--audit-out", type=Path, required=True)
     parser.add_argument("--covered-records", type=Path, action="append", default=[])
+    parser.add_argument(
+        "--exclude-targets", type=Path, action="append", default=[],
+        help="JSONL request queues whose diag_name values are excluded",
+    )
     parser.add_argument(
         "--gap-list", type=Path,
         help="optional coverage gap JSONL; only its diagnostic names are eligible",
@@ -80,6 +106,7 @@ def main() -> int:
     sources = load_clean_sources_jsonl(args.clean_sources)
     catalog = load_catalog()
     covered = _covered_diagnostics(args.covered_records)
+    covered.update(_excluded_target_diagnostics(args.exclude_targets))
     eligible = _gap_diagnostics(args.gap_list)
     verifier = FuzzlangClangVerifier(
         args.clang_bin,

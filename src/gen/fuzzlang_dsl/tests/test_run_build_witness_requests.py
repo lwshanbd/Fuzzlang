@@ -95,3 +95,12 @@ def test_cli_writes_witness_backed_requests_and_audit(tmp_path, monkeypatch):
     assert run_build_witness_requests.main() == 0
     assert "r-private" not in out.read_text()
     assert json.loads(audit.read_text())["retrieval_recipe_id"] == "r-private"
+
+
+def test_excluded_target_loader_reads_prior_request_names(tmp_path):
+    prior = tmp_path / "prior.jsonl"
+    prior.write_text('{"diag_name":"err_a"}\n{"diag_name":"err_b"}\n')
+
+    assert run_build_witness_requests._excluded_target_diagnostics([prior]) == {
+        "err_a", "err_b",
+    }
