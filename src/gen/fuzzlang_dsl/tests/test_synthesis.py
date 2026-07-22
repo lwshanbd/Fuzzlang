@@ -75,6 +75,7 @@ def test_prompt_contains_diagnostic_evidence_real_snippets_and_v1_contract():
     assert "Set provenance.source_recipe_id to null" in messages[0]["content"]
     assert "FRESH0, FRESH1" in messages[0]["content"]
     assert "general AST" not in messages[0]["content"]
+    assert "No compiler-validated mutated witness has been supplied" in messages[0]["content"]
     user = messages[1]["content"]
     assert "err_typecheck_invalid_lvalue_addrof" in user
     assert "SemaExpr.cpp" in user
@@ -82,6 +83,28 @@ def test_prompt_contains_diagnostic_evidence_real_snippets_and_v1_contract():
     assert "int f()" in user and "int g()" in user
     assert '"schema_version": 1' in user
     assert '"source_recipe_id": null' in user
+
+
+def test_prompt_uses_witness_instruction_only_when_a_witness_pair_is_present():
+    request = SynthesisRequest(
+        diag_name="err_target",
+        diag_id=17,
+        diag_message="target message",
+        component="Sema",
+        language="c++",
+        correct_snippets=("int f() { return 0; }", "int g() { return 1; }"),
+        evidence=DiagnosticEvidence(
+            emission_evidence=(
+                "Correct local code window:\\nint f() { return 0; }\\n"
+                "Mutated local code window:\\nint f() { return ; }"
+            ),
+        ),
+    )
+
+    system = build_synthesis_messages(request)[0]["content"]
+
+    assert "infer one lexical transformation from that pair" in system
+    assert "No compiler-validated mutated witness has been supplied" not in system
 
 
 @pytest.mark.parametrize("count", [0, 1, 6])
