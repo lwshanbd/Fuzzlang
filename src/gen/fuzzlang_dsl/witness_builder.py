@@ -188,9 +188,11 @@ def _find_compiler_witness(
     token_cache: _SourceTokenCache,
     radius: int,
     max_candidates_per_source: int,
+    max_verifications_for_target: int,
 ) -> tuple[Optional[_TriggerWitness], Optional[str], bool]:
     """Return the first clean-parent compiler-confirmed witness for a recipe."""
     last_observed_diag: Optional[str] = None
+    target_verifications_start = verification_budget.used
     for source in sources:
         if source.language != recipe.language:
             continue
@@ -204,6 +206,8 @@ def _find_compiler_witness(
             continue
         is_clean = clean_cache.get(source.source_id)
         if is_clean is None:
+            if verification_budget.used - target_verifications_start >= max_verifications_for_target:
+                return None, last_observed_diag, verification_budget.exhausted
             if not verification_budget.claim():
                 return None, last_observed_diag, True
             try:
@@ -221,6 +225,8 @@ def _find_compiler_witness(
             continue
 
         for application in applications:
+            if verification_budget.used - target_verifications_start >= max_verifications_for_target:
+                return None, last_observed_diag, verification_budget.exhausted
             if not verification_budget.claim():
                 return None, last_observed_diag, True
             try:
@@ -300,6 +306,7 @@ def build_witness_synthesis_requests(
     witness_radius: int = 360,
     max_witness_candidates_per_source: int = 2,
     max_witness_verifications: int = 10_000,
+    max_witness_verifications_per_target: int | None = None,
 ) -> WitnessBuildResult:
     """Construct target requests backed by an exact compiler trigger witness.
 
@@ -322,6 +329,14 @@ def build_witness_synthesis_requests(
         or max_witness_verifications <= 0
     ):
         raise ValueError("max_witness_verifications must be a positive integer")
+    if max_witness_verifications_per_target is None:
+        max_witness_verifications_per_target = max_witness_verifications
+    if (
+        isinstance(max_witness_verifications_per_target, bool)
+        or not isinstance(max_witness_verifications_per_target, int)
+        or max_witness_verifications_per_target <= 0
+    ):
+        raise ValueError("max_witness_verifications_per_target must be positive")
 
     covered = set(covered_diag_names)
     eligible = None if eligible_diag_names is None else set(eligible_diag_names)
@@ -394,6 +409,7 @@ def build_witness_synthesis_requests(
                 token_cache=token_cache,
                 radius=witness_radius,
                 max_candidates_per_source=max_witness_candidates_per_source,
+                max_verifications_for_target=max_witness_verifications_per_target,
             )
             if observed is not None:
                 observed_diag = observed

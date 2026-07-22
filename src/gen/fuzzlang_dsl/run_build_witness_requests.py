@@ -95,6 +95,10 @@ def _parser() -> argparse.ArgumentParser:
     parser.add_argument("--witness-radius", type=int, default=360)
     parser.add_argument("--max-witness-candidates-per-source", type=int, default=2)
     parser.add_argument("--max-witness-verifications", type=int, default=10_000)
+    parser.add_argument(
+        "--max-witness-verifications-per-target", type=int,
+        help="cap compiler witness attempts spent on one diagnostic target",
+    )
     return parser
 
 
@@ -127,6 +131,9 @@ def main() -> int:
         witness_radius=args.witness_radius,
         max_witness_candidates_per_source=args.max_witness_candidates_per_source,
         max_witness_verifications=args.max_witness_verifications,
+        max_witness_verifications_per_target=(
+            args.max_witness_verifications_per_target
+        ),
     )
     # Name matching is already exact during witness compilation.  Resolve IDs
     # only after that expensive screening so a 500-target queue does not launch
