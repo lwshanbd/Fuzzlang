@@ -5,6 +5,7 @@ from dataclasses import replace
 
 from foundation.record import Origin, Provenance, Record, Split
 from foundation.types import DiagInfo, VerifierResult
+from gen.fuzzlang_dsl import campaign
 from gen.fuzzlang_dsl.campaign import CampaignBudget, run_campaign
 from gen.fuzzlang_dsl.injector import FuzzLangInjector, ReplayLimits
 from gen.realcorpus.clean_source_pool import CleanSourceTU
@@ -333,3 +334,25 @@ def test_campaign_can_replay_a_clean_source_pool_without_fabricating_parent_reco
     assert record.provenance.detail["source_sha256"] == source.source_sha256
     assert "parent_record_id" not in record.provenance.detail
     assert result.source_pool["input_clean_sources"] == 1
+
+
+def test_campaign_reuses_source_tokenization_across_injectors(monkeypatch):
+    source = _source_record("parent-cache", "llvm:llvm/lib/Cache.cpp")
+    original = campaign.lex_tokens
+    calls = 0
+
+    def counted(text):
+        nonlocal calls
+        calls += 1
+        return original(text)
+
+    monkeypatch.setattr(campaign, "lex_tokens", counted)
+    result = run_campaign(
+        [_injector("bad_exact"), _injector("bad_other")],
+        [source],
+        _FakeVerifier(),
+        budget=CampaignBudget(max_verifications=4),
+    )
+
+    assert len(result.records) == 1
+    assert calls == 1

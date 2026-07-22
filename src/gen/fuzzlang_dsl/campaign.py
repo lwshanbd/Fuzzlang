@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+from collections import OrderedDict
 from dataclasses import dataclass, field, replace
 from pathlib import Path
 from typing import Any, Mapping, Sequence
@@ -19,7 +20,7 @@ from foundation.verifier.base import BaseVerifier
 from gen.fuzzlang_dsl.injector import FuzzLangInjector, apply_injector
 from gen.realcorpus.clean_source_pool import CleanSourceTU
 from gen.realcorpus.corpus import is_test_path
-from gen.realcorpus.recipes import build_token_index, lex_tokens
+from gen.realcorpus.recipes import LexToken, build_token_index, lex_tokens
 
 
 @dataclass(frozen=True)
@@ -164,6 +165,28 @@ class _SourceTU:
     source_sha256: str | None = None
 
 
+class _SourceTokenCache:
+    """Cache lexical indexes across many Injector passes over one source pool."""
+
+    def __init__(self, maximum_entries: int) -> None:
+        self._maximum_entries = max(1, maximum_entries)
+        self._entries: OrderedDict[
+            str, tuple[list[LexToken], dict[str, tuple[int, ...]]],
+        ] = OrderedDict()
+
+    def get(
+        self, source: _SourceTU,
+    ) -> tuple[list[LexToken], dict[str, tuple[int, ...]]]:
+        cached = self._entries.pop(source.source_id, None)
+        if cached is None:
+            tokens = lex_tokens(source.corrected_src)
+            cached = tokens, build_token_index(tokens)
+        self._entries[source.source_id] = cached
+        if len(self._entries) > self._maximum_entries:
+            self._entries.popitem(last=False)
+        return cached
+
+
 def load_injectors_jsonl(path: str | Path) -> list[FuzzLangInjector]:
     """Load canonical Injector JSONL with line-numbered parse failures."""
     injectors: list[FuzzLangInjector] = []
@@ -214,6 +237,7 @@ def run_campaign(
         seen={source.source_id for source in sources},
         split=clean_source_split,
     ))
+    token_cache = _SourceTokenCache(maximum_entries=len(sources))
     unique_injectors = _deduplicate_injectors(injectors, rejections)
     metrics_by_id = {
         injector.injector_id: InjectorMetrics(
@@ -261,13 +285,13 @@ def run_campaign(
             # Applicability is a pure lexical check.  Do it before the costly
             # corrected-source compile gate so campaigns can scan large real
             # corpora without recompiling TUs this Injector cannot edit.
-            tokens = lex_tokens(source.corrected_src)
+            tokens, token_index = token_cache.get(source)
             applications = apply_injector(
                 source.corrected_src,
                 injector,
                 max_candidates=budget.max_candidates_per_source,
                 tokens=tokens,
-                token_index=build_token_index(tokens),
+                token_index=token_index,
             )
             if not applications:
                 continue
