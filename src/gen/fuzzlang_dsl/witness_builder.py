@@ -419,6 +419,11 @@ def build_witness_synthesis_requests(
             continue
 
         recipe, snippets, source_ids, witness = selected
+        # The first correct snippet must be the clean parent of the exact
+        # compiler witness.  It makes the model's executable lexical match
+        # check relevant to the very code window that demonstrated the target
+        # diagnostic, rather than merely to a similar shape elsewhere.
+        snippets = (witness.corrected_snippet,) + snippets[:snippets_per_target - 1]
         target_id = ids.get(name)
         if target_id is not None and (
             isinstance(target_id, bool) or not isinstance(target_id, int)

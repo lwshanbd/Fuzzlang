@@ -125,6 +125,33 @@ def test_builder_rejects_a_witness_with_the_wrong_typed_diagnostic():
     assert result.audits[0].observed_diag == "err_other"
 
 
+def test_builder_includes_the_witness_parent_as_a_correct_snippet():
+    sources = [
+        _source("lib/a.cpp", "bool a() { return true; }\n"),
+        _source("lib/b.cpp", "bool b() { return true; }\n"),
+        _source("lib/c.cpp", "bool c() { return true; }\n"),
+    ]
+
+    def policy(source, _cmd, _path):
+        if "bool c() { return false; }" in source:
+            return VerifierResult(False, _diag("err_target", 17), "typed error")
+        if "return false;" in source:
+            return VerifierResult(False, _diag("err_other", 18), "typed error")
+        return VerifierResult(True, None, "")
+
+    result = build_witness_synthesis_requests(
+        [_recipe()],
+        sources,
+        _catalog(),
+        MockVerifier(policy),
+        diag_ids={"err_target": 17},
+        max_targets=1,
+    )
+
+    assert len(result.requests) == 1
+    assert "bool c() { return true; }" in result.requests[0].correct_snippets[0]
+
+
 def test_builder_defers_targets_when_the_compiler_witness_budget_is_exhausted():
     sources = [
         _source("lib/a.cpp", "bool a() { return true; }\n"),
