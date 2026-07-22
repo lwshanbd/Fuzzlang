@@ -38,3 +38,22 @@ def test_prioritizes_selected_witness_sources_once_and_preserves_remaining_order
         "llvm:lib/b.cpp", "llvm:lib/a.cpp",
     )
     assert result.missing_witness_source_ids == ()
+
+
+def test_prioritizes_real_snippet_sources_from_non_witness_request_audits():
+    result = prioritize_witness_sources(
+        [_source("a"), _source("b"), _source("c")],
+        [
+            {
+                "status": "selected",
+                "source_ids": ["llvm:lib/c.cpp", "llvm:lib/a.cpp"],
+            },
+        ],
+    )
+
+    assert [source.source_id for source in result.sources] == [
+        "llvm:lib/c.cpp", "llvm:lib/a.cpp", "llvm:lib/b.cpp",
+    ]
+    assert result.prioritized_source_ids == (
+        "llvm:lib/c.cpp", "llvm:lib/a.cpp",
+    )

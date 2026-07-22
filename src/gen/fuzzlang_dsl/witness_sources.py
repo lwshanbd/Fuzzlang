@@ -20,7 +20,13 @@ def prioritize_witness_sources(
     sources: Iterable[CleanSourceTU],
     audit_rows: Iterable[Mapping[str, object]],
 ) -> WitnessSourceOrder:
-    """Move selected-request witness TUs to the front without dropping sources."""
+    """Move selected evidence TUs to the front without dropping sources.
+
+    Witness-builder audits carry one ``witness_source_id``.  The broader
+    request builder has no mutated witness but does carry the two real snippet
+    ``source_ids`` on which a synthesized lexical Injector is required to
+    match.  Both are valuable replay anchors.
+    """
     source_list = tuple(sources)
     by_id = {source.source_id: source for source in source_list}
     requested: list[str] = []
@@ -28,11 +34,21 @@ def prioritize_witness_sources(
     for row in audit_rows:
         if row.get("status") != "selected":
             continue
-        source_id = row.get("witness_source_id")
-        if not isinstance(source_id, str) or not source_id or source_id in seen:
-            continue
-        seen.add(source_id)
-        requested.append(source_id)
+        row_source_ids: list[str] = []
+        witness_source_id = row.get("witness_source_id")
+        if isinstance(witness_source_id, str) and witness_source_id:
+            row_source_ids.append(witness_source_id)
+        snippet_source_ids = row.get("source_ids")
+        if isinstance(snippet_source_ids, (list, tuple)):
+            row_source_ids.extend(
+                source_id for source_id in snippet_source_ids
+                if isinstance(source_id, str) and source_id
+            )
+        for source_id in row_source_ids:
+            if source_id in seen:
+                continue
+            seen.add(source_id)
+            requested.append(source_id)
 
     prioritized = tuple(source_id for source_id in requested if source_id in by_id)
     missing = tuple(source_id for source_id in requested if source_id not in by_id)
