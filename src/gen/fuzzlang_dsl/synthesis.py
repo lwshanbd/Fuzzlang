@@ -151,7 +151,17 @@ def build_synthesis_messages(request: SynthesisRequest) -> list[dict[str, str]]:
         "Correct local code window:" in emission_evidence
         and "Mutated local code window:" in emission_evidence
     )
+    has_near_miss_pair = (
+        "Compiler replay near-miss evidence (not target-validated):"
+        in emission_evidence
+    )
     inference_instruction = (
+        "The compiler evidence includes a real correct/mutated *near-miss* "
+        "pair. It emitted a different diagnostic, so do not copy its edit; "
+        "use the exact local contrast and observed diagnostic to revise the "
+        "transformation toward the requested target, then dry-run the revised "
+        "lexical matcher against the correct window before emitting JSON."
+        if has_near_miss_pair and has_witness_pair else
         "The compiler evidence includes a correct/mutated local witness pair: "
         "infer one lexical transformation from that pair, then dry-run its "
         "lexical matcher against the correct window before emitting JSON."

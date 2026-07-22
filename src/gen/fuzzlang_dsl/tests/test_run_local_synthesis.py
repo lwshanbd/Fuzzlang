@@ -67,9 +67,10 @@ def test_run_archives_raw_attempt_injector_and_no_api_manifest(tmp_path: Path):
     assert manifest["counts"] == {
         "requests": 1,
         "candidates": 2,
-        "accepted_candidates": 1,
-        "unique_injectors": 1,
-        "rejected_candidates": 1,
+            "accepted_candidates": 1,
+            "unique_injectors": 1,
+            "rejected_candidates": 1,
+            "excluded_injector_identities": 0,
     }
     rows = [json.loads(line) for line in
             (tmp_path / "attempts.jsonl").read_text().splitlines()]
@@ -96,3 +97,36 @@ def test_select_request_range_is_bounded_and_deterministic():
         select_request_range(requests, start=-1)
     with pytest.raises(ValueError, match="stop"):
         select_request_range(requests, start=2, stop=4)
+
+
+def test_run_rejects_candidates_with_an_excluded_injector_identity(tmp_path: Path):
+    request = SynthesisRequest(
+        diag_name="err_example",
+        diag_id=17,
+        diag_message="example error",
+        component="Sema",
+        language="c++",
+        correct_snippets=(
+            "int f(){ int x=0; return x; }",
+            "int g(){ int y=1; return y; }",
+        ),
+    )
+    payload = _payload()
+    excluded_id = FuzzLangInjector.from_dict(payload).injector_id
+    backend = MockChatBackend([[ChatResponse(json.dumps(payload), 23)]])
+
+    manifest = run_synthesis_campaign(
+        (request,),
+        backend,
+        output_dir=tmp_path,
+        model_name="google/gemma-4-31B-it",
+        model_revision=DEFAULT_GEMMA_31B_REVISION,
+        excluded_injector_ids=(excluded_id,),
+    )
+
+    assert manifest["counts"]["accepted_candidates"] == 0
+    assert manifest["counts"]["unique_injectors"] == 0
+    assert manifest["counts"]["rejected_candidates"] == 1
+    attempt = json.loads((tmp_path / "attempts.jsonl").read_text())
+    assert attempt["status"] == "rejected"
+    assert attempt["reason"] == "duplicate_excluded_injector"

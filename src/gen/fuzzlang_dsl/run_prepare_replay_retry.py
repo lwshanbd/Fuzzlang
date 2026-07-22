@@ -9,9 +9,11 @@ from pathlib import Path
 from typing import Any, Iterable, Sequence
 
 from gen.fuzzlang_dsl.retry import (
+    build_near_miss_witness_evidence,
     load_json_rows,
     select_replay_retry_requests,
 )
+from gen.realcorpus.clean_source_pool import load_clean_sources_jsonl
 
 
 def _canonical_json(value: Any) -> str:
@@ -56,6 +58,13 @@ def _parser() -> argparse.ArgumentParser:
         "--rejections", type=Path, action="append", required=True,
         help="replay rejections JSONL; repeat for sharded campaigns",
     )
+    parser.add_argument(
+        "--clean-sources", type=Path,
+        help=(
+            "optional verified CleanSourceTU JSONL used to reconstruct one "
+            "correct/mutated near-miss window per replayed Injector"
+        ),
+    )
     parser.add_argument("--out", type=Path, required=True)
     parser.add_argument("--manifest-out", type=Path, required=True)
     return parser
@@ -71,6 +80,8 @@ def main(argv: Sequence[str] | None = None) -> int:
         *(path.resolve() for path in args.campaign_manifest),
         *(path.resolve() for path in args.rejections),
     }
+    if args.clean_sources is not None:
+        input_paths.add(args.clean_sources.resolve())
     if output_paths & input_paths:
         raise ValueError("replay retry outputs must not overwrite inputs")
 
@@ -80,8 +91,20 @@ def main(argv: Sequence[str] | None = None) -> int:
     rejections = [
         row for path in args.rejections for row in load_json_rows(path)
     ]
+    clean_sources = (
+        load_clean_sources_jsonl(args.clean_sources)
+        if args.clean_sources is not None else []
+    )
+    near_miss_evidence = (
+        build_near_miss_witness_evidence(injectors, clean_sources, rejections)
+        if args.clean_sources is not None else {}
+    )
     selected, summary = select_replay_retry_requests(
-        requests, injectors, campaigns, rejections,
+        requests,
+        injectors,
+        campaigns,
+        rejections,
+        near_miss_evidence_by_injector=near_miss_evidence,
     )
     rows = _write_jsonl(args.out, selected)
     manifest = {
@@ -99,7 +122,14 @@ def main(argv: Sequence[str] | None = None) -> int:
                 _file_info(path, rows=len(load_json_rows(path)))
                 for path in args.rejections
             ],
+            **(
+                {"clean_sources": _file_info(
+                    args.clean_sources, rows=len(clean_sources),
+                )}
+                if args.clean_sources is not None else {}
+            ),
         },
+        "near_miss_witnesses": len(near_miss_evidence),
         "outputs": {"requests": _file_info(args.out, rows=rows)},
     }
     args.manifest_out.parent.mkdir(parents=True, exist_ok=True)

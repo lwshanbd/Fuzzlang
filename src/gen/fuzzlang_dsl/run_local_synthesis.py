@@ -9,6 +9,7 @@ from collections import Counter
 from pathlib import Path
 from typing import Any, Iterable, Sequence, TypeVar
 
+from gen.fuzzlang_dsl.injector import FuzzLangInjector
 from gen.fuzzlang_dsl.local_gemma import (
     DEFAULT_GEMMA_31B_MODEL,
     DEFAULT_GEMMA_31B_REVISION,
@@ -83,6 +84,7 @@ def run_synthesis_campaign(
     n_candidates: int = 1,
     temperature: float = 0.2,
     max_tokens: int = 1200,
+    excluded_injector_ids: Iterable[str] = (),
 ) -> dict[str, Any]:
     """Run bounded synthesis and preserve every raw/validated outcome."""
     require_gemma_31b(model_name)
@@ -96,6 +98,9 @@ def run_synthesis_campaign(
     _write_jsonl(injectors_path, ())
     attempts: list[dict[str, Any]] = []
     injectors: dict[str, dict[str, Any]] = {}
+    excluded_ids = frozenset(excluded_injector_ids)
+    if any(not isinstance(injector_id, str) or not injector_id for injector_id in excluded_ids):
+        raise ValueError("excluded Injector IDs must be non-empty strings")
     rejection_counts: Counter[str] = Counter()
     accepted_candidates = 0
     output_tokens = 0
@@ -119,10 +124,18 @@ def run_synthesis_campaign(
             prompt_tokens += result.usage.prompt_tokens
         for attempt in result.attempts:
             injector_id = None
+            status = attempt.status
+            reason = attempt.reason
             if attempt.injector is not None:
-                accepted_candidates += 1
-                injector_id = attempt.injector.injector_id
-                injectors.setdefault(injector_id, attempt.injector.to_dict())
+                candidate_id = attempt.injector.injector_id
+                if candidate_id in excluded_ids:
+                    status = "rejected"
+                    reason = "duplicate_excluded_injector"
+                    rejection_counts[reason] += 1
+                else:
+                    accepted_candidates += 1
+                    injector_id = candidate_id
+                    injectors.setdefault(injector_id, attempt.injector.to_dict())
             elif attempt.reason is not None:
                 rejection_counts[attempt.reason] += 1
             attempts.append({
@@ -130,8 +143,8 @@ def run_synthesis_campaign(
                 "diag_name": request.diag_name,
                 "diag_id": request.diag_id,
                 "candidate_index": attempt.candidate_index,
-                "status": attempt.status,
-                "reason": attempt.reason,
+                "status": status,
+                "reason": reason,
                 "injector_id": injector_id,
                 "output_tokens": attempt.output_tokens,
                 "raw_text": attempt.raw_text,
@@ -170,6 +183,7 @@ def run_synthesis_campaign(
             "accepted_candidates": accepted_candidates,
             "unique_injectors": len(injectors),
             "rejected_candidates": candidates - accepted_candidates,
+            "excluded_injector_identities": len(excluded_ids),
         },
         "tokens": {
             "prompt": prompt_tokens if prompt_tokens_known else None,
@@ -211,7 +225,31 @@ def _parser() -> argparse.ArgumentParser:
         "--request-stop", type=int,
         help="zero-based exclusive request index for a bounded retry shard",
     )
+    parser.add_argument(
+        "--exclude-injectors", type=Path, action="append",
+        help=(
+            "canonical Injector JSONL whose identities must be rejected from "
+            "this synthesis run; repeat for multiple prior batches"
+        ),
+    )
     return parser
+
+
+def load_excluded_injector_ids(paths: Sequence[Path] | None) -> tuple[str, ...]:
+    """Read canonical prior Injector artifacts into a deterministic ID set."""
+    ids: set[str] = set()
+    for path in paths or ():
+        for line_number, line in enumerate(path.read_text().splitlines(), 1):
+            if not line.strip():
+                continue
+            try:
+                injector = FuzzLangInjector.from_json(line)
+            except ValueError as error:
+                raise ValueError(
+                    f"{path}:{line_number}: invalid excluded Injector: {error}"
+                ) from error
+            ids.add(injector.injector_id)
+    return tuple(sorted(ids))
 
 
 def main() -> None:
@@ -227,6 +265,7 @@ def main() -> None:
         requests = select_request_range(
             all_requests, start=args.request_start, stop=args.request_stop,
         )
+        excluded_ids = load_excluded_injector_ids(args.exclude_injectors)
     except ValueError as error:
         _parser().error(str(error))
     backend = LocalGemma31BBackend(args.model_path, seed=args.seed)
@@ -239,6 +278,7 @@ def main() -> None:
         n_candidates=args.candidates,
         temperature=args.temperature,
         max_tokens=args.max_tokens,
+        excluded_injector_ids=excluded_ids,
     )
     print(json.dumps(manifest["counts"], sort_keys=True))
 

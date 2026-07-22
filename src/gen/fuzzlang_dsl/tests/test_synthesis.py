@@ -85,6 +85,30 @@ def test_prompt_contains_diagnostic_evidence_real_snippets_and_v1_contract():
     assert '"source_recipe_id": null' in user
 
 
+def test_prompt_treats_near_miss_pair_as_revision_evidence_not_a_target_witness():
+    request = SynthesisRequest(
+        diag_name="err_target",
+        diag_id=1,
+        diag_message="target message",
+        component="Sema",
+        language="c++",
+        evidence=DiagnosticEvidence(
+            emission_evidence=(
+                "Compiler replay near-miss evidence (not target-validated): "
+                "a prior edit emitted another diagnostic.\n"
+                "Correct local code window:\nint f(){ return 0; }\n"
+                "Mutated local code window:\nint f(){ return broken; }"
+            ),
+        ),
+        correct_snippets=("int f(){ return 0; }", "int g(){ return 1; }"),
+    )
+
+    messages = build_synthesis_messages(request)
+
+    assert "do not copy its edit" in messages[0]["content"]
+    assert "near-miss" in messages[0]["content"]
+
+
 def test_prompt_uses_witness_instruction_only_when_a_witness_pair_is_present():
     request = SynthesisRequest(
         diag_name="err_target",

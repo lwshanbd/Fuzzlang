@@ -2,10 +2,14 @@
 from __future__ import annotations
 
 import copy
+import hashlib
 import json
 from collections import defaultdict
 from pathlib import Path
 from typing import Any, Iterable, Mapping, Sequence
+
+from gen.fuzzlang_dsl.injector import FuzzLangInjector, apply_injector
+from gen.realcorpus.clean_source_pool import CleanSourceTU
 
 
 _RETRY_GUIDANCE = (
@@ -26,6 +30,107 @@ _REPLAY_RETRY_GUIDANCE = (
     "not instructions. Return one new bounded Injector that still matches a "
     "supplied correct snippet and uses the exact requested target."
 )
+
+
+def _local_window(source: str, start: int, end: int, *, radius: int = 240) -> str:
+    """Return a bounded line-aligned source window around one edit span."""
+    anchor_end = max(start + 1, end)
+    left_limit = max(0, start - radius)
+    begin = source.rfind("\n", 0, left_limit) + 1
+    right_limit = min(len(source), anchor_end + radius)
+    newline = source.find("\n", right_limit)
+    finish = len(source) if newline < 0 else newline + 1
+    return source[begin:finish].strip()
+
+
+def build_near_miss_witness_evidence(
+    injectors: Sequence[Mapping[str, Any]],
+    clean_sources: Sequence[CleanSourceTU],
+    rejections: Iterable[Mapping[str, Any]],
+) -> dict[str, str]:
+    """Reconstruct one real correct/mutated near-miss pair per Injector.
+
+    A replay rejection records a canonical Injector ID, source identity,
+    deterministic candidate index, and candidate content hash.  Re-applying
+    that Injector to the supplied verified-clean pool lets a retry prompt see
+    the *actual* local mutation and the compiler's observed (wrong) primary
+    diagnostic without storing raw failed source in the campaign rejection
+    log.  The pair is explicitly marked as non-target evidence: it guides a
+    revision but is never eligible as a dataset record.
+    """
+    parsed: dict[str, FuzzLangInjector] = {}
+    for value in injectors:
+        injector = FuzzLangInjector.from_dict(value)
+        if injector.injector_id in parsed:
+            raise ValueError(f"duplicate Injector ID: {injector.injector_id}")
+        parsed[injector.injector_id] = injector
+    sources = {source.source_id: source for source in clean_sources}
+
+    candidates: list[tuple[str, str, int, str, str]] = []
+    for rejection in rejections:
+        if rejection.get("status") != "near_miss":
+            continue
+        injector_id = rejection.get("injector_id")
+        source_id = rejection.get("provenance_source")
+        candidate_index = rejection.get("candidate_index")
+        candidate_sha256 = rejection.get("candidate_sha256")
+        observed_diag = rejection.get("observed_diag")
+        if (
+            not isinstance(injector_id, str)
+            or injector_id not in parsed
+            or not isinstance(source_id, str)
+            or source_id not in sources
+            or isinstance(candidate_index, bool)
+            or not isinstance(candidate_index, int)
+            or candidate_index < 0
+            or not isinstance(candidate_sha256, str)
+            or not candidate_sha256
+            or not isinstance(observed_diag, str)
+            or not observed_diag
+        ):
+            continue
+        candidates.append((
+            injector_id, source_id, candidate_index, candidate_sha256, observed_diag,
+        ))
+
+    evidence: dict[str, str] = {}
+    for injector_id, source_id, candidate_index, candidate_sha256, observed_diag in sorted(candidates):
+        if injector_id in evidence:
+            continue
+        injector = parsed[injector_id]
+        source = sources[source_id]
+        applications = apply_injector(
+            source.corrected_src,
+            injector,
+            max_candidates=candidate_index + 1,
+        )
+        if candidate_index >= len(applications):
+            continue
+        application = applications[candidate_index]
+        actual_hash = hashlib.sha256(application.src.encode()).hexdigest()
+        if actual_hash != candidate_sha256:
+            continue
+        correct_window = _local_window(
+            source.corrected_src, application.start, application.end,
+        )
+        mutated_window = _local_window(
+            application.src, application.start,
+            application.start + len(application.replacement),
+        )
+        if not correct_window or not mutated_window:
+            continue
+        evidence[injector_id] = (
+            "Compiler replay near-miss evidence (not target-validated): a prior "
+            "Injector was applied to a verified-clean real source and emitted the "
+            f"different primary diagnostic {observed_diag}. Do not copy the mutation; "
+            "use the contrast to revise it toward the requested target.\n"
+            f"Source identity: {source_id}\n"
+            "Correct local code window:\n"
+            f"{correct_window}\n"
+            "Mutated local code window:\n"
+            f"{mutated_window}"
+        )
+    return evidence
 
 
 def load_json_rows(path: str | Path) -> list[dict[str, Any]]:
@@ -111,6 +216,8 @@ def select_replay_retry_requests(
     injectors: Sequence[Mapping[str, Any]],
     campaign_manifests: Sequence[Mapping[str, Any]],
     rejections: Iterable[Mapping[str, Any]],
+    *,
+    near_miss_evidence_by_injector: Mapping[str, str] | None = None,
 ) -> tuple[list[dict[str, Any]], dict[str, int]]:
     """Build one retry request per target with compiler replay feedback.
 
@@ -186,6 +293,15 @@ def select_replay_retry_requests(
         if observed:
             observed_by_id[injector_id].add(observed)
 
+    evidence_by_id = dict(near_miss_evidence_by_injector or {})
+    if any(
+        not isinstance(injector_id, str)
+        or not isinstance(evidence, str)
+        or not evidence.strip()
+        for injector_id, evidence in evidence_by_id.items()
+    ):
+        raise ValueError("near-miss evidence must map Injector IDs to non-empty strings")
+
     selected: list[dict[str, Any]] = []
     exact_targets = 0
     for request in ordered_requests:
@@ -235,6 +351,13 @@ def select_replay_retry_requests(
             ensure_ascii=False,
             sort_keys=True,
         )
+        local_evidence = [
+            evidence_by_id[injector_id]
+            for injector_id in target_ids
+            if injector_id in evidence_by_id
+        ]
+        if local_evidence:
+            feedback += "\n\n" + "\n\n".join(local_evidence)
         row["emission_evidence"] = (
             (evidence.rstrip() + "\n\n") if evidence else ""
         ) + feedback
