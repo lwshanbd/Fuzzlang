@@ -52,6 +52,28 @@ def _gap_diagnostics(path: Path | None) -> set[str] | None:
     }
 
 
+def _excluded_target_diagnostics(paths: Iterable[Path]) -> set[str]:
+    """Load target names from earlier queues to make broad batches disjoint."""
+    excluded: set[str] = set()
+    for path in paths:
+        for line_number, line in enumerate(path.read_text().splitlines(), 1):
+            if not line.strip():
+                continue
+            try:
+                value = json.loads(line)
+            except json.JSONDecodeError as error:
+                raise ValueError(
+                    f"{path}:{line_number}: invalid target JSON"
+                ) from error
+            name = value.get("diag_name") if isinstance(value, dict) else None
+            if not isinstance(name, str) or not name:
+                raise ValueError(
+                    f"{path}:{line_number}: expected non-empty diag_name"
+                )
+            excluded.add(name)
+    return excluded
+
+
 def _write_jsonl(path: Path, rows: Iterable[dict[str, object]]) -> int:
     path.parent.mkdir(parents=True, exist_ok=True)
     encoded = "".join(
@@ -71,6 +93,10 @@ def _parser() -> argparse.ArgumentParser:
     parser.add_argument("--audit-out", type=Path, required=True)
     parser.add_argument("--covered-records", type=Path, action="append", default=[])
     parser.add_argument(
+        "--exclude-targets", type=Path, action="append", default=[],
+        help="request queues whose diagnostic names must not be retried",
+    )
+    parser.add_argument(
         "--gap-list", type=Path,
         help="optional coverage gap JSONL; only its diagnostic names are eligible",
     )
@@ -85,11 +111,13 @@ def main() -> int:
     recipes = _load_recipes(args.recipes)
     sources = load_clean_sources_jsonl(args.clean_sources)
     catalog = load_catalog()
+    covered = _covered_diagnostics(args.covered_records)
+    covered.update(_excluded_target_diagnostics(args.exclude_targets))
     result = build_synthesis_requests(
         recipes,
         sources,
         catalog,
-        covered_diag_names=_covered_diagnostics(args.covered_records),
+        covered_diag_names=covered,
         eligible_diag_names=_gap_diagnostics(args.gap_list),
         max_targets=args.max_targets,
         snippets_per_target=args.snippets_per_target,

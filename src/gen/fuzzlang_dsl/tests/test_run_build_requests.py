@@ -85,3 +85,12 @@ def test_cli_writes_model_requests_and_retrieval_audit_without_recipe_edit_leaka
     assert request["diag_name"] == "err_gap"
     assert "r1" not in out.read_text()
     assert json.loads(audit.read_text())["retrieval_recipe_id"] == "r1"
+
+
+def test_excluded_target_diagnostics_loads_prior_request_queues(tmp_path):
+    queue = tmp_path / "prior-requests.jsonl"
+    queue.write_text(json.dumps({"diag_name": "err_already_attempted"}) + "\n")
+
+    assert run_build_requests._excluded_target_diagnostics([queue]) == {
+        "err_already_attempted",
+    }
