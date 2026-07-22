@@ -118,3 +118,26 @@ def test_builder_rejects_a_witness_with_the_wrong_typed_diagnostic():
     assert result.requests == ()
     assert result.audits[0].status == "skipped_no_compiler_validated_witness"
     assert result.audits[0].observed_diag == "err_other"
+
+
+def test_builder_defers_targets_when_the_compiler_witness_budget_is_exhausted():
+    sources = [
+        _source("lib/a.cpp", "bool a() { return true; }\n"),
+        _source("lib/b.cpp", "bool b() { return true; }\n"),
+    ]
+    result = build_witness_synthesis_requests(
+        [_recipe()],
+        sources,
+        _catalog(),
+        MockVerifier(lambda _source, _cmd, _path: VerifierResult(True, None, "")),
+        diag_ids={"err_target": 17},
+        max_targets=1,
+        max_witness_verifications=1,
+    )
+
+    assert result.requests == ()
+    assert result.audits[0].status == "deferred_witness_budget"
+    assert result.verification_usage == {
+        "max_witness_verifications": 1,
+        "used_witness_verifications": 1,
+    }

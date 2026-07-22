@@ -68,6 +68,7 @@ def _parser() -> argparse.ArgumentParser:
     parser.add_argument("--snippet-radius", type=int, default=240)
     parser.add_argument("--witness-radius", type=int, default=360)
     parser.add_argument("--max-witness-candidates-per-source", type=int, default=2)
+    parser.add_argument("--max-witness-verifications", type=int, default=10_000)
     return parser
 
 
@@ -98,6 +99,7 @@ def main() -> int:
         snippet_radius=args.snippet_radius,
         witness_radius=args.witness_radius,
         max_witness_candidates_per_source=args.max_witness_candidates_per_source,
+        max_witness_verifications=args.max_witness_verifications,
     )
     # Name matching is already exact during witness compilation.  Resolve IDs
     # only after that expensive screening so a 500-target queue does not launch
@@ -116,6 +118,7 @@ def main() -> int:
         "audit_rows": audit_rows,
         "resolved_diag_ids": len(diag_ids),
         "audit_statuses": dict(Counter(item.status for item in result.audits)),
+        "witness_verification_usage": dict(result.verification_usage),
         "selection_policy": (
             "portable recipes discover compiler-validated witnesses; recipe edits "
             "and identifiers are audit-only and excluded from model requests"

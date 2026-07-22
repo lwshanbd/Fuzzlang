@@ -57,12 +57,31 @@ class WitnessBuildResult:
 
     requests: tuple[SynthesisRequest, ...]
     audits: tuple[WitnessBuildAudit, ...]
+    verification_usage: Mapping[str, int]
 
 
 @dataclass(frozen=True)
 class _TriggerWitness:
     source_id: str
     mutated_snippet: str
+
+
+@dataclass
+class _WitnessVerificationBudget:
+    """Global compilation cap for bounded compiler-witness discovery."""
+
+    maximum: int
+    used: int = 0
+
+    def claim(self) -> bool:
+        if self.used >= self.maximum:
+            return False
+        self.used += 1
+        return True
+
+    @property
+    def exhausted(self) -> bool:
+        return self.used >= self.maximum
 
 
 def _find_real_snippets(
@@ -113,9 +132,10 @@ def _find_compiler_witness(
     target_name: str,
     target_id: Optional[int],
     clean_cache: dict[str, bool],
+    verification_budget: _WitnessVerificationBudget,
     radius: int,
     max_candidates_per_source: int,
-) -> tuple[Optional[_TriggerWitness], Optional[str]]:
+) -> tuple[Optional[_TriggerWitness], Optional[str], bool]:
     """Return the first clean-parent compiler-confirmed witness for a recipe."""
     last_observed_diag: Optional[str] = None
     for source in sources:
@@ -130,6 +150,8 @@ def _find_compiler_witness(
             continue
         is_clean = clean_cache.get(source.source_id)
         if is_clean is None:
+            if not verification_budget.claim():
+                return None, last_observed_diag, True
             try:
                 baseline = verifier.verify(
                     source.corrected_src,
@@ -145,6 +167,8 @@ def _find_compiler_witness(
             continue
 
         for application in applications:
+            if not verification_budget.claim():
+                return None, last_observed_diag, True
             try:
                 verified = verifier.verify(
                     application.src,
@@ -174,8 +198,8 @@ def _find_compiler_witness(
                 radius=radius,
             )
             if snippet:
-                return _TriggerWitness(source.source_id, snippet), last_observed_diag
-    return None, last_observed_diag
+                return _TriggerWitness(source.source_id, snippet), last_observed_diag, False
+    return None, last_observed_diag, False
 
 
 def _witness_evidence(
@@ -209,6 +233,7 @@ def build_witness_synthesis_requests(
     snippet_radius: int = 240,
     witness_radius: int = 360,
     max_witness_candidates_per_source: int = 2,
+    max_witness_verifications: int = 10_000,
 ) -> WitnessBuildResult:
     """Construct target requests backed by an exact compiler trigger witness.
 
@@ -225,6 +250,12 @@ def build_witness_synthesis_requests(
         raise ValueError("snippet radii must be positive")
     if max_witness_candidates_per_source <= 0:
         raise ValueError("max_witness_candidates_per_source must be positive")
+    if (
+        isinstance(max_witness_verifications, bool)
+        or not isinstance(max_witness_verifications, int)
+        or max_witness_verifications <= 0
+    ):
+        raise ValueError("max_witness_verifications must be a positive integer")
 
     covered = set(covered_diag_names)
     eligible = None if eligible_diag_names is None else set(eligible_diag_names)
@@ -241,6 +272,7 @@ def build_witness_synthesis_requests(
     requests: list[SynthesisRequest] = []
     audits: list[WitnessBuildAudit] = []
     clean_cache: dict[str, bool] = {}
+    verification_budget = _WitnessVerificationBudget(max_witness_verifications)
     for name in ordered_names:
         if eligible is not None and name not in eligible:
             audits.append(WitnessBuildAudit(name, "skipped_not_gap"))
@@ -254,6 +286,9 @@ def build_witness_synthesis_requests(
             continue
         if len(requests) >= max_targets:
             audits.append(WitnessBuildAudit(name, "deferred_max_targets"))
+            continue
+        if verification_budget.exhausted:
+            audits.append(WitnessBuildAudit(name, "deferred_witness_budget"))
             continue
 
         portable = sorted(
@@ -269,6 +304,7 @@ def build_witness_synthesis_requests(
         ]] = None
         observed_diag: Optional[str] = None
         had_two_snippets = False
+        witness_budget_exhausted = False
         for recipe in portable:
             snippets, source_ids = _find_real_snippets(
                 recipe,
@@ -279,13 +315,14 @@ def build_witness_synthesis_requests(
             if len(snippets) != snippets_per_target:
                 continue
             had_two_snippets = True
-            witness, observed = _find_compiler_witness(
+            witness, observed, exhausted = _find_compiler_witness(
                 recipe,
                 sources,
                 verifier,
                 target_name=name,
                 target_id=ids.get(name),
                 clean_cache=clean_cache,
+                verification_budget=verification_budget,
                 radius=witness_radius,
                 max_candidates_per_source=max_witness_candidates_per_source,
             )
@@ -294,9 +331,14 @@ def build_witness_synthesis_requests(
             if witness is not None:
                 selected = recipe, snippets, source_ids, witness
                 break
+            if exhausted:
+                witness_budget_exhausted = True
+                break
 
         if selected is None:
             status = "skipped_no_compiler_validated_witness"
+            if witness_budget_exhausted:
+                status = "deferred_witness_budget"
             if not had_two_snippets:
                 status = "skipped_no_two_real_snippets"
             audits.append(WitnessBuildAudit(
@@ -334,4 +376,11 @@ def build_witness_synthesis_requests(
             witness_source_id=witness.source_id,
         ))
 
-    return WitnessBuildResult(tuple(requests), tuple(audits))
+    return WitnessBuildResult(
+        tuple(requests),
+        tuple(audits),
+        {
+            "max_witness_verifications": verification_budget.maximum,
+            "used_witness_verifications": verification_budget.used,
+        },
+    )
