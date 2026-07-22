@@ -12,7 +12,7 @@ FuzzLang provenance rule.
 """
 from __future__ import annotations
 
-from collections import defaultdict
+from collections import OrderedDict, defaultdict
 from dataclasses import dataclass
 from typing import Iterable, Mapping, Optional
 
@@ -21,7 +21,13 @@ from foundation.verifier.base import BaseVerifier
 from gen.fuzzlang_dsl.request_builder import _normalized_tablegen_definition, _snippet_around
 from gen.fuzzlang_dsl.synthesis import DiagnosticEvidence, SynthesisRequest
 from gen.realcorpus.clean_source_pool import CleanSourceTU
-from gen.realcorpus.recipes import LearnedRecipe, apply_recipe
+from gen.realcorpus.recipes import (
+    LearnedRecipe,
+    LexToken,
+    apply_recipe,
+    build_token_index,
+    lex_tokens,
+)
 
 
 @dataclass(frozen=True)
@@ -84,19 +90,64 @@ class _WitnessVerificationBudget:
         return self.used >= self.maximum
 
 
+class _SourceTokenCache:
+    """Small LRU cache for repeated lexical matching against large source TUs."""
+
+    def __init__(self, maximum_entries: int = 64) -> None:
+        self._maximum_entries = maximum_entries
+        self._entries: OrderedDict[
+            str, tuple[list[LexToken], dict[str, tuple[int, ...]]],
+        ] = OrderedDict()
+
+    def get(
+        self, source: CleanSourceTU,
+    ) -> tuple[list[LexToken], dict[str, tuple[int, ...]]]:
+        cached = self._entries.pop(source.source_id, None)
+        if cached is None:
+            tokens = lex_tokens(source.corrected_src)
+            cached = tokens, build_token_index(tokens)
+        self._entries[source.source_id] = cached
+        if len(self._entries) > self._maximum_entries:
+            self._entries.popitem(last=False)
+        return cached
+
+
+def _apply_recipe_cached(
+    source: CleanSourceTU,
+    recipe: LearnedRecipe,
+    token_cache: _SourceTokenCache,
+    *,
+    max_candidates: int,
+):
+    tokens, token_index = token_cache.get(source)
+    return apply_recipe(
+        source.corrected_src,
+        recipe,
+        max_candidates=max_candidates,
+        tokens=tokens,
+        token_index=token_index,
+    )
+
+
 def _find_real_snippets(
     recipe: LearnedRecipe,
     sources: Iterable[CleanSourceTU],
     *,
     count: int,
     radius: int,
+    token_cache: _SourceTokenCache,
 ) -> tuple[tuple[str, ...], tuple[str, ...]]:
     snippets: list[str] = []
     source_ids: list[str] = []
     for source in sources:
         if source.language != recipe.language:
             continue
-        applications = apply_recipe(source.corrected_src, recipe, max_candidates=1)
+        applications = _apply_recipe_cached(
+            source,
+            recipe,
+            token_cache,
+            max_candidates=1,
+        )
         if not applications:
             continue
         application = applications[0]
@@ -133,6 +184,7 @@ def _find_compiler_witness(
     target_id: Optional[int],
     clean_cache: dict[str, bool],
     verification_budget: _WitnessVerificationBudget,
+    token_cache: _SourceTokenCache,
     radius: int,
     max_candidates_per_source: int,
 ) -> tuple[Optional[_TriggerWitness], Optional[str], bool]:
@@ -141,9 +193,10 @@ def _find_compiler_witness(
     for source in sources:
         if source.language != recipe.language:
             continue
-        applications = apply_recipe(
-            source.corrected_src,
+        applications = _apply_recipe_cached(
+            source,
             recipe,
+            token_cache,
             max_candidates=max_candidates_per_source,
         )
         if not applications:
@@ -273,6 +326,7 @@ def build_witness_synthesis_requests(
     audits: list[WitnessBuildAudit] = []
     clean_cache: dict[str, bool] = {}
     verification_budget = _WitnessVerificationBudget(max_witness_verifications)
+    token_cache = _SourceTokenCache()
     for name in ordered_names:
         if eligible is not None and name not in eligible:
             audits.append(WitnessBuildAudit(name, "skipped_not_gap"))
@@ -311,6 +365,7 @@ def build_witness_synthesis_requests(
                 sources,
                 count=snippets_per_target,
                 radius=snippet_radius,
+                token_cache=token_cache,
             )
             if len(snippets) != snippets_per_target:
                 continue
@@ -323,6 +378,7 @@ def build_witness_synthesis_requests(
                 target_id=ids.get(name),
                 clean_cache=clean_cache,
                 verification_budget=verification_budget,
+                token_cache=token_cache,
                 radius=witness_radius,
                 max_candidates_per_source=max_witness_candidates_per_source,
             )

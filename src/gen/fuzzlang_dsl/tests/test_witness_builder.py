@@ -5,6 +5,7 @@ import hashlib
 from foundation.diagnostics.catalog import Catalog, DiagEntry
 from foundation.types import DiagInfo, VerifierResult
 from foundation.verifier.mock import MockVerifier
+from gen.fuzzlang_dsl import witness_builder
 from gen.fuzzlang_dsl.witness_builder import build_witness_synthesis_requests
 from gen.fuzzlang_dsl.synthesis import build_synthesis_messages
 from gen.realcorpus.clean_source_pool import CleanSourceTU
@@ -141,3 +142,36 @@ def test_builder_defers_targets_when_the_compiler_witness_budget_is_exhausted():
         "max_witness_verifications": 1,
         "used_witness_verifications": 1,
     }
+
+
+def test_builder_reuses_tokenization_between_snippet_and_witness_search(monkeypatch):
+    sources = [
+        _source("lib/a.cpp", "bool a() { return true; }\n"),
+        _source("lib/b.cpp", "bool b() { return true; }\n"),
+    ]
+    original = witness_builder.lex_tokens
+    calls = 0
+
+    def counted(source):
+        nonlocal calls
+        calls += 1
+        return original(source)
+
+    monkeypatch.setattr(witness_builder, "lex_tokens", counted)
+    result = build_witness_synthesis_requests(
+        [_recipe()],
+        sources,
+        _catalog(),
+        MockVerifier(
+            lambda source, _cmd, _path: (
+                VerifierResult(False, _diag("err_target", 17), "")
+                if "return false;" in source
+                else VerifierResult(True, None, "")
+            )
+        ),
+        diag_ids={"err_target": 17},
+        max_targets=1,
+    )
+
+    assert len(result.requests) == 1
+    assert calls == 2
