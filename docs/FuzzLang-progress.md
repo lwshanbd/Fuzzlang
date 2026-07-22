@@ -1,7 +1,7 @@
 # FuzzLang: Progress
 
 Status against `FuzzLang-Proposal.md` and the executable plan in `plan.md`.
-LLVM is pinned to `llvmorg-22.1.8`; the current test suite has 399 passing and
+LLVM is pinned to `llvmorg-22.1.8`; the current test suite has 408 passing and
 5 environment-dependent skips. Detailed generation history is in
 `data/gen/README.md`.
 
@@ -245,19 +245,21 @@ single FuzzLang DSL Injector rather than editing every output record. Replay
 then accepts only a clean parent / failed mutant pair whose primary typed
 diagnostic exactly equals the Injector target. No paid API is used.
 
-Twelve completed campaigns use two clean LLVM production pools (2,213 and
-2,100 TUs; zero test/test-support paths) built with source exclusions against
-the frozen RealSource release, plus one screened Abseil cross-project input.
-They archive **931** paired, structurally unique core records from **20**
-diagnostics and **233** source TUs (999 raw records before 68 structural
-duplicates were removed), produced by 22 record-emitting Injectors. The audit
-found zero missing `corrected_src` and zero test paths. The Abseil replay
-reverified each corrected parent before mutation and retained 125 raw
-exact-target outputs, providing a first cross-project transfer measurement.
-The latest 250-record campaign uses a compiler-validated trigger witness only
-as synthesis evidence: all retained dataset pairs still come from real clean
-LLVM production sources. The campaign-level synthesis/replay manifests, record
-checksums, model revision, and aggregate audit are pinned in
+Thirteen completed campaigns use three clean LLVM production pools (2,213,
+2,100, and 2,001 TUs; zero test/test-support paths) built with source
+exclusions against the frozen RealSource release, plus one screened Abseil
+cross-project input. They archive **974** paired, structurally unique core
+records from **21** diagnostics and **258** source TUs (1,045 raw records
+before 71 structural duplicates were removed), produced by 23 record-emitting
+Injectors. The audit found zero missing `corrected_src` and zero test paths.
+The Abseil replay reverified each corrected parent before mutation and retained
+125 raw exact-target outputs, providing a first cross-project transfer
+measurement. A compiler-replay-feedback retry added 46 raw exact-target unary
+diagnostic outputs (43 structurally unique within that campaign) from 27 clean
+LLVM production files. Trigger witnesses and compiler feedback are synthesis
+evidence only: all retained dataset pairs still come from real clean production
+sources. The campaign-level synthesis/replay manifests, record checksums, model
+revision, and aggregate audit are pinned in
 `data/gen/releases/compiler-evidence-injector-v0/manifest.json` while the JSONL
 archives remain outside Git. This is construction evidence only: it is not yet
 a merged training release or the matched Injector-versus-DirectEdit result.

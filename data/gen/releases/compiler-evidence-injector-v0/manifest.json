@@ -1,7 +1,7 @@
 {
   "aggregate_audit": {
-    "core_records": 931,
-    "diagnostics": 20,
+    "core_records": 974,
+    "diagnostics": 21,
     "missing_corrected_src": 0,
     "new_diagnostics_vs_frozen_realsource": [
       "err_alias_declaration_pack_expansion",
@@ -13,12 +13,12 @@
       "err_unexpected_qualified_namespace_alias"
     ],
     "new_diagnostics_vs_frozen_realsource_count": 7,
-    "raw_records": 999,
-    "structural_duplicates_removed": 68,
-    "structurally_deduplicated_records": 931,
+    "raw_records": 1045,
+    "structural_duplicates_removed": 71,
+    "structurally_deduplicated_records": 974,
     "test_or_test_support_sources": 0,
-    "unique_injectors": 22,
-    "unique_source_tus": 233
+    "unique_injectors": 23,
+    "unique_source_tus": 258
   },
   "archive_root": "data/gen/experiments/compiler-evidence-injector-v0",
   "campaigns": [
@@ -220,6 +220,24 @@
         "sha256": "b6f34b85af8f5e18c6fd4685c56d1882ca6e9be5fbe2bd6b4c64cbad8cceab35"
       },
       "trigger_witness_is_dataset_source": false
+    },
+    {
+      "name": "cpp-batch12-unary-replay-retry2-v2",
+      "evidence_mode": "tablegen_emission_real_snippets_compiler_validated_trigger_witness_compiler_replay_feedback",
+      "records": {
+        "count": 46,
+        "path": "data/gen/experiments/compiler-evidence-injector-v0/replay/cpp-batch12-unary-replay-retry2-v2/records.jsonl",
+        "sha256": "4a78503558921a8019dd2659fc5b86be7a63c8ff581af410a023d23510ef3d34"
+      },
+      "replay_manifest": {
+        "path": "data/gen/experiments/compiler-evidence-injector-v0/replay/cpp-batch12-unary-replay-retry2-v2/manifest.json",
+        "sha256": "ed39aefff28d95afbd6767cd8066e8b2c06c689905db6b43ad07beaad78365f5"
+      },
+      "synthesis_manifest": {
+        "path": "data/gen/experiments/compiler-evidence-injector-v0/synthesis/cpp-batch12-witness-replay-retry2/manifest.json",
+        "sha256": "cc844986a03da7f86aef528cfa966f23add8c5e2362db0e56c58ddf15e201832"
+      },
+      "trigger_witness_is_dataset_source": false
     }
   ],
   "compiler": {
@@ -253,6 +271,15 @@
         "project": "llvm",
         "source_overlap_with_frozen_realsource_excluded": true,
         "prior_injector_campaign_sources_excluded_at_pool_creation": true,
+        "later_campaigns_may_reuse_pool_sources": true
+      },
+      {
+        "accepted_clean_sources": 2001,
+        "manifest_path": "data/gen/source-pools/llvm-22.1.8-unseen-v2/manifest.json",
+        "manifest_sha256": "324c0c0995d3e02f425838db655d3511c03b129d0feac77eb4cf7b3444552cf8",
+        "project": "llvm",
+        "source_overlap_with_frozen_realsource_excluded": true,
+        "archived_campaign_sources_excluded_through": "cpp-batch11-witness-real-v1pool",
         "later_campaigns_may_reuse_pool_sources": true
       }
     ],

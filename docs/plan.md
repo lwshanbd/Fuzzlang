@@ -2,7 +2,7 @@
 
 **Target:** CGO, September 2026
 **Compiler version:** `llvmorg-22.1.8` everywhere
-**Status date:** 2026-07-20
+**Status date:** 2026-07-22
 
 ## 1. Research Positioning
 
@@ -369,20 +369,22 @@ FuzzLang DSL gate therefore passes. No broader DSL redesign is authorized on
 the critical path; the next method work is Gemma Injector synthesis and the
 matched Injector-versus-direct-edit experiment.
 
-Execution snapshot (2026-07-21): the offline `google/gemma-4-31B-it`
-compiler-evidence loop has synthesized and replayed 22 record-emitting
-Injectors on two clean, test-free LLVM production pools (2,213 and 2,100 TUs)
-that exclude frozen-RealSource overlaps, with a first screened Abseil
-cross-project replay. Twelve archived campaigns yielded 931 structurally unique
-paired records (999 raw before structural deduplication) across 20 diagnostics
-and 233 source TUs; each accepted record has
+Execution snapshot (2026-07-22): the offline `google/gemma-4-31B-it`
+compiler-evidence loop has synthesized and replayed 23 record-emitting
+Injectors on three clean, test-free LLVM production pools (2,213, 2,100, and
+2,001 TUs) that exclude frozen-RealSource overlaps, with a first screened
+Abseil cross-project replay. Thirteen archived campaigns yielded 974
+structurally unique paired records (1,045 raw before structural deduplication)
+across 21 diagnostics and 258 source TUs; each accepted record has
 `corrected_src` and an exact primary diagnostic match, and the audit found zero
-test paths. The latest campaign gives Gemma a compiler-validated trigger
-witness as synthesis evidence only; retained data still originates solely from
-real clean LLVM production code. The archive manifest pins every
-synthesis/replay manifest and checksum. This is an in-progress construction
-result, not an E1 comparison: the matched DirectEdit arm and cross-project
-replay of these synthesized Injectors remain required.
+test paths. A compiler-replay-feedback retry contributed 46 raw exact-target
+outputs (43 structurally unique within the campaign), demonstrating that
+compiler evidence can improve a reusable Injector after its first replay.
+Trigger witnesses and replay feedback are synthesis evidence only; retained
+data still originates solely from real clean LLVM production code. The archive
+manifest pins every synthesis/replay manifest and checksum. This is an
+in-progress construction result, not an E1 comparison: the matched DirectEdit
+arm and cross-project replay of these synthesized Injectors remain required.
 
 For reproducible gap-driven queue construction, `run_build_requests.py` now
 filters a TableGen gap list, retrieves two matching snippets from verified,
