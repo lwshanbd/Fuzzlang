@@ -11,6 +11,7 @@ from __future__ import annotations
 import argparse
 import json
 from collections import Counter
+from dataclasses import replace
 from pathlib import Path
 from typing import Iterable
 
@@ -79,13 +80,6 @@ def main() -> int:
     catalog = load_catalog()
     covered = _covered_diagnostics(args.covered_records)
     eligible = _gap_diagnostics(args.gap_list)
-    lookup_names = {
-        recipe.diag_name
-        for recipe in recipes
-        if recipe.portable and recipe.diag_name not in covered
-        and (eligible is None or recipe.diag_name in eligible)
-    }
-    diag_ids = resolve_diag_ids(lookup_names, args.diagtool_bin)
     verifier = FuzzlangClangVerifier(
         args.clang_bin,
         args.diagtool_bin,
@@ -99,14 +93,23 @@ def main() -> int:
         verifier,
         covered_diag_names=covered,
         eligible_diag_names=eligible,
-        diag_ids=diag_ids,
         max_targets=args.max_targets,
         snippets_per_target=args.snippets_per_target,
         snippet_radius=args.snippet_radius,
         witness_radius=args.witness_radius,
         max_witness_candidates_per_source=args.max_witness_candidates_per_source,
     )
-    request_rows = _write_jsonl(args.out, (request_to_dict(item) for item in result.requests))
+    # Name matching is already exact during witness compilation.  Resolve IDs
+    # only after that expensive screening so a 500-target queue does not launch
+    # a subprocess for every merely possible recipe diagnostic.
+    diag_ids = resolve_diag_ids(
+        (item.diag_name for item in result.requests), args.diagtool_bin,
+    )
+    requests = tuple(
+        replace(item, diag_id=diag_ids.get(item.diag_name))
+        for item in result.requests
+    )
+    request_rows = _write_jsonl(args.out, (request_to_dict(item) for item in requests))
     audit_rows = _write_jsonl(args.audit_out, (item.to_dict() for item in result.audits))
     summary = {
         "requests": request_rows,
