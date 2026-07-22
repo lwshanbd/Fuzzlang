@@ -5,7 +5,12 @@ from pathlib import Path
 
 from gen.fuzzlang_dsl.injector import FuzzLangInjector
 from gen.fuzzlang_dsl.local_gemma import DEFAULT_GEMMA_31B_REVISION
-from gen.fuzzlang_dsl.run_local_synthesis import run_synthesis_campaign
+import pytest
+
+from gen.fuzzlang_dsl.run_local_synthesis import (
+    run_synthesis_campaign,
+    select_request_range,
+)
 from gen.fuzzlang_dsl.synthesis import SynthesisRequest
 from repair.agent.chat_backend import ChatResponse, MockChatBackend
 
@@ -80,3 +85,14 @@ def test_run_archives_raw_attempt_injector_and_no_api_manifest(tmp_path: Path):
     assert disk_manifest["files"]["injectors.jsonl"]["sha256"]
     assert disk_manifest["files"]["requests.jsonl"]["sha256"]
     assert disk_manifest["execution"]["backend_class"] == "MockChatBackend"
+
+
+def test_select_request_range_is_bounded_and_deterministic():
+    requests = ("zero", "one", "two")
+
+    assert select_request_range(requests, start=1, stop=3) == ("one", "two")
+    assert select_request_range(requests, start=2) == ("two",)
+    with pytest.raises(ValueError, match="start"):
+        select_request_range(requests, start=-1)
+    with pytest.raises(ValueError, match="stop"):
+        select_request_range(requests, start=2, stop=4)

@@ -7,7 +7,7 @@ import hashlib
 import json
 from collections import Counter
 from pathlib import Path
-from typing import Any, Iterable
+from typing import Any, Iterable, Sequence, TypeVar
 
 from gen.fuzzlang_dsl.local_gemma import (
     DEFAULT_GEMMA_31B_MODEL,
@@ -22,6 +22,9 @@ from gen.fuzzlang_dsl.synthesis import (
     synthesize_injectors,
 )
 from repair.agent.chat_backend import ChatBackend
+
+
+_RequestT = TypeVar("_RequestT")
 
 
 def _canonical_json(value: Any) -> str:
@@ -56,6 +59,18 @@ def _request_dict(request: SynthesisRequest) -> dict[str, Any]:
         },
         "correct_snippets": list(request.correct_snippets),
     }
+
+
+def select_request_range(
+    requests: Sequence[_RequestT], *, start: int = 0, stop: int | None = None,
+) -> tuple[_RequestT, ...]:
+    """Select a deterministic, bounded request shard for a timed GPU run."""
+    if start < 0 or start > len(requests):
+        raise ValueError("request start must fall within the input range")
+    resolved_stop = len(requests) if stop is None else stop
+    if resolved_stop < start or resolved_stop > len(requests):
+        raise ValueError("request stop must fall within the input range and follow start")
+    return tuple(requests[start:resolved_stop])
 
 
 def run_synthesis_campaign(
@@ -188,6 +203,14 @@ def _parser() -> argparse.ArgumentParser:
     parser.add_argument("--temperature", type=float, default=0.2)
     parser.add_argument("--max-tokens", type=int, default=1200)
     parser.add_argument("--seed", type=int, default=0)
+    parser.add_argument(
+        "--request-start", type=int, default=0,
+        help="zero-based inclusive request index for a bounded retry shard",
+    )
+    parser.add_argument(
+        "--request-stop", type=int,
+        help="zero-based exclusive request index for a bounded retry shard",
+    )
     return parser
 
 
@@ -199,7 +222,13 @@ def main() -> None:
             "--model-path must be the pinned local Gemma-4-31B-it snapshot "
             f"{DEFAULT_GEMMA_31B_SNAPSHOT}"
         )
-    requests = load_request_file(args.requests)
+    all_requests = load_request_file(args.requests)
+    try:
+        requests = select_request_range(
+            all_requests, start=args.request_start, stop=args.request_stop,
+        )
+    except ValueError as error:
+        _parser().error(str(error))
     backend = LocalGemma31BBackend(args.model_path, seed=args.seed)
     manifest = run_synthesis_campaign(
         requests,
