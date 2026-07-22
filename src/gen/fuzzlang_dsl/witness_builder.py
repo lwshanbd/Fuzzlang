@@ -69,6 +69,7 @@ class WitnessBuildResult:
 @dataclass(frozen=True)
 class _TriggerWitness:
     source_id: str
+    corrected_snippet: str
     mutated_snippet: str
 
 
@@ -244,14 +245,24 @@ def _find_compiler_witness(
                 application.end,
                 application.start + len(application.replacement),
             )
-            snippet = _snippet_around(
+            mutated_snippet = _snippet_around(
                 application.src,
                 application.start,
                 snippet_end,
                 radius=radius,
             )
-            if snippet:
-                return _TriggerWitness(source.source_id, snippet), last_observed_diag, False
+            corrected_snippet = _snippet_around(
+                source.corrected_src,
+                application.start,
+                application.end,
+                radius=radius,
+            )
+            if corrected_snippet and mutated_snippet:
+                return _TriggerWitness(
+                    source.source_id,
+                    corrected_snippet,
+                    mutated_snippet,
+                ), last_observed_diag, False
     return None, last_observed_diag, False
 
 
@@ -267,7 +278,9 @@ def _witness_evidence(
         "Compiler-validated trigger witness (synthesis evidence only; not a "
         "dataset record): a bounded mutation of a clean real production "
         f"translation unit produced primary typed diagnostic {diagnostic}.\n"
-        "Mutated local code window:\n"
+        "Correct local code window:\n"
+        + witness.corrected_snippet
+        + "\nMutated local code window:\n"
         + witness.mutated_snippet
     )
 

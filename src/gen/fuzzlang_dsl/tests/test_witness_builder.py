@@ -86,6 +86,10 @@ def test_builder_uses_compiler_validated_witness_without_recipe_leakage():
     assert request.diag_id == 17
     assert request.evidence.emission_evidence is not None
     assert "compiler-validated" in request.evidence.emission_evidence.lower()
+    assert "Correct local code window:" in request.evidence.emission_evidence
+    assert "Mutated local code window:" in request.evidence.emission_evidence
+    assert "return true;" in request.evidence.emission_evidence
+    assert "return false;" in request.evidence.emission_evidence
     assert "recipe-private-to-audit" not in request.evidence.emission_evidence
     assert result.audits[0].status == "selected"
     assert result.audits[0].recipe_id == "recipe-private-to-audit"
