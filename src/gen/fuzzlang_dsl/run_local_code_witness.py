@@ -9,6 +9,9 @@ from pathlib import Path
 
 from foundation.record import Origin, Provenance, Record, Split
 from foundation.verifier import FuzzlangClangVerifier
+from gen.fuzzlang_dsl.breadth_targets import (
+    supports_ordinary_cpp_diagnostic_name,
+)
 from gen.fuzzlang_dsl.code_witness import (
     CodeWitnessRequest, apply_code_witness_patch, build_code_witness_messages,
     build_code_witness_retry_messages, parse_code_witness_patch,
@@ -89,6 +92,19 @@ def main() -> int:
         args.output_dir, attempts=attempts, records=records, injectors=injectors,
     )
     for request_index, request in enumerate(requests):
+        if not supports_ordinary_cpp_diagnostic_name(request.diag_name):
+            attempts.append({
+                "request_index": request_index,
+                "diag_name": request.diag_name,
+                "status": "unsupported_ordinary_cpp_mode",
+            })
+            _write_checkpoint(
+                args.output_dir,
+                attempts=attempts,
+                records=records,
+                injectors=injectors,
+            )
+            continue
         baseline = verifier.verify(request.corrected_src, list(request.compile_cmd), logical_path=request.source_path)
         if not baseline.ok:
             attempts.append({"request_index": request_index, "diag_name": request.diag_name, "status": "baseline_not_clean"})

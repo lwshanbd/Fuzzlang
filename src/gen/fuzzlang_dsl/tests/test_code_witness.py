@@ -550,3 +550,53 @@ def test_code_witness_cli_uses_compiler_feedback_for_second_candidate_round(
     manifest = json.loads((tmp_path / "out" / "manifest.json").read_text())
     assert manifest["counts"]["records"] == 1
     assert manifest["counts"]["feedback_round_requests"] == 1
+
+
+def test_code_witness_cli_skips_targets_unreachable_in_ordinary_cpp_mode(
+    tmp_path, monkeypatch,
+):
+    request = CodeWitnessRequest(
+        **{
+            **_request().to_dict(),
+            "diag_name": "err_acc_construct_appertainment",
+        }
+    )
+    request_path = tmp_path / "requests.jsonl"
+    request_path.write_text(json.dumps(request.to_dict()) + "\n")
+
+    class _Backend:
+        def __init__(self, *args, **kwargs):
+            pass
+
+        def chat(self, **kwargs):
+            raise AssertionError("unsupported mode must not call Gemma")
+
+    class _Verifier:
+        def __init__(self, *args, **kwargs):
+            pass
+
+        def verify(self, *args, **kwargs):
+            raise AssertionError("unsupported mode must skip compilation")
+
+    monkeypatch.setattr(witness_cli, "LocalGemma31BBackend", _Backend)
+    monkeypatch.setattr(witness_cli, "FuzzlangClangVerifier", _Verifier)
+    monkeypatch.setattr(sys, "argv", [
+        "run_local_code_witness.py",
+        "--requests", str(request_path),
+        "--clang-bin", "/mock/clang++",
+        "--clang-c-bin", "/mock/clang",
+        "--diagtool-bin", "/mock/diagtool",
+        "--output-dir", str(tmp_path / "out"),
+        "--candidates", "2",
+    ])
+
+    assert witness_cli.main() == 0
+    attempts = [
+        json.loads(line)
+        for line in (tmp_path / "out" / "attempts.jsonl").read_text().splitlines()
+    ]
+    assert attempts == [{
+        "diag_name": "err_acc_construct_appertainment",
+        "request_index": 0,
+        "status": "unsupported_ordinary_cpp_mode",
+    }]

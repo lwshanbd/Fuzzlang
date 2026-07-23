@@ -14,9 +14,12 @@ _SUPPORTED_COMPONENTS = frozenset({"Lex", "Parse", "Sema"})
 # denominator, but are poor first-wave targets for ordinary real C++ TUs.
 _SPECIAL_MODE_RE = re.compile(
     r"(?:^|_)("
-    r"objc|arc|blocks|openmp|omp|cuda|hip|hlsl|opencl|sycl|"
+    r"objc|arc|blocks|openmp|omp|openacc|acc|cuda|hip|hlsl|opencl|sycl|"
     r"module|modules|pch|header_unit|pragma|pp|"
-    r"avr|arm|aarch64|riscv|wasm|webassembly"
+    r"c23|c2y|c17|c11|c99|"
+    r"ptrauth|kernel|spirv|receiver|message_super|super_scope|program_scope|"
+    r"avr|arm|aarch64|riscv|wasm|webassembly|"
+    r"amdgpu|bpf|hexagon|mips|ppc|sve|rvv|neon"
     r")(?:_|$)",
 )
 
@@ -28,6 +31,11 @@ _HIGH_VALUE_TERMS = (
 )
 
 
+def supports_ordinary_cpp_diagnostic_name(name: str) -> bool:
+    """Whether a diagnostic is plausible in the campaign's C++ compile mode."""
+    return not _SPECIAL_MODE_RE.search(name.lower())
+
+
 def diagnostic_priority(entry: DiagEntry) -> int | None:
     """Return an ordinary-C++ injectability score, or ``None`` if ineligible."""
     if (
@@ -37,7 +45,7 @@ def diagnostic_priority(entry: DiagEntry) -> int | None:
     ):
         return None
     lowered = entry.name.lower()
-    if _SPECIAL_MODE_RE.search(lowered):
+    if not supports_ordinary_cpp_diagnostic_name(lowered):
         return None
     component_score = {"Parse": 300, "Sema": 200, "Lex": 100}[entry.component]
     term_score = sum(12 for term in _HIGH_VALUE_TERMS if term in lowered)
