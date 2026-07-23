@@ -61,7 +61,12 @@ def _window(source: str, anchor: int) -> tuple[int, int]:
 
 def _anchor_pattern(diag_name: str) -> re.Pattern[str]:
     """Choose a code shape that gives a diagnostic-specific edit room."""
-    if "attribute" in diag_name:
+    if (
+        "attribute" in diag_name
+        or re.search(r"(?:^|_)attr(?:_|$)", diag_name)
+        or "cpu_dispatch" in diag_name
+        or "cpu_specific" in diag_name
+    ):
         return re.compile(r"(?:\[\[|__attribute__\s*\()")
     if diag_name.startswith("err_asm_") or "_asm_" in diag_name:
         return re.compile(r"\b(?:asm|__asm__)\s*\(")

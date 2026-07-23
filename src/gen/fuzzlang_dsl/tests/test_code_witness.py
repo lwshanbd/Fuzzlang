@@ -168,6 +168,8 @@ def test_target_anchor_selection_uses_array_bounds_for_array_size_failures():
 def test_target_anchor_selection_covers_common_long_tail_cpp_contexts():
     examples = {
         "err_attribute_invalid_argument": "[[nodiscard]] int f();",
+        "err_count_attr_in_union": "__attribute__((counted_by(size))) int *data;",
+        "err_cpu_dispatch_mismatch": '[[gnu::cpu_dispatch("sse4.2")]] void f();',
         "err_asm_invalid_output_size": 'asm("mov" : "=r"(value));',
         "err_atomic_builtin_must_be_pointer": "__atomic_load_n(ptr, 0);",
         "err_builtin_launder_invalid_arg": "__builtin_launder(pointer);",
