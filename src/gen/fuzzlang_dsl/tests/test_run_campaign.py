@@ -172,6 +172,72 @@ def test_cli_accepts_clean_source_pool_as_a_non_dataset_input(tmp_path, monkeypa
     assert "parent_record_id" not in record.provenance.detail
 
 
+def test_cli_excludes_bootstrap_witness_sources_from_clean_replay(tmp_path, monkeypatch):
+    injectors = tmp_path / "injectors.jsonl"
+    clean_sources = tmp_path / "clean-sources.jsonl"
+    witnesses = tmp_path / "witnesses.jsonl"
+    records = tmp_path / "records.jsonl"
+    rejections = tmp_path / "rejections.jsonl"
+    manifest = tmp_path / "manifest.json"
+    corrected = "int f() { return 0; }\n"
+    exemplar = CleanSourceTU(
+        source_id="llvm:llvm/lib/IR/Exemplar.cpp",
+        project="llvm",
+        source_path="llvm/lib/IR/Exemplar.cpp",
+        language="c++",
+        corrected_src=corrected,
+        compile_cmd=("__CLANG__", "-std=c++20", "-fsyntax-only", "__SRC__"),
+        source_sha256=hashlib.sha256(corrected.encode()).hexdigest(),
+        baseline_compiler="llvmorg-22.1.8",
+    )
+    replay = CleanSourceTU(
+        source_id="llvm:llvm/lib/IR/Replay.cpp",
+        project="llvm",
+        source_path="llvm/lib/IR/Replay.cpp",
+        language="c++",
+        corrected_src=corrected,
+        compile_cmd=("__CLANG__", "-std=c++20", "-fsyntax-only", "__SRC__"),
+        source_sha256=hashlib.sha256(corrected.encode()).hexdigest(),
+        baseline_compiler="llvmorg-22.1.8",
+    )
+    witness = _source()
+    witness = Record(
+        record_id=witness.record_id,
+        erroneous_src=witness.erroneous_src,
+        corrected_src=witness.corrected_src,
+        diagnostics=witness.diagnostics,
+        provenance=Provenance(
+            witness.provenance.origin, exemplar.source_id, witness.provenance.detail,
+        ),
+        split=witness.split,
+        language=witness.language,
+    )
+    injectors.write_text(_injector().to_json() + "\n")
+    clean_sources.write_text(
+        "".join(json.dumps(item.to_dict(), sort_keys=True) + "\n" for item in (exemplar, replay))
+    )
+    witnesses.write_text(json.dumps(witness.to_dict(), sort_keys=True) + "\n")
+    monkeypatch.setattr(cli, "FuzzlangClangVerifier", _Verifier)
+
+    assert cli.main([
+        "--injectors", str(injectors),
+        "--clean-sources", str(clean_sources),
+        "--exclude-sources-from-records", str(witnesses),
+        "--clang-bin", "/mock/clang++",
+        "--clang-c-bin", "/mock/clang",
+        "--diagtool-bin", "/mock/diagtool",
+        "--records-out", str(records),
+        "--rejections-out", str(rejections),
+        "--manifest-out", str(manifest),
+    ]) == 0
+
+    record = Record.from_dict(json.loads(records.read_text()))
+    payload = json.loads(manifest.read_text())
+    assert record.provenance.source == replay.source_id
+    assert payload["source_policy"]["bootstrap_witness_sources_excluded"] is True
+    assert payload["source_pool"]["excluded_bootstrap_witness_TUs"] == 1
+
+
 def test_cli_can_limit_replay_to_requested_injector_ids(tmp_path, monkeypatch):
     injectors = tmp_path / "injectors.jsonl"
     sources = tmp_path / "sources.jsonl"

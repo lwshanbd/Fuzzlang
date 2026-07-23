@@ -44,6 +44,15 @@ def _parser() -> argparse.ArgumentParser:
         help="verified CleanSourceTU JSONL (not a dataset; emitted outputs remain paired)",
     )
     parser.add_argument(
+        "--exclude-sources-from-records",
+        action="append",
+        default=[],
+        help=(
+            "paired witness Record JSONL whose provenance.source values must be "
+            "excluded from replay; repeatable"
+        ),
+    )
+    parser.add_argument(
         "--clean-source-split", choices=("train", "dev", "eval"), default="train",
         help="split assigned to paired records emitted from --clean-sources",
     )
@@ -118,6 +127,9 @@ def main(argv: Sequence[str] | None = None) -> int:
     injector_path = Path(args.injectors)
     source_path = Path(args.sources) if args.sources else None
     clean_source_path = Path(args.clean_sources) if args.clean_sources else None
+    excluded_record_paths = [
+        Path(value) for value in args.exclude_sources_from_records
+    ]
     records_path = Path(args.records_out)
     rejections_path = Path(args.rejections_out)
     manifest_path = Path(args.manifest_out)
@@ -129,15 +141,38 @@ def main(argv: Sequence[str] | None = None) -> int:
         input_paths.add(source_path.resolve())
     if clean_source_path is not None:
         input_paths.add(clean_source_path.resolve())
+    input_paths.update(path.resolve() for path in excluded_record_paths)
     if output_paths & input_paths:
         raise ValueError("campaign outputs must not overwrite an input JSONL")
 
     all_injectors = load_injectors_jsonl(injector_path)
     injectors = _select_injectors(all_injectors, args.injector_ids)
-    source_records = load_records_jsonl(source_path) if source_path else []
-    clean_sources = (
+    excluded_source_ids = {
+        record.provenance.source
+        for path in excluded_record_paths
+        for record in load_records_jsonl(path)
+    }
+    input_source_records = load_records_jsonl(source_path) if source_path else []
+    input_clean_sources = (
         load_clean_sources_jsonl(clean_source_path) if clean_source_path else []
     )
+    source_records = list(input_source_records)
+    clean_sources = list(input_clean_sources)
+    excluded_bootstrap_witness_tus = len({
+        source.source_id
+        for source in [
+            *clean_sources,
+        ]
+        if source.source_id in excluded_source_ids
+    })
+    source_records = [
+        record for record in source_records
+        if record.provenance.source not in excluded_source_ids
+    ]
+    clean_sources = [
+        source for source in clean_sources
+        if source.source_id not in excluded_source_ids
+    ]
     budget = CampaignBudget(
         max_verifications=args.max_verifications,
         max_verifications_per_injector=args.max_verifications_per_injector,
@@ -178,6 +213,7 @@ def main(argv: Sequence[str] | None = None) -> int:
             "corrected_clean_gate": True,
             "deduplicate_by": "provenance.source",
             "test_and_test_support_excluded": True,
+            "bootstrap_witness_sources_excluded": bool(excluded_record_paths),
         },
         "compiler": {
             "clang_cxx_bin": args.clang_bin,
@@ -187,7 +223,10 @@ def main(argv: Sequence[str] | None = None) -> int:
         },
         "budget": budget.to_dict(),
         "budget_usage": dict(result.budget_usage),
-        "source_pool": dict(result.source_pool),
+        "source_pool": {
+            **result.source_pool,
+            "excluded_bootstrap_witness_TUs": excluded_bootstrap_witness_tus,
+        },
         "scheduling": "deterministic Injector input order, then source input order",
         "metric_definitions": {
             "considered": "language-compatible source TUs reached before a budget cap",
@@ -205,14 +244,20 @@ def main(argv: Sequence[str] | None = None) -> int:
         "inputs": {
             "injectors": _file_info(injector_path, rows=len(all_injectors)),
             **(
-                {"sources": _file_info(source_path, rows=len(source_records))}
+                {"sources": _file_info(source_path, rows=len(input_source_records))}
                 if source_path is not None else {}
             ),
             **(
                 {"clean_sources": _file_info(
-                    clean_source_path, rows=len(clean_sources),
+                    clean_source_path, rows=len(input_clean_sources),
                 )}
                 if clean_source_path is not None else {}
+            ),
+            **(
+                {"excluded_witness_records": [
+                    _file_info(path) for path in excluded_record_paths
+                ]}
+                if excluded_record_paths else {}
             ),
         },
         "injector_selection": {
