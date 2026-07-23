@@ -82,6 +82,22 @@ def _anchor_pattern(diag_name: str) -> re.Pattern[str]:
         return re.compile(r"\b(?:class|struct)\b")
     if "initializer" in diag_name:
         return re.compile(r"(?<![=!<>])=(?!=)")
+    if "decltype" in diag_name:
+        return re.compile(r"\bdecltype\s*\(")
+    if "decomp_decl" in diag_name:
+        return re.compile(r"\bauto\s*\[")
+    if "deduction_guide" in diag_name:
+        return re.compile(r"\)\s*->")
+    if "default_not_in_switch" in diag_name:
+        return re.compile(r"\bdefault\s*:")
+    if "destructor" in diag_name:
+        return re.compile(r"~\s*[A-Za-z_]\w*\s*\(")
+    if "this_use" in diag_name:
+        return re.compile(r"\bthis\b")
+    if "thread" in diag_name:
+        return re.compile(r"\bthread_local\b")
+    if "sign_spec" in diag_name:
+        return re.compile(r"\b(?:signed|unsigned)\b")
     if "constraint" in diag_name or "concept" in diag_name:
         return re.compile(r"\b(?:concept|requires)\b")
     if "coroutine" in diag_name or "coawait" in diag_name:
