@@ -9,7 +9,10 @@ from pathlib import Path
 from typing import Sequence, TypeVar
 
 from foundation.diagnostics.catalog import Catalog, DiagEntry, load_catalog
-from gen.fuzzlang_dsl.breadth_targets import select_uncovered_diagnostics
+from gen.fuzzlang_dsl.breadth_targets import (
+    select_uncovered_diagnostics,
+    supports_ordinary_cpp_diagnostic_name,
+)
 from gen.fuzzlang_dsl.code_witness import CodeWitnessRequest
 from gen.fuzzlang_dsl.emission_evidence import (
     emission_evidence_for,
@@ -245,6 +248,8 @@ def _resolve_target_entries(
         entry = catalog.by_name.get(name)
         if entry is None or not entry.is_error:
             raise ValueError(f"target is not a catalog error: {name}")
+        if not supports_ordinary_cpp_diagnostic_name(entry.name):
+            continue
         entries.append(entry)
     return tuple(entries)
 

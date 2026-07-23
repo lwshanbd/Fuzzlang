@@ -261,6 +261,31 @@ def test_coverage_first_target_resolution_uses_uncovered_unattempted_errors():
     ]
 
 
+def test_explicit_retry_targets_drop_unreachable_cpp_modes():
+    catalog = Catalog([
+        DiagEntry("err_expected_expression", "Error", "expected", "Parse"),
+        DiagEntry(
+            "err_acc_construct_appertainment",
+            "Error",
+            "OpenACC-only",
+            "Sema",
+        ),
+    ])
+
+    selected = _resolve_target_entries(
+        catalog,
+        explicit_names=(
+            "err_acc_construct_appertainment",
+            "err_expected_expression",
+        ),
+        auto_uncovered_limit=None,
+        covered=set(),
+        attempted=set(),
+    )
+
+    assert [entry.name for entry in selected] == ["err_expected_expression"]
+
+
 def test_diagnostic_name_loader_accepts_records_and_request_rows(tmp_path):
     path = tmp_path / "mixed.jsonl"
     path.write_text(
