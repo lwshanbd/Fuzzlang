@@ -230,6 +230,32 @@ def test_campaign_enforces_global_and_per_injector_verification_budgets():
     assert result.budget_usage["records"] == 3
 
 
+def test_campaign_bounds_real_source_scan_per_injector():
+    sources = [
+        _source_record(
+            f"source-{index}",
+            f"llvm:llvm/lib/Bounded{index}.cpp",
+            path=f"llvm/lib/Bounded{index}.cpp",
+        )
+        for index in range(4)
+    ]
+
+    result = run_campaign(
+        [_injector("bad_exact")], sources, _FakeVerifier(),
+        budget=CampaignBudget(
+            max_verifications=20,
+            max_verifications_per_injector=20,
+            max_candidates_per_source=1,
+            max_records=20,
+            max_records_per_injector=20,
+            max_sources_per_injector=2,
+        ),
+    )
+
+    assert result.injector_metrics[0].considered == 2
+    assert result.injector_metrics[0].records_emitted == 2
+
+
 def test_campaign_uses_language_matched_sources_and_preserves_compile_commands():
     c_source = _source_record(
         "c-parent", "postgres:src/backend/main.c", path="src/backend/main.c",

@@ -34,6 +34,7 @@ class CampaignBudget:
 
     max_verifications: int = 10_000
     max_verifications_per_injector: int = 50
+    max_sources_per_injector: int = 10_000
     max_candidates_per_source: int = 8
     max_records: int = 10_000
     max_records_per_injector: int = 50
@@ -42,6 +43,7 @@ class CampaignBudget:
         for name in (
             "max_verifications",
             "max_verifications_per_injector",
+            "max_sources_per_injector",
             "max_candidates_per_source",
             "max_records",
             "max_records_per_injector",
@@ -54,6 +56,7 @@ class CampaignBudget:
         return {
             "max_verifications": self.max_verifications,
             "max_verifications_per_injector": self.max_verifications_per_injector,
+            "max_sources_per_injector": self.max_sources_per_injector,
             "max_candidates_per_source": self.max_candidates_per_source,
             "max_records": self.max_records,
             "max_records_per_injector": self.max_records_per_injector,
@@ -272,6 +275,8 @@ def run_campaign(
         for source in sources:
             if source.language != injector.language:
                 continue
+            if metric.considered >= budget.max_sources_per_injector:
+                break
             if mutant_verifications >= budget.max_verifications:
                 break
             if metric.compiled >= injector_verification_cap:
