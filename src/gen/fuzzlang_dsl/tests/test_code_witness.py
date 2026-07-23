@@ -9,7 +9,10 @@ from gen.fuzzlang_dsl.code_witness import (
     parse_code_witness_patch,
 )
 from gen.fuzzlang_dsl.injector import FuzzLangInjector
-from gen.fuzzlang_dsl.run_local_code_witness import load_excluded_injector_ids
+from gen.fuzzlang_dsl.run_local_code_witness import (
+    _write_checkpoint,
+    load_excluded_injector_ids,
+)
 from gen.fuzzlang_dsl.run_build_code_witness_requests import _anchor_pattern
 
 
@@ -107,3 +110,22 @@ def test_load_excluded_injector_identities_from_prior_campaigns(tmp_path):
     prior.write_text(json.dumps(injector.to_dict()) + "\n")
 
     assert load_excluded_injector_ids((prior,)) == (injector.injector_id,)
+
+
+def test_code_witness_checkpoint_preserves_completed_requests(tmp_path):
+    _write_checkpoint(
+        tmp_path,
+        attempts=[{"request_index": 0, "status": "exact_target"}],
+        records=[{"record_id": "seed-1"}],
+        injectors={"injector-1": {"injector_id": "injector-1"}},
+    )
+
+    assert json.loads((tmp_path / "attempts.jsonl").read_text()) == {
+        "request_index": 0, "status": "exact_target",
+    }
+    assert json.loads((tmp_path / "records.jsonl").read_text()) == {
+        "record_id": "seed-1",
+    }
+    assert json.loads((tmp_path / "injectors.jsonl").read_text()) == {
+        "injector_id": "injector-1",
+    }

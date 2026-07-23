@@ -31,6 +31,19 @@ def _write(path: Path, rows: list[dict]) -> None:
     path.write_text("".join(json.dumps(row, ensure_ascii=False, sort_keys=True) + "\n" for row in rows))
 
 
+def _write_checkpoint(
+    output_dir: Path,
+    *,
+    attempts: list[dict],
+    records: list[dict],
+    injectors: dict[str, dict],
+) -> None:
+    """Persist all completed request results before issuing another model call."""
+    _write(output_dir / "attempts.jsonl", attempts)
+    _write(output_dir / "records.jsonl", records)
+    _write(output_dir / "injectors.jsonl", list(injectors.values()))
+
+
 def load_excluded_injector_ids(paths: Iterable[Path]) -> tuple[str, ...]:
     """Load canonical Injector identities produced by prior campaigns."""
     identities: set[str] = set()
@@ -68,10 +81,16 @@ def main() -> int:
     records: list[dict] = []
     injectors: dict[str, dict] = {}
     duplicate_existing_injector_candidates = 0
+    _write_checkpoint(
+        args.output_dir, attempts=attempts, records=records, injectors=injectors,
+    )
     for request_index, request in enumerate(requests):
         baseline = verifier.verify(request.corrected_src, list(request.compile_cmd), logical_path=request.source_path)
         if not baseline.ok:
             attempts.append({"request_index": request_index, "diag_name": request.diag_name, "status": "baseline_not_clean"})
+            _write_checkpoint(
+                args.output_dir, attempts=attempts, records=records, injectors=injectors,
+            )
             continue
         responses = backend.chat(messages=build_code_witness_messages(request), temperature=args.temperature, max_tokens=args.max_tokens, n=args.candidates)
         for candidate_index, response in enumerate(responses):
@@ -111,9 +130,12 @@ def main() -> int:
             row["record_id"] = record.record_id
             attempts.append(row)
             records.append(record.to_dict())
-    _write(args.output_dir / "attempts.jsonl", attempts)
-    _write(args.output_dir / "records.jsonl", records)
-    _write(args.output_dir / "injectors.jsonl", list(injectors.values()))
+        _write_checkpoint(
+            args.output_dir, attempts=attempts, records=records, injectors=injectors,
+        )
+    _write_checkpoint(
+        args.output_dir, attempts=attempts, records=records, injectors=injectors,
+    )
     manifest = {"schema": "fuzzlang.code_witness_bootstrap", "model": {"name": DEFAULT_GEMMA_31B_MODEL, "revision": DEFAULT_GEMMA_31B_REVISION, "parameters": "31B"}, "paid_api_calls": False, "counts": {"requests": len(requests), "attempts": len(attempts), "records": len(records), "portable_injectors": len(injectors), "excluded_injector_identities": len(excluded_injector_ids), "duplicate_existing_injector_candidates": duplicate_existing_injector_candidates}}
     (args.output_dir / "manifest.json").write_text(json.dumps(manifest, sort_keys=True) + "\n")
     print(json.dumps(manifest["counts"], sort_keys=True))
