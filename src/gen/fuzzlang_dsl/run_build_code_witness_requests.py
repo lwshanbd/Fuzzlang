@@ -74,6 +74,24 @@ def _anchor_pattern(diag_name: str) -> re.Pattern[str]:
         return re.compile(r"\b(?:matrix|Matrix)\b")
     if "vector" in diag_name:
         return re.compile(r"\b(?:vector|Vector)\b")
+    if "abi_tag" in diag_name:
+        return re.compile(r"(?:\[\[gnu::abi_tag|__attribute__\s*\(\(abi_tag)")
+    if "musttail" in diag_name:
+        return re.compile(r"(?:\[\[clang::musttail\]\]|\breturn\b)")
+    if "flexible_array" in diag_name:
+        return re.compile(r"\[\s*\]")
+    if "fold_expression" in diag_name:
+        return re.compile(r"\.\.\.")
+    if "va_arg" in diag_name:
+        return re.compile(r"\b(?:va_arg|__builtin_va_arg)\s*\(")
+    if "final_" in diag_name or diag_name.endswith("_final"):
+        return re.compile(r"\bfinal\b")
+    if "mutable" in diag_name:
+        return re.compile(r"\bmutable\b")
+    if "nested_name" in diag_name:
+        return re.compile(r"::")
+    if "redefinition" in diag_name:
+        return re.compile(r"\b(?:class|struct|enum|using|typedef)\b")
     if "delete" in diag_name:
         return re.compile(r"\bdelete\b")
     if re.search(r"(?:^|_)new(?:_|$)", diag_name):
