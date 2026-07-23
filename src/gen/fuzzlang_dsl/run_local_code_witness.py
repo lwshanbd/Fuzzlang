@@ -6,6 +6,7 @@ import argparse
 import hashlib
 import json
 from pathlib import Path
+from typing import Iterable
 
 from foundation.record import Origin, Provenance, Record, Split
 from foundation.verifier import FuzzlangClangVerifier
@@ -30,6 +31,16 @@ def _write(path: Path, rows: list[dict]) -> None:
     path.write_text("".join(json.dumps(row, ensure_ascii=False, sort_keys=True) + "\n" for row in rows))
 
 
+def load_excluded_injector_ids(paths: Iterable[Path]) -> tuple[str, ...]:
+    """Load canonical Injector identities produced by prior campaigns."""
+    identities: set[str] = set()
+    for path in paths:
+        for line in path.read_text().splitlines():
+            if line.strip():
+                identities.add(FuzzLangInjector.from_dict(json.loads(line)).injector_id)
+    return tuple(sorted(identities))
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--requests", type=Path, required=True)
@@ -37,6 +48,10 @@ def main() -> int:
     parser.add_argument("--clang-c-bin", required=True)
     parser.add_argument("--diagtool-bin", required=True)
     parser.add_argument("--output-dir", type=Path, required=True)
+    parser.add_argument(
+        "--exclude-injectors", type=Path, action="append", default=[],
+        help="canonical Injector JSONL whose identities must not be re-emitted",
+    )
     parser.add_argument("--candidates", type=int, default=4)
     parser.add_argument("--temperature", type=float, default=0.5)
     parser.add_argument("--max-tokens", type=int, default=400)
@@ -46,11 +61,13 @@ def main() -> int:
     if args.candidates <= 0 or args.max_tokens <= 0 or args.timeout <= 0:
         parser.error("candidate, token, and timeout bounds must be positive")
     requests = _load(args.requests)
+    excluded_injector_ids = frozenset(load_excluded_injector_ids(args.exclude_injectors))
     backend = LocalGemma31BBackend(DEFAULT_GEMMA_31B_SNAPSHOT, seed=args.seed)
     verifier = FuzzlangClangVerifier(args.clang_bin, args.diagtool_bin, args.timeout, clang_c_bin=args.clang_c_bin)
     attempts: list[dict] = []
     records: list[dict] = []
     injectors: dict[str, dict] = {}
+    duplicate_existing_injector_candidates = 0
     for request_index, request in enumerate(requests):
         baseline = verifier.verify(request.corrected_src, list(request.compile_cmd), logical_path=request.source_path)
         if not baseline.ok:
@@ -85,7 +102,11 @@ def main() -> int:
             recipe = extract_recipe(record, context_tokens=2, allow_fresh_identifiers=True, allow_literal_payloads=True, normalize_token_edits=True)
             if recipe is not None and recipe.portable:
                 injector = FuzzLangInjector.from_recipe(recipe, diag_id=verified.diag.diag_id)
-                injectors[injector.injector_id] = injector.to_dict()
+                if injector.injector_id in excluded_injector_ids:
+                    row["injector_status"] = "duplicate_excluded_injector"
+                    duplicate_existing_injector_candidates += 1
+                else:
+                    injectors[injector.injector_id] = injector.to_dict()
             row["status"] = "exact_target"
             row["record_id"] = record.record_id
             attempts.append(row)
@@ -93,7 +114,7 @@ def main() -> int:
     _write(args.output_dir / "attempts.jsonl", attempts)
     _write(args.output_dir / "records.jsonl", records)
     _write(args.output_dir / "injectors.jsonl", list(injectors.values()))
-    manifest = {"schema": "fuzzlang.code_witness_bootstrap", "model": {"name": DEFAULT_GEMMA_31B_MODEL, "revision": DEFAULT_GEMMA_31B_REVISION, "parameters": "31B"}, "paid_api_calls": False, "counts": {"requests": len(requests), "attempts": len(attempts), "records": len(records), "portable_injectors": len(injectors)}}
+    manifest = {"schema": "fuzzlang.code_witness_bootstrap", "model": {"name": DEFAULT_GEMMA_31B_MODEL, "revision": DEFAULT_GEMMA_31B_REVISION, "parameters": "31B"}, "paid_api_calls": False, "counts": {"requests": len(requests), "attempts": len(attempts), "records": len(records), "portable_injectors": len(injectors), "excluded_injector_identities": len(excluded_injector_ids), "duplicate_existing_injector_candidates": duplicate_existing_injector_candidates}}
     (args.output_dir / "manifest.json").write_text(json.dumps(manifest, sort_keys=True) + "\n")
     print(json.dumps(manifest["counts"], sort_keys=True))
     return 0

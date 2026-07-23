@@ -1,11 +1,15 @@
 from __future__ import annotations
 
+import json
+
 from gen.fuzzlang_dsl.code_witness import (
     CodeWitnessRequest,
     apply_code_witness_patch,
     build_code_witness_messages,
     parse_code_witness_patch,
 )
+from gen.fuzzlang_dsl.injector import FuzzLangInjector
+from gen.fuzzlang_dsl.run_local_code_witness import load_excluded_injector_ids
 from gen.fuzzlang_dsl.run_build_code_witness_requests import _anchor_pattern
 
 
@@ -84,3 +88,21 @@ def test_target_anchor_selection_uses_array_bounds_for_array_size_failures():
     pattern = _anchor_pattern("err_typecheck_negative_array_size")
 
     assert pattern.search("int values[count];")
+
+
+def test_load_excluded_injector_identities_from_prior_campaigns(tmp_path):
+    injector = FuzzLangInjector(
+        target_diag="err_target",
+        language="c++",
+        operation="replace",
+        old_patterns=("<NUM>",),
+        new_text="bad",
+        left_context=("return",),
+        right_context=(";",),
+        portable=True,
+        replacement_parts=(("literal", "bad"),),
+    )
+    prior = tmp_path / "prior.jsonl"
+    prior.write_text(json.dumps(injector.to_dict()) + "\n")
+
+    assert load_excluded_injector_ids((prior,)) == (injector.injector_id,)
