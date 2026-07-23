@@ -18,6 +18,7 @@ from gen.fuzzlang_dsl.run_local_code_witness import (
 )
 from gen.fuzzlang_dsl.run_build_code_witness_requests import (
     _anchor_pattern,
+    _diagnostic_names_from_audits,
     _diagnostic_names_from_jsonl,
     _ordered_diagnostic_names_from_jsonl,
     _resolve_target_entries,
@@ -200,6 +201,18 @@ def test_ordered_diagnostic_name_loader_supports_retry_queue_deduplication(tmp_p
     assert _ordered_diagnostic_names_from_jsonl([first, second]) == (
         "err_second", "err_first", "err_third",
     )
+
+
+def test_diagnostic_name_loader_accepts_strict_coverage_audits(tmp_path):
+    audit = tmp_path / "audit.json"
+    audit.write_text(json.dumps({
+        "schema": "fuzzlang.verified_injector_coverage_audit.v1",
+        "verified_diagnostic_names": ["err_second", "err_first", "err_second"],
+    }))
+
+    assert _diagnostic_names_from_audits([audit]) == {
+        "err_first", "err_second",
+    }
 
 
 def test_load_excluded_injector_identities_from_prior_campaigns(tmp_path):

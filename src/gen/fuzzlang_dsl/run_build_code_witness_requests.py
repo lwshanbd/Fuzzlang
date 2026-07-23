@@ -100,6 +100,25 @@ def _diagnostic_names_from_jsonl(paths: Sequence[Path]) -> set[str]:
     return set(_ordered_diagnostic_names_from_jsonl(paths))
 
 
+def _diagnostic_names_from_audits(paths: Sequence[Path]) -> set[str]:
+    """Load only Injector-backed diagnostic names from strict audit reports."""
+    names: set[str] = set()
+    for path in paths:
+        value = json.loads(path.read_text())
+        if value.get("schema") != "fuzzlang.verified_injector_coverage_audit.v1":
+            raise ValueError(f"unsupported strict coverage audit: {path}")
+        verified = value.get("verified_diagnostic_names")
+        if (
+            not isinstance(verified, list)
+            or any(not isinstance(name, str) or not name for name in verified)
+        ):
+            raise ValueError(
+                f"strict coverage audit has invalid diagnostic names: {path}"
+            )
+        names.update(verified)
+    return names
+
+
 def _resolve_target_entries(
     catalog: Catalog,
     *,
@@ -151,6 +170,10 @@ def main() -> int:
         help="accepted Record JSONL whose target diagnostics are already covered",
     )
     parser.add_argument(
+        "--covered-audit", type=Path, action="append", default=[],
+        help="strict Injector-backed coverage audit whose targets are covered",
+    )
+    parser.add_argument(
         "--attempted-requests", type=Path, action="append", default=[],
         help="prior request JSONL whose diagnostics should not be selected again",
     )
@@ -172,6 +195,10 @@ def main() -> int:
         else {}
     )
     covered = _diagnostic_names_from_jsonl(args.covered_records)
+    try:
+        covered.update(_diagnostic_names_from_audits(args.covered_audit))
+    except ValueError as error:
+        parser.error(str(error))
     attempted = _diagnostic_names_from_jsonl(args.attempted_requests)
     modes = sum((
         bool(args.diag_name),
