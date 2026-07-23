@@ -218,7 +218,7 @@ def test_code_witness_cli_processes_every_request_and_writes_manifest(
     assert manifest["counts"]["requests"] == 2
     assert manifest["counts"]["attempts"] == 2
     assert manifest["counts"]["records"] == 2
-    # One verified seed edit is distilled at three lexical-context levels.
+    # One verified seed edit is distilled at four lexical-context levels.
     # The two requests have identical edit semantics, so each level deduplicates.
-    assert manifest["counts"]["portable_injectors"] == 3
-    assert len((tmp_path / "out" / "injectors.jsonl").read_text().splitlines()) == 3
+    assert manifest["counts"]["portable_injectors"] == 4
+    assert len((tmp_path / "out" / "injectors.jsonl").read_text().splitlines()) == 4

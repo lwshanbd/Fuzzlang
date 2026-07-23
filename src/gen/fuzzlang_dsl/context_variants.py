@@ -10,7 +10,10 @@ from gen.fuzzlang_dsl.injector import FuzzLangInjector
 from gen.realcorpus.recipes import extract_recipe
 
 
-DEFAULT_RECIPE_CONTEXT_TOKENS = (0, 1, 2)
+# The fourth level gives replay a moderately more specific lexical anchor.
+# It remains a separately verified Injector, so it is retained only when it
+# transfers to a distinct clean source file during strict replay.
+DEFAULT_RECIPE_CONTEXT_TOKENS = (0, 1, 2, 3)
 
 
 def load_excluded_injector_ids(paths: Iterable[Path]) -> tuple[str, ...]:
