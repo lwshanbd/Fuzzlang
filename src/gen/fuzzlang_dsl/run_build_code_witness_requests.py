@@ -36,6 +36,18 @@ def _window(source: str, anchor: int) -> tuple[int, int]:
 
 def _anchor_pattern(diag_name: str) -> re.Pattern[str]:
     """Choose a code shape that gives a diagnostic-specific edit room."""
+    if "template" in diag_name:
+        return re.compile(r"\btemplate\s*<")
+    if "enumerator" in diag_name or "enum_" in diag_name:
+        return re.compile(r"\benum(?:\s+class)?\b")
+    if "case_" in diag_name or diag_name.endswith("_case"):
+        return re.compile(r"\b(?:case\b[^:\n]*:|switch\s*\()")
+    if "condition" in diag_name:
+        return re.compile(r"\b(?:if|while|for|switch)\s*\(")
+    if "base_specifier" in diag_name:
+        return re.compile(r"\b(?:class|struct)\s+[A-Za-z_]\w*[^;{\n]*:")
+    if "fn_body" in diag_name or "function_body" in diag_name:
+        return re.compile(r"\)\s*(?:const\s*)?(?:noexcept\s*)?(?:->[^ {\n]+)?\s*\{")
     if "call_" in diag_name:
         return re.compile(r"\b[A-Za-z_]\w*\s*\(")
     if "subscript" in diag_name:
@@ -57,9 +69,10 @@ def _anchor_pattern(diag_name: str) -> re.Pattern[str]:
     return re.compile(r"\breturn\b")
 
 
-def _diagnostic_names_from_jsonl(paths: Sequence[Path]) -> set[str]:
-    """Load target names from request rows or accepted Record rows."""
-    names: set[str] = set()
+def _ordered_diagnostic_names_from_jsonl(paths: Sequence[Path]) -> tuple[str, ...]:
+    """Load distinct target names in input order from requests or Records."""
+    names: list[str] = []
+    seen: set[str] = set()
     for path in paths:
         for line in path.read_text().splitlines():
             if not line.strip():
@@ -72,9 +85,15 @@ def _diagnostic_names_from_jsonl(paths: Sequence[Path]) -> set[str]:
                     .get("detail", {})
                     .get("target_diag")
                 )
-            if isinstance(name, str) and name:
-                names.add(name)
-    return names
+            if isinstance(name, str) and name and name not in seen:
+                seen.add(name)
+                names.append(name)
+    return tuple(names)
+
+
+def _diagnostic_names_from_jsonl(paths: Sequence[Path]) -> set[str]:
+    """Load target names from request rows or accepted Record rows."""
+    return set(_ordered_diagnostic_names_from_jsonl(paths))
 
 
 def _resolve_target_entries(
@@ -112,6 +131,10 @@ def main() -> int:
     parser.add_argument("--catalog-dir", required=True)
     parser.add_argument("--diag-name", action="append", default=[])
     parser.add_argument(
+        "--retry-requests", type=Path, action="append", default=[],
+        help="retry target diagnostics from these request JSONLs on new sources",
+    )
+    parser.add_argument(
         "--auto-uncovered-limit", type=int,
         help="select this many unattempted Lex/Parse/Sema TableGen gaps",
     )
@@ -137,16 +160,36 @@ def main() -> int:
     catalog = load_catalog(args.catalog_dir)
     covered = _diagnostic_names_from_jsonl(args.covered_records)
     attempted = _diagnostic_names_from_jsonl(args.attempted_requests)
-    try:
-        targets = _resolve_target_entries(
-            catalog,
-            explicit_names=args.diag_name,
-            auto_uncovered_limit=args.auto_uncovered_limit,
-            covered=covered,
-            attempted=attempted,
+    modes = sum((
+        bool(args.diag_name),
+        args.auto_uncovered_limit is not None,
+        bool(args.retry_requests),
+    ))
+    if modes != 1:
+        parser.error(
+            "choose exactly one target mode: --diag-name, "
+            "--auto-uncovered-limit, or --retry-requests"
         )
-    except ValueError as error:
-        parser.error(str(error))
+    explicit_names = tuple(args.diag_name)
+    if args.retry_requests:
+        explicit_names = tuple(
+            name
+            for name in _ordered_diagnostic_names_from_jsonl(args.retry_requests)
+            if name not in covered
+        )
+    if args.retry_requests and not explicit_names:
+        targets = ()
+    else:
+        try:
+            targets = _resolve_target_entries(
+                catalog,
+                explicit_names=explicit_names,
+                auto_uncovered_limit=args.auto_uncovered_limit,
+                covered=covered,
+                attempted=attempted,
+            )
+        except ValueError as error:
+            parser.error(str(error))
     sources = [source for source in load_clean_sources_jsonl(args.clean_sources)
                if source.language == "c++"]
     sources = _rotated_sources(sources, start=args.source_start)

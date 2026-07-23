@@ -19,6 +19,7 @@ from gen.fuzzlang_dsl.run_local_code_witness import (
 from gen.fuzzlang_dsl.run_build_code_witness_requests import (
     _anchor_pattern,
     _diagnostic_names_from_jsonl,
+    _ordered_diagnostic_names_from_jsonl,
     _resolve_target_entries,
     _rotated_sources,
 )
@@ -91,6 +92,27 @@ def test_target_anchor_selection_prefers_relevant_real_code_shapes():
     assert _anchor_pattern("err_expected_expression").search("return x;")
 
 
+def test_target_anchor_selection_understands_parser_contexts():
+    assert _anchor_pattern("err_expected_template_parameter").search(
+        "template <typename T>"
+    )
+    assert _anchor_pattern("err_expected_end_of_enumerator").search(
+        "enum Color { red, blue };"
+    )
+    assert _anchor_pattern("err_expected_case_before_expression").search(
+        "case 1:"
+    )
+    assert _anchor_pattern("err_expected_init_in_condition").search(
+        "if (ready)"
+    )
+    assert _anchor_pattern("err_expected_lbrace_after_base_specifiers").search(
+        "class Child : public Base {"
+    )
+    assert _anchor_pattern("err_expected_fn_body").search(
+        "int compute() {"
+    )
+
+
 def test_target_anchor_selection_uses_assignment_for_lvalue_failures():
     pattern = _anchor_pattern("err_typecheck_array_not_modifiable_lvalue")
 
@@ -144,6 +166,23 @@ def test_diagnostic_name_loader_accepts_records_and_request_rows(tmp_path):
     assert _diagnostic_names_from_jsonl([path]) == {
         "err_request", "err_record",
     }
+
+
+def test_ordered_diagnostic_name_loader_supports_retry_queue_deduplication(tmp_path):
+    first = tmp_path / "first.jsonl"
+    first.write_text(
+        '{"diag_name":"err_second"}\n'
+        '{"diag_name":"err_first"}\n'
+    )
+    second = tmp_path / "second.jsonl"
+    second.write_text(
+        '{"diag_name":"err_second"}\n'
+        '{"provenance":{"detail":{"target_diag":"err_third"}}}\n'
+    )
+
+    assert _ordered_diagnostic_names_from_jsonl([first, second]) == (
+        "err_second", "err_first", "err_third",
+    )
 
 
 def test_load_excluded_injector_identities_from_prior_campaigns(tmp_path):
