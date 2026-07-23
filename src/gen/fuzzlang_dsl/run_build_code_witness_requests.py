@@ -165,6 +165,15 @@ def _anchor_pattern(diag_name: str) -> re.Pattern[str]:
     return re.compile(r"\breturn\b")
 
 
+def _anchor_patterns(diag_name: str) -> tuple[re.Pattern[str], ...]:
+    """Return a diagnostic-shaped anchor plus a ubiquitous safe fallback."""
+    primary = _anchor_pattern(diag_name)
+    fallback = re.compile(r"\breturn\b")
+    if primary.pattern == fallback.pattern:
+        return (primary,)
+    return primary, fallback
+
+
 def _ordered_diagnostic_names_from_jsonl(paths: Sequence[Path]) -> tuple[str, ...]:
     """Load distinct target names in input order from requests or Records."""
     names: list[str] = []
@@ -349,10 +358,13 @@ def main() -> int:
     used_by_target: dict[str, set[str]] = {}
     for sources_for_variant in source_orders:
         for entry in targets:
-            pattern = _anchor_pattern(entry.name)
             target_used = used_by_target.setdefault(entry.name, set())
 
-            def select(*, require_globally_new: bool):
+            def select(
+                pattern: re.Pattern[str],
+                *,
+                require_globally_new: bool,
+            ):
                 return next(
                     (
                         (item, match)
@@ -368,12 +380,16 @@ def main() -> int:
                     None,
                 )
 
-            selected = select(require_globally_new=True)
-            if selected is None:
-                selected = select(require_globally_new=False)
+            selected = None
+            for pattern in _anchor_patterns(entry.name):
+                selected = select(pattern, require_globally_new=True)
+                if selected is None:
+                    selected = select(pattern, require_globally_new=False)
+                if selected is not None:
+                    break
             if selected is None:
                 raise ValueError(
-                    "not enough distinct real C++ sources contain anchor for "
+                    "not enough distinct real C++ sources contain any anchor for "
                     f"{entry.name}"
                 )
             source, match = selected

@@ -19,6 +19,7 @@ from gen.fuzzlang_dsl.run_local_code_witness import (
 )
 from gen.fuzzlang_dsl.run_build_code_witness_requests import (
     _anchor_pattern,
+    _anchor_patterns,
     _diagnostic_names_from_audits,
     _diagnostic_names_from_jsonl,
     _ordered_diagnostic_names_from_jsonl,
@@ -207,6 +208,13 @@ def test_target_anchor_selection_covers_common_long_tail_cpp_contexts():
 
     for diagnostic, source in examples.items():
         assert _anchor_pattern(diagnostic).search(source), diagnostic
+
+
+def test_target_anchor_selection_has_real_source_fallback():
+    patterns = _anchor_patterns("err_new_abi_tag_on_redeclaration")
+
+    assert patterns[0].search('[[gnu::abi_tag("v1")]] void f();')
+    assert patterns[-1].search("return value;")
 
 
 def test_source_rotation_selects_different_real_source_prefixes_per_batch():
