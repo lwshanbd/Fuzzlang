@@ -28,6 +28,7 @@ class CodeWitnessRequest:
     corrected_src: str
     window_start: int
     window_end: int
+    emission_evidence: str | None = None
 
     def __post_init__(self) -> None:
         for name in (
@@ -51,6 +52,11 @@ class CodeWitnessRequest:
             isinstance(self.diag_id, bool) or not isinstance(self.diag_id, int)
         ):
             raise ValueError("diag_id must be an integer or null")
+        if self.emission_evidence is not None and (
+            not isinstance(self.emission_evidence, str)
+            or not self.emission_evidence
+        ):
+            raise ValueError("emission_evidence must be non-empty text or null")
         if not 0 <= self.window_start < self.window_end <= len(self.corrected_src):
             raise ValueError("window bounds must select corrected source text")
 
@@ -72,6 +78,7 @@ class CodeWitnessRequest:
             "corrected_src": self.corrected_src,
             "window_start": self.window_start,
             "window_end": self.window_end,
+            "emission_evidence": self.emission_evidence,
         }
 
     @classmethod
@@ -119,6 +126,8 @@ def build_code_witness_messages(request: CodeWitnessRequest) -> list[dict[str, s
         "TableGen_definition": request.tablegen_definition,
         "real_correct_code_window": request.window,
     }
+    if request.emission_evidence is not None:
+        task["compiler_emission_evidence"] = request.emission_evidence
     return [
         {"role": "system", "content": system},
         {"role": "user", "content": json.dumps(task, ensure_ascii=False)},

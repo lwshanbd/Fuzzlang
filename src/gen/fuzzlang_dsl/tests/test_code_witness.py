@@ -60,6 +60,23 @@ def test_code_witness_prompt_and_single_occurrence_patch_round_trip():
     assert apply_code_witness_patch(request, patch) == "int f() { return ; }\n"
 
 
+def test_code_witness_prompt_includes_optional_compiler_emission_evidence():
+    request = CodeWitnessRequest(
+        **{
+            **_request().to_dict(),
+            "emission_evidence": (
+                "clang/lib/Parse/Parser.cpp:17\n"
+                "Diag(Tok, diag::err_expected_expression);"
+            ),
+        }
+    )
+
+    messages = build_code_witness_messages(request)
+
+    assert "compiler_emission_evidence" in messages[1]["content"]
+    assert "Parser.cpp:17" in messages[1]["content"]
+
+
 def test_code_witness_rejects_ambiguous_or_non_json_patch():
     request = CodeWitnessRequest(
         diag_name="err_target",

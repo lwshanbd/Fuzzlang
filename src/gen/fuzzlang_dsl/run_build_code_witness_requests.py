@@ -11,6 +11,10 @@ from typing import Sequence, TypeVar
 from foundation.diagnostics.catalog import Catalog, DiagEntry, load_catalog
 from gen.fuzzlang_dsl.breadth_targets import select_uncovered_diagnostics
 from gen.fuzzlang_dsl.code_witness import CodeWitnessRequest
+from gen.fuzzlang_dsl.emission_evidence import (
+    emission_evidence_for,
+    load_emission_index,
+)
 from gen.realcorpus.clean_source_pool import load_clean_sources_jsonl
 
 
@@ -129,6 +133,10 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--clean-sources", type=Path, required=True)
     parser.add_argument("--catalog-dir", required=True)
+    parser.add_argument(
+        "--emission-index", type=Path,
+        help="optional cached Clang diagnostic emission-site index",
+    )
     parser.add_argument("--diag-name", action="append", default=[])
     parser.add_argument(
         "--retry-requests", type=Path, action="append", default=[],
@@ -158,6 +166,11 @@ def main() -> int:
     if args.auto_uncovered_limit is not None and args.auto_uncovered_limit <= 0:
         parser.error("--auto-uncovered-limit must be positive")
     catalog = load_catalog(args.catalog_dir)
+    emission_index = (
+        load_emission_index(args.emission_index)
+        if args.emission_index is not None
+        else {}
+    )
     covered = _diagnostic_names_from_jsonl(args.covered_records)
     attempted = _diagnostic_names_from_jsonl(args.attempted_requests)
     modes = sum((
@@ -226,6 +239,9 @@ def main() -> int:
             corrected_src=source.corrected_src,
             window_start=start,
             window_end=end,
+            emission_evidence=emission_evidence_for(
+                emission_index, entry.name,
+            ),
         ))
     args.out.parent.mkdir(parents=True, exist_ok=True)
     args.out.write_text("".join(
@@ -241,6 +257,9 @@ def main() -> int:
                 "requests": len(requests),
                 "covered_diagnostics_excluded": len(covered),
                 "attempted_diagnostics_excluded": len(attempted),
+                "targets_with_emission_evidence": sum(
+                    request.emission_evidence is not None for request in requests
+                ),
             },
             "target_diagnostics": [entry.name for entry in targets],
         }, sort_keys=True) + "\n")
