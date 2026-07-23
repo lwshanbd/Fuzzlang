@@ -32,6 +32,24 @@ def _rotated_sources(values: Sequence[_SourceT], *, start: int) -> tuple[_Source
     return ordered[offset:] + ordered[:offset]
 
 
+def _source_variant_orders(
+    values: Sequence[_SourceT],
+    *,
+    start: int,
+    variants: int,
+    stride: int,
+) -> tuple[tuple[_SourceT, ...], ...]:
+    """Return deterministic source rotations for independent target attempts."""
+    if isinstance(variants, bool) or not isinstance(variants, int) or variants <= 0:
+        raise ValueError("source variants must be positive")
+    if isinstance(stride, bool) or not isinstance(stride, int) or stride <= 0:
+        raise ValueError("source variant stride must be positive")
+    return tuple(
+        _rotated_sources(values, start=start + variant * stride)
+        for variant in range(variants)
+    )
+
+
 def _window(source: str, anchor: int) -> tuple[int, int]:
     left = source.rfind("\n", 0, max(0, anchor - 280)) + 1
     newline = source.find("\n", min(len(source), anchor + 520))
@@ -207,11 +225,23 @@ def main() -> int:
         "--source-start", type=int, default=0,
         help="rotation offset into the verified source pool for this batch",
     )
+    parser.add_argument(
+        "--source-variants", type=int, default=1,
+        help="bind each target to this many distinct real source TUs",
+    )
+    parser.add_argument(
+        "--source-variant-stride", type=int, default=211,
+        help="source-pool rotation between target variants",
+    )
     parser.add_argument("--out", type=Path, required=True)
     parser.add_argument("--manifest-out", type=Path)
     args = parser.parse_args()
     if args.source_start < 0:
         parser.error("--source-start must be non-negative")
+    if args.source_variants <= 0:
+        parser.error("--source-variants must be positive")
+    if args.source_variant_stride <= 0:
+        parser.error("--source-variant-stride must be positive")
     if args.auto_uncovered_limit is not None and args.auto_uncovered_limit <= 0:
         parser.error("--auto-uncovered-limit must be positive")
     catalog = load_catalog(args.catalog_dir)
@@ -256,46 +286,75 @@ def main() -> int:
             )
         except ValueError as error:
             parser.error(str(error))
-    sources = [source for source in load_clean_sources_jsonl(args.clean_sources)
-               if source.language == "c++"]
-    sources = _rotated_sources(sources, start=args.source_start)
+    sources = [
+        source for source in load_clean_sources_jsonl(args.clean_sources)
+        if source.language == "c++"
+    ]
+    source_orders = _source_variant_orders(
+        sources,
+        start=args.source_start,
+        variants=args.source_variants,
+        stride=args.source_variant_stride,
+    )
     requests: list[CodeWitnessRequest] = []
-    used: set[str] = set()
-    for entry in targets:
-        pattern = _anchor_pattern(entry.name)
-        selected = next(
-            ((item, match) for item in sources if item.source_id not in used
-             for match in [pattern.search(item.corrected_src)] if match is not None),
-            None,
-        )
-        if selected is None:
-            raise ValueError(f"no real C++ source contains anchor for {entry.name}")
-        source, match = selected
-        used.add(source.source_id)
-        anchor = match.start()
-        start, end = _window(source.corrected_src, anchor)
-        tablegen = (
-            f"def {entry.name} : {entry.severity}<"
-            f"{json.dumps(entry.message, ensure_ascii=False)}>"
-            + (", DefaultError" if entry.default_error else "") + ";"
-        )
-        requests.append(CodeWitnessRequest(
-            diag_name=entry.name,
-            diag_id=None,
-            diag_message=entry.message,
-            language=source.language,
-            tablegen_definition=tablegen,
-            source_id=source.source_id,
-            source_path=source.source_path,
-            project=source.project,
-            compile_cmd=source.compile_cmd,
-            corrected_src=source.corrected_src,
-            window_start=start,
-            window_end=end,
-            emission_evidence=emission_evidence_for(
-                emission_index, entry.name,
-            ),
-        ))
+    used_global: set[str] = set()
+    used_by_target: dict[str, set[str]] = {}
+    for sources_for_variant in source_orders:
+        for entry in targets:
+            pattern = _anchor_pattern(entry.name)
+            target_used = used_by_target.setdefault(entry.name, set())
+
+            def select(*, require_globally_new: bool):
+                return next(
+                    (
+                        (item, match)
+                        for item in sources_for_variant
+                        if item.source_id not in target_used
+                        and (
+                            not require_globally_new
+                            or item.source_id not in used_global
+                        )
+                        for match in [pattern.search(item.corrected_src)]
+                        if match is not None
+                    ),
+                    None,
+                )
+
+            selected = select(require_globally_new=True)
+            if selected is None:
+                selected = select(require_globally_new=False)
+            if selected is None:
+                raise ValueError(
+                    "not enough distinct real C++ sources contain anchor for "
+                    f"{entry.name}"
+                )
+            source, match = selected
+            target_used.add(source.source_id)
+            used_global.add(source.source_id)
+            anchor = match.start()
+            start, end = _window(source.corrected_src, anchor)
+            tablegen = (
+                f"def {entry.name} : {entry.severity}<"
+                f"{json.dumps(entry.message, ensure_ascii=False)}>"
+                + (", DefaultError" if entry.default_error else "") + ";"
+            )
+            requests.append(CodeWitnessRequest(
+                diag_name=entry.name,
+                diag_id=None,
+                diag_message=entry.message,
+                language=source.language,
+                tablegen_definition=tablegen,
+                source_id=source.source_id,
+                source_path=source.source_path,
+                project=source.project,
+                compile_cmd=source.compile_cmd,
+                corrected_src=source.corrected_src,
+                window_start=start,
+                window_end=end,
+                emission_evidence=emission_evidence_for(
+                    emission_index, entry.name,
+                ),
+            ))
     args.out.parent.mkdir(parents=True, exist_ok=True)
     args.out.write_text("".join(
         json.dumps(item.to_dict(), ensure_ascii=False, sort_keys=True) + "\n"
@@ -313,6 +372,7 @@ def main() -> int:
                 "targets_with_emission_evidence": sum(
                     request.emission_evidence is not None for request in requests
                 ),
+                "source_variants": args.source_variants,
             },
             "target_diagnostics": [entry.name for entry in targets],
         }, sort_keys=True) + "\n")

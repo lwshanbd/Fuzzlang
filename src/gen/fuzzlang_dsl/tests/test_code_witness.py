@@ -24,6 +24,7 @@ from gen.fuzzlang_dsl.run_build_code_witness_requests import (
     _ordered_diagnostic_names_from_jsonl,
     _resolve_target_entries,
     _rotated_sources,
+    _source_variant_orders,
 )
 from gen.fuzzlang_dsl import run_local_code_witness as witness_cli
 from repair.agent.chat_backend import ChatResponse
@@ -190,6 +191,20 @@ def test_source_rotation_selects_different_real_source_prefixes_per_batch():
     assert _rotated_sources(values, start=0) == values
     assert _rotated_sources(values, start=1) == ("source-b", "source-c", "source-a")
     assert _rotated_sources(values, start=4) == ("source-b", "source-c", "source-a")
+
+
+def test_source_variants_bind_each_target_to_distinct_real_source_orders():
+    values = ("source-a", "source-b", "source-c", "source-d")
+
+    assert _source_variant_orders(
+        values,
+        start=1,
+        variants=2,
+        stride=2,
+    ) == (
+        ("source-b", "source-c", "source-d", "source-a"),
+        ("source-d", "source-a", "source-b", "source-c"),
+    )
 
 
 def test_coverage_first_target_resolution_uses_uncovered_unattempted_errors():
