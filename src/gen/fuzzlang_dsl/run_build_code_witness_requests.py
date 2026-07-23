@@ -6,10 +6,25 @@ import argparse
 import json
 import re
 from pathlib import Path
+from typing import Sequence, TypeVar
 
 from foundation.diagnostics.catalog import load_catalog
 from gen.fuzzlang_dsl.code_witness import CodeWitnessRequest
 from gen.realcorpus.clean_source_pool import load_clean_sources_jsonl
+
+
+_SourceT = TypeVar("_SourceT")
+
+
+def _rotated_sources(values: Sequence[_SourceT], *, start: int) -> tuple[_SourceT, ...]:
+    """Rotate a source pool so repeated batches see different real TUs first."""
+    if start < 0:
+        raise ValueError("source start must be non-negative")
+    ordered = tuple(values)
+    if not ordered:
+        return ()
+    offset = start % len(ordered)
+    return ordered[offset:] + ordered[:offset]
 
 
 def _window(source: str, anchor: int) -> tuple[int, int]:
@@ -46,11 +61,18 @@ def main() -> int:
     parser.add_argument("--clean-sources", type=Path, required=True)
     parser.add_argument("--catalog-dir", required=True)
     parser.add_argument("--diag-name", action="append", required=True)
+    parser.add_argument(
+        "--source-start", type=int, default=0,
+        help="rotation offset into the verified source pool for this batch",
+    )
     parser.add_argument("--out", type=Path, required=True)
     args = parser.parse_args()
+    if args.source_start < 0:
+        parser.error("--source-start must be non-negative")
     catalog = load_catalog(args.catalog_dir)
     sources = [source for source in load_clean_sources_jsonl(args.clean_sources)
                if source.language == "c++"]
+    sources = _rotated_sources(sources, start=args.source_start)
     requests: list[CodeWitnessRequest] = []
     used: set[str] = set()
     for name in args.diag_name:

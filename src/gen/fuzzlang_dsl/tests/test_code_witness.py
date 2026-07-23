@@ -15,7 +15,10 @@ from gen.fuzzlang_dsl.run_local_code_witness import (
     _write_checkpoint,
     load_excluded_injector_ids,
 )
-from gen.fuzzlang_dsl.run_build_code_witness_requests import _anchor_pattern
+from gen.fuzzlang_dsl.run_build_code_witness_requests import (
+    _anchor_pattern,
+    _rotated_sources,
+)
 from gen.fuzzlang_dsl import run_local_code_witness as witness_cli
 from repair.agent.chat_backend import ChatResponse
 
@@ -96,6 +99,14 @@ def test_target_anchor_selection_uses_array_bounds_for_array_size_failures():
     pattern = _anchor_pattern("err_typecheck_negative_array_size")
 
     assert pattern.search("int values[count];")
+
+
+def test_source_rotation_selects_different_real_source_prefixes_per_batch():
+    values = ("source-a", "source-b", "source-c")
+
+    assert _rotated_sources(values, start=0) == values
+    assert _rotated_sources(values, start=1) == ("source-b", "source-c", "source-a")
+    assert _rotated_sources(values, start=4) == ("source-b", "source-c", "source-a")
 
 
 def test_load_excluded_injector_identities_from_prior_campaigns(tmp_path):
