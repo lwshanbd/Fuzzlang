@@ -40,6 +40,32 @@ def _window(source: str, anchor: int) -> tuple[int, int]:
 
 def _anchor_pattern(diag_name: str) -> re.Pattern[str]:
     """Choose a code shape that gives a diagnostic-specific edit room."""
+    if "attribute" in diag_name:
+        return re.compile(r"(?:\[\[|__attribute__\s*\()")
+    if diag_name.startswith("err_asm_") or "_asm_" in diag_name:
+        return re.compile(r"\b(?:asm|__asm__)\s*\(")
+    if "atomic" in diag_name:
+        return re.compile(r"\b(?:__atomic_\w+|atomic(?:_\w+|\s*<))")
+    if "constraint" in diag_name or "concept" in diag_name:
+        return re.compile(r"\b(?:concept|requires)\b")
+    if "coroutine" in diag_name or "coawait" in diag_name:
+        return re.compile(r"\b(?:co_await|co_return|co_yield)\b")
+    if "static_assert" in diag_name:
+        return re.compile(r"\bstatic_assert\s*\(")
+    if "namespace" in diag_name:
+        return re.compile(r"\bnamespace\b")
+    if "storageclass" in diag_name or "storage_class" in diag_name:
+        return re.compile(r"\b(?:static|extern|register|thread_local|mutable)\b")
+    if "typedef" in diag_name:
+        return re.compile(r"\btypedef\b")
+    if "using_decl" in diag_name or "using_declaration" in diag_name:
+        return re.compile(r"\busing\b")
+    if "lambda" in diag_name:
+        return re.compile(r"\[[^\]\n]*\]\s*(?:<[^>\n]*>\s*)?\(")
+    if "delete" in diag_name:
+        return re.compile(r"\bdelete\b")
+    if re.search(r"(?:^|_)new(?:_|$)", diag_name):
+        return re.compile(r"\bnew\b")
     if "template" in diag_name:
         return re.compile(r"\btemplate\s*<")
     if "enumerator" in diag_name or "enum_" in diag_name:
