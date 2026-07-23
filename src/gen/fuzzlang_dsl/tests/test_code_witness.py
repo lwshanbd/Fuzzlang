@@ -71,3 +71,10 @@ def test_target_anchor_selection_prefers_relevant_real_code_shapes():
     assert _anchor_pattern("err_typecheck_member_reference_struct_union").search("x.y")
     assert _anchor_pattern("err_typecheck_invalid_operands").search("x + y")
     assert _anchor_pattern("err_expected_expression").search("return x;")
+
+
+def test_target_anchor_selection_uses_assignment_for_lvalue_failures():
+    pattern = _anchor_pattern("err_typecheck_array_not_modifiable_lvalue")
+
+    assert pattern.search("result = value;")
+    assert pattern.search("result == value;") is None
