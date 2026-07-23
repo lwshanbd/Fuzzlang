@@ -6,6 +6,7 @@ from gen.fuzzlang_dsl.code_witness import (
     build_code_witness_messages,
     parse_code_witness_patch,
 )
+from gen.fuzzlang_dsl.run_build_code_witness_requests import _anchor_pattern
 
 
 def _request() -> CodeWitnessRequest:
@@ -62,3 +63,11 @@ def test_code_witness_rejects_ambiguous_or_non_json_patch():
 
     assert patch is None
     assert reason == "old_text_not_unique_in_window"
+
+
+def test_target_anchor_selection_prefers_relevant_real_code_shapes():
+    assert _anchor_pattern("err_typecheck_call_too_few_args").search("f(x)")
+    assert _anchor_pattern("err_typecheck_subscript_not_integer").search("a[i]")
+    assert _anchor_pattern("err_typecheck_member_reference_struct_union").search("x.y")
+    assert _anchor_pattern("err_typecheck_invalid_operands").search("x + y")
+    assert _anchor_pattern("err_expected_expression").search("return x;")

@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 from pathlib import Path
 
 from foundation.diagnostics.catalog import load_catalog
@@ -17,6 +18,23 @@ def _window(source: str, anchor: int) -> tuple[int, int]:
     return left, len(source) if newline < 0 else newline + 1
 
 
+def _anchor_pattern(diag_name: str) -> re.Pattern[str]:
+    """Choose a code shape that gives a diagnostic-specific edit room."""
+    if "call_" in diag_name:
+        return re.compile(r"\b[A-Za-z_]\w*\s*\(")
+    if "subscript" in diag_name:
+        return re.compile(r"\[")
+    if "member_reference" in diag_name:
+        return re.compile(r"(?:->|\.)")
+    if "invalid_operands" in diag_name:
+        return re.compile(r"(?:\+|-|\*|/|==|!=|<|>)")
+    if "rparen" in diag_name:
+        return re.compile(r"\(")
+    if "semi" in diag_name:
+        return re.compile(r";")
+    return re.compile(r"\breturn\b")
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--clean-sources", type=Path, required=True)
@@ -25,21 +43,25 @@ def main() -> int:
     parser.add_argument("--out", type=Path, required=True)
     args = parser.parse_args()
     catalog = load_catalog(args.catalog_dir)
-    sources = [
-        source for source in load_clean_sources_jsonl(args.clean_sources)
-        if source.language == "c++" and "return" in source.corrected_src
-    ]
+    sources = [source for source in load_clean_sources_jsonl(args.clean_sources)
+               if source.language == "c++"]
     requests: list[CodeWitnessRequest] = []
     used: set[str] = set()
     for name in args.diag_name:
         entry = catalog.by_name.get(name)
         if entry is None or not entry.is_error:
             raise ValueError(f"target is not a catalog error: {name}")
-        source = next((item for item in sources if item.source_id not in used), None)
-        if source is None:
-            raise ValueError("not enough return-containing real C++ source TUs")
+        pattern = _anchor_pattern(name)
+        selected = next(
+            ((item, match) for item in sources if item.source_id not in used
+             for match in [pattern.search(item.corrected_src)] if match is not None),
+            None,
+        )
+        if selected is None:
+            raise ValueError(f"no real C++ source contains anchor for {name}")
+        source, match = selected
         used.add(source.source_id)
-        anchor = source.corrected_src.index("return")
+        anchor = match.start()
         start, end = _window(source.corrected_src, anchor)
         tablegen = (
             f"def {entry.name} : {entry.severity}<"
