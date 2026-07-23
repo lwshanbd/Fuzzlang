@@ -38,6 +38,7 @@ class CampaignBudget:
     max_candidates_per_source: int = 8
     max_records: int = 10_000
     max_records_per_injector: int = 50
+    max_records_per_diagnostic: int = 10_000
 
     def __post_init__(self) -> None:
         for name in (
@@ -47,6 +48,7 @@ class CampaignBudget:
             "max_candidates_per_source",
             "max_records",
             "max_records_per_injector",
+            "max_records_per_diagnostic",
         ):
             value = getattr(self, name)
             if isinstance(value, bool) or not isinstance(value, int) or value <= 0:
@@ -60,6 +62,7 @@ class CampaignBudget:
             "max_candidates_per_source": self.max_candidates_per_source,
             "max_records": self.max_records,
             "max_records_per_injector": self.max_records_per_injector,
+            "max_records_per_diagnostic": self.max_records_per_diagnostic,
         }
 
 
@@ -253,11 +256,17 @@ def run_campaign(
     output: list[Record] = []
     output_ids: set[str] = set()
     clean_cache: dict[str, bool] = {}
+    diagnostic_records: dict[str, int] = {}
     baseline_verifications = 0
     mutant_verifications = 0
 
     for injector in unique_injectors:
         metric = metrics_by_id[injector.injector_id]
+        if (
+            diagnostic_records.get(injector.target_diag, 0)
+            >= budget.max_records_per_diagnostic
+        ):
+            continue
         if not injector.portable:
             rejections.append(CampaignRejection(
                 status="nonportable_injector",
@@ -284,6 +293,11 @@ def run_campaign(
             if len(output) >= budget.max_records:
                 break
             if injector_records >= budget.max_records_per_injector:
+                break
+            if (
+                diagnostic_records.get(injector.target_diag, 0)
+                >= budget.max_records_per_diagnostic
+            ):
                 break
 
             metric.considered += 1
@@ -341,6 +355,11 @@ def run_campaign(
                 if len(output) >= budget.max_records:
                     break
                 if injector_records >= budget.max_records_per_injector:
+                    break
+                if (
+                    diagnostic_records.get(injector.target_diag, 0)
+                    >= budget.max_records_per_diagnostic
+                ):
                     break
 
                 mutant_verifications += 1
@@ -433,6 +452,9 @@ def run_campaign(
                 output_ids.add(record.record_id)
                 output.append(record)
                 injector_records += 1
+                diagnostic_records[injector.target_diag] = (
+                    diagnostic_records.get(injector.target_diag, 0) + 1
+                )
                 metric.records_emitted += 1
                 metric.note_exact(source_key, source.project)
 
@@ -446,6 +468,7 @@ def run_campaign(
             "baseline_verifications": baseline_verifications,
             "mutant_verifications": mutant_verifications,
             "records": len(output),
+            "diagnostic_types": len(diagnostic_records),
         },
         source_pool={
             "input_records": len(source_records),

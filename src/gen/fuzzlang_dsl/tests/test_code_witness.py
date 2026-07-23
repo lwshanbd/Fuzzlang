@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 import sys
 
+from foundation.diagnostics.catalog import Catalog, DiagEntry
 from foundation.types import DiagInfo, VerifierResult
 from gen.fuzzlang_dsl.code_witness import (
     CodeWitnessRequest,
@@ -17,6 +18,8 @@ from gen.fuzzlang_dsl.run_local_code_witness import (
 )
 from gen.fuzzlang_dsl.run_build_code_witness_requests import (
     _anchor_pattern,
+    _diagnostic_names_from_jsonl,
+    _resolve_target_entries,
     _rotated_sources,
 )
 from gen.fuzzlang_dsl import run_local_code_witness as witness_cli
@@ -107,6 +110,40 @@ def test_source_rotation_selects_different_real_source_prefixes_per_batch():
     assert _rotated_sources(values, start=0) == values
     assert _rotated_sources(values, start=1) == ("source-b", "source-c", "source-a")
     assert _rotated_sources(values, start=4) == ("source-b", "source-c", "source-a")
+
+
+def test_coverage_first_target_resolution_uses_uncovered_unattempted_errors():
+    catalog = Catalog([
+        DiagEntry("err_expected_expression", "Error", "expected expression", "Parse"),
+        DiagEntry("err_typecheck_invalid_operands", "Error", "invalid operands", "Sema"),
+        DiagEntry("err_already_covered", "Error", "covered", "Sema"),
+        DiagEntry("err_already_attempted", "Error", "attempted", "Sema"),
+    ])
+
+    selected = _resolve_target_entries(
+        catalog,
+        explicit_names=(),
+        auto_uncovered_limit=2,
+        covered={"err_already_covered"},
+        attempted={"err_already_attempted"},
+    )
+
+    assert [entry.name for entry in selected] == [
+        "err_expected_expression",
+        "err_typecheck_invalid_operands",
+    ]
+
+
+def test_diagnostic_name_loader_accepts_records_and_request_rows(tmp_path):
+    path = tmp_path / "mixed.jsonl"
+    path.write_text(
+        '{"diag_name":"err_request"}\n'
+        '{"provenance":{"detail":{"target_diag":"err_record"}}}\n'
+    )
+
+    assert _diagnostic_names_from_jsonl([path]) == {
+        "err_request", "err_record",
+    }
 
 
 def test_load_excluded_injector_identities_from_prior_campaigns(tmp_path):

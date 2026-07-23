@@ -74,6 +74,12 @@ def _parser() -> argparse.ArgumentParser:
     parser.add_argument("--max-candidates-per-source", type=_positive_int, default=8)
     parser.add_argument("--max-records", type=_positive_int, default=10_000)
     parser.add_argument("--max-records-per-injector", type=_positive_int, default=50)
+    parser.add_argument(
+        "--max-records-per-diagnostic",
+        type=_positive_int,
+        default=10_000,
+        help="coverage-first cap across all Injectors with the same target diagnostic",
+    )
     return parser
 
 
@@ -184,6 +190,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         max_candidates_per_source=args.max_candidates_per_source,
         max_records=args.max_records,
         max_records_per_injector=args.max_records_per_injector,
+        max_records_per_diagnostic=args.max_records_per_diagnostic,
     )
     verifier = FuzzlangClangVerifier(
         args.clang_bin,

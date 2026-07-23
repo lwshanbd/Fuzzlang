@@ -230,6 +230,31 @@ def test_campaign_enforces_global_and_per_injector_verification_budgets():
     assert result.budget_usage["records"] == 3
 
 
+def test_campaign_can_cap_records_per_diagnostic_for_coverage_first_replay():
+    sources = [
+        _source_record(
+            f"p-{index}", f"llvm:llvm/lib/F{index}.cpp", path=f"llvm/lib/F{index}.cpp",
+        )
+        for index in range(2)
+    ]
+
+    result = run_campaign(
+        [_injector("bad_exact"), _injector("bad_exact_variant")],
+        sources,
+        _FakeVerifier(),
+        budget=CampaignBudget(
+            max_verifications=10,
+            max_records=10,
+            max_records_per_injector=10,
+            max_records_per_diagnostic=1,
+        ),
+    )
+
+    assert len(result.records) == 1
+    assert result.records[0].primary_diagnostic.diag_name == "err_target"
+    assert result.budget_usage["diagnostic_types"] == 1
+
+
 def test_campaign_bounds_real_source_scan_per_injector():
     sources = [
         _source_record(

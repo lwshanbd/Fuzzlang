@@ -8,7 +8,8 @@ import re
 from pathlib import Path
 from typing import Sequence, TypeVar
 
-from foundation.diagnostics.catalog import load_catalog
+from foundation.diagnostics.catalog import Catalog, DiagEntry, load_catalog
+from gen.fuzzlang_dsl.breadth_targets import select_uncovered_diagnostics
 from gen.fuzzlang_dsl.code_witness import CodeWitnessRequest
 from gen.realcorpus.clean_source_pool import load_clean_sources_jsonl
 
@@ -56,37 +57,110 @@ def _anchor_pattern(diag_name: str) -> re.Pattern[str]:
     return re.compile(r"\breturn\b")
 
 
+def _diagnostic_names_from_jsonl(paths: Sequence[Path]) -> set[str]:
+    """Load target names from request rows or accepted Record rows."""
+    names: set[str] = set()
+    for path in paths:
+        for line in path.read_text().splitlines():
+            if not line.strip():
+                continue
+            value = json.loads(line)
+            name = value.get("diag_name")
+            if not isinstance(name, str):
+                name = (
+                    value.get("provenance", {})
+                    .get("detail", {})
+                    .get("target_diag")
+                )
+            if isinstance(name, str) and name:
+                names.add(name)
+    return names
+
+
+def _resolve_target_entries(
+    catalog: Catalog,
+    *,
+    explicit_names: Sequence[str],
+    auto_uncovered_limit: int | None,
+    covered: set[str],
+    attempted: set[str],
+) -> tuple[DiagEntry, ...]:
+    """Resolve either explicit targets or a coverage-first TableGen gap slice."""
+    if explicit_names and auto_uncovered_limit is not None:
+        raise ValueError("--diag-name and --auto-uncovered-limit are exclusive")
+    if not explicit_names and auto_uncovered_limit is None:
+        raise ValueError("provide --diag-name or --auto-uncovered-limit")
+    if auto_uncovered_limit is not None:
+        return select_uncovered_diagnostics(
+            catalog.entries,
+            covered=covered,
+            attempted=attempted,
+            limit=auto_uncovered_limit,
+        )
+    entries: list[DiagEntry] = []
+    for name in explicit_names:
+        entry = catalog.by_name.get(name)
+        if entry is None or not entry.is_error:
+            raise ValueError(f"target is not a catalog error: {name}")
+        entries.append(entry)
+    return tuple(entries)
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--clean-sources", type=Path, required=True)
     parser.add_argument("--catalog-dir", required=True)
-    parser.add_argument("--diag-name", action="append", required=True)
+    parser.add_argument("--diag-name", action="append", default=[])
+    parser.add_argument(
+        "--auto-uncovered-limit", type=int,
+        help="select this many unattempted Lex/Parse/Sema TableGen gaps",
+    )
+    parser.add_argument(
+        "--covered-records", type=Path, action="append", default=[],
+        help="accepted Record JSONL whose target diagnostics are already covered",
+    )
+    parser.add_argument(
+        "--attempted-requests", type=Path, action="append", default=[],
+        help="prior request JSONL whose diagnostics should not be selected again",
+    )
     parser.add_argument(
         "--source-start", type=int, default=0,
         help="rotation offset into the verified source pool for this batch",
     )
     parser.add_argument("--out", type=Path, required=True)
+    parser.add_argument("--manifest-out", type=Path)
     args = parser.parse_args()
     if args.source_start < 0:
         parser.error("--source-start must be non-negative")
+    if args.auto_uncovered_limit is not None and args.auto_uncovered_limit <= 0:
+        parser.error("--auto-uncovered-limit must be positive")
     catalog = load_catalog(args.catalog_dir)
+    covered = _diagnostic_names_from_jsonl(args.covered_records)
+    attempted = _diagnostic_names_from_jsonl(args.attempted_requests)
+    try:
+        targets = _resolve_target_entries(
+            catalog,
+            explicit_names=args.diag_name,
+            auto_uncovered_limit=args.auto_uncovered_limit,
+            covered=covered,
+            attempted=attempted,
+        )
+    except ValueError as error:
+        parser.error(str(error))
     sources = [source for source in load_clean_sources_jsonl(args.clean_sources)
                if source.language == "c++"]
     sources = _rotated_sources(sources, start=args.source_start)
     requests: list[CodeWitnessRequest] = []
     used: set[str] = set()
-    for name in args.diag_name:
-        entry = catalog.by_name.get(name)
-        if entry is None or not entry.is_error:
-            raise ValueError(f"target is not a catalog error: {name}")
-        pattern = _anchor_pattern(name)
+    for entry in targets:
+        pattern = _anchor_pattern(entry.name)
         selected = next(
             ((item, match) for item in sources if item.source_id not in used
              for match in [pattern.search(item.corrected_src)] if match is not None),
             None,
         )
         if selected is None:
-            raise ValueError(f"no real C++ source contains anchor for {name}")
+            raise ValueError(f"no real C++ source contains anchor for {entry.name}")
         source, match = selected
         used.add(source.source_id)
         anchor = match.start()
@@ -115,6 +189,18 @@ def main() -> int:
         json.dumps(item.to_dict(), ensure_ascii=False, sort_keys=True) + "\n"
         for item in requests
     ))
+    if args.manifest_out is not None:
+        args.manifest_out.parent.mkdir(parents=True, exist_ok=True)
+        args.manifest_out.write_text(json.dumps({
+            "schema": "fuzzlang.coverage_first_code_witness_requests",
+            "llvm_version": "llvmorg-22.1.8",
+            "counts": {
+                "requests": len(requests),
+                "covered_diagnostics_excluded": len(covered),
+                "attempted_diagnostics_excluded": len(attempted),
+            },
+            "target_diagnostics": [entry.name for entry in targets],
+        }, sort_keys=True) + "\n")
     print(f"[code-witness-requests] requests={len(requests)} uses_llm_api=false")
     return 0
 
