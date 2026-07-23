@@ -6,7 +6,6 @@ import argparse
 import hashlib
 import json
 from pathlib import Path
-from typing import Iterable
 
 from foundation.record import Origin, Provenance, Record, Split
 from foundation.verifier import FuzzlangClangVerifier
@@ -14,15 +13,15 @@ from gen.fuzzlang_dsl.code_witness import (
     CodeWitnessRequest, apply_code_witness_patch, build_code_witness_messages,
     parse_code_witness_patch,
 )
+from gen.fuzzlang_dsl.context_variants import (
+    DEFAULT_RECIPE_CONTEXT_TOKENS,
+    extract_contextual_injectors,
+    load_excluded_injector_ids,
+)
 from gen.fuzzlang_dsl.local_gemma import (
     DEFAULT_GEMMA_31B_MODEL, DEFAULT_GEMMA_31B_REVISION,
     DEFAULT_GEMMA_31B_SNAPSHOT, LocalGemma31BBackend,
 )
-from gen.fuzzlang_dsl.injector import FuzzLangInjector
-from gen.realcorpus.recipes import extract_recipe
-
-
-DEFAULT_RECIPE_CONTEXT_TOKENS = (0, 1, 2)
 
 
 def _load(path: Path) -> list[CodeWitnessRequest]:
@@ -45,44 +44,6 @@ def _write_checkpoint(
     _write(output_dir / "attempts.jsonl", attempts)
     _write(output_dir / "records.jsonl", records)
     _write(output_dir / "injectors.jsonl", list(injectors.values()))
-
-
-def load_excluded_injector_ids(paths: Iterable[Path]) -> tuple[str, ...]:
-    """Load canonical Injector identities produced by prior campaigns."""
-    identities: set[str] = set()
-    for path in paths:
-        for line in path.read_text().splitlines():
-            if line.strip():
-                identities.add(FuzzLangInjector.from_dict(json.loads(line)).injector_id)
-    return tuple(sorted(identities))
-
-
-def extract_contextual_injectors(
-    record: Record,
-    *,
-    diag_id: int | None,
-    context_tokens: Iterable[int],
-) -> tuple[FuzzLangInjector, ...]:
-    """Distil one exact witness into distinct FuzzLang DSL context levels.
-
-    A shorter context is a separately identified Injector, not a second
-    training record.  It is only retained after the same strict replay gate
-    used for every other Injector.
-    """
-    injectors: dict[str, FuzzLangInjector] = {}
-    for level in sorted(set(context_tokens)):
-        recipe = extract_recipe(
-            record,
-            context_tokens=level,
-            allow_fresh_identifiers=True,
-            allow_literal_payloads=True,
-            normalize_token_edits=True,
-        )
-        if recipe is None or not recipe.portable:
-            continue
-        injector = FuzzLangInjector.from_recipe(recipe, diag_id=diag_id)
-        injectors[injector.injector_id] = injector
-    return tuple(injectors.values())
 
 
 def main() -> int:
