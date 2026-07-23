@@ -78,3 +78,9 @@ def test_target_anchor_selection_uses_assignment_for_lvalue_failures():
 
     assert pattern.search("result = value;")
     assert pattern.search("result == value;") is None
+
+
+def test_target_anchor_selection_uses_array_bounds_for_array_size_failures():
+    pattern = _anchor_pattern("err_typecheck_negative_array_size")
+
+    assert pattern.search("int values[count];")

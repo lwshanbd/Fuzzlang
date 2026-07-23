@@ -28,6 +28,8 @@ def _anchor_pattern(diag_name: str) -> re.Pattern[str]:
         return re.compile(r"(?:->|\.)")
     if "invalid_operands" in diag_name:
         return re.compile(r"(?:\+|-|\*|/|==|!=|<|>)")
+    if "array_size" in diag_name or diag_name.endswith("_negative_array_size"):
+        return re.compile(r"\[[^\]\n]+\]")
     if "modifiable_lvalue" in diag_name or "lvalue_casts" in diag_name:
         return re.compile(
             r"\b[A-Za-z_]\w*(?:\s*(?:\[[^\]\n]*\]|\.\w+|->\w+))*\s*=(?!=)"
