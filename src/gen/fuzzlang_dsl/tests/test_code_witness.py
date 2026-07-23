@@ -9,6 +9,7 @@ from gen.fuzzlang_dsl.code_witness import (
     CodeWitnessRequest,
     apply_code_witness_patch,
     build_code_witness_messages,
+    build_code_witness_retry_messages,
     parse_code_witness_patch,
 )
 from gen.fuzzlang_dsl.injector import FuzzLangInjector
@@ -76,6 +77,24 @@ def test_code_witness_prompt_includes_optional_compiler_emission_evidence():
 
     assert "compiler_emission_evidence" in messages[1]["content"]
     assert "Parser.cpp:17" in messages[1]["content"]
+
+
+def test_code_witness_retry_prompt_uses_only_structured_compiler_feedback():
+    request = _request()
+
+    messages = build_code_witness_retry_messages(
+        request,
+        rejection_reasons=("old_text_not_unique_in_window",),
+        observed_diagnostics=("err_expected_semi",),
+    )
+
+    task = json.loads(messages[1]["content"])
+    assert task["prior_attempt_feedback"] == {
+        "observed_primary_diagnostics": ["err_expected_semi"],
+        "rejection_categories": ["old_text_not_unique_in_window"],
+    }
+    assert "revise the approach" in messages[0]["content"]
+    assert "stderr" not in messages[1]["content"]
 
 
 def test_code_witness_rejects_ambiguous_or_non_json_patch():
@@ -389,3 +408,77 @@ def test_code_witness_cli_does_not_archive_exact_but_undistillable_edits(
     assert attempts[0]["status"] == "exact_target_not_distillable"
     assert manifest["counts"]["records"] == 0
     assert manifest["counts"]["portable_injectors"] == 0
+
+
+def test_code_witness_cli_uses_compiler_feedback_for_second_candidate_round(
+    tmp_path, monkeypatch,
+):
+    request = _request()
+    request_path = tmp_path / "requests.jsonl"
+    request_path.write_text(json.dumps(request.to_dict()) + "\n")
+    calls: list[list[dict[str, str]]] = []
+
+    class _Backend:
+        def __init__(self, *args, **kwargs):
+            pass
+
+        def chat(self, *, messages, n, **kwargs):
+            calls.append(messages)
+            replacement = "wrong" if len(calls) == 1 else ""
+            return [
+                ChatResponse(
+                    json.dumps({
+                        "old_text": "value",
+                        "new_text": replacement,
+                    }),
+                    4,
+                )
+                for _ in range(n)
+            ]
+
+    class _Verifier:
+        def __init__(self, *args, **kwargs):
+            pass
+
+        def verify(self, candidate, compile_cmd, *, logical_path):
+            if candidate == request.corrected_src:
+                return VerifierResult(True, None, "")
+            name = (
+                "err_expected_expression"
+                if "return ;" in candidate
+                else "err_use_of_undeclared_identifier"
+            )
+            diag_id = 17 if name == "err_expected_expression" else 99
+            return VerifierResult(False, DiagInfo(
+                diag_id=diag_id,
+                diag_name=name,
+                diag_msg="structured only",
+                file=logical_path,
+                line=1,
+                col=1,
+                start_byte=0,
+                end_byte=1,
+                span_snippet="value",
+            ), "")
+
+    monkeypatch.setattr(witness_cli, "LocalGemma31BBackend", _Backend)
+    monkeypatch.setattr(witness_cli, "FuzzlangClangVerifier", _Verifier)
+    monkeypatch.setattr(sys, "argv", [
+        "run_local_code_witness.py",
+        "--requests", str(request_path),
+        "--clang-bin", "/mock/clang++",
+        "--clang-c-bin", "/mock/clang",
+        "--diagtool-bin", "/mock/diagtool",
+        "--output-dir", str(tmp_path / "out"),
+        "--candidates", "2",
+    ])
+
+    assert witness_cli.main() == 0
+    assert len(calls) == 2
+    retry_task = json.loads(calls[1][1]["content"])
+    assert retry_task["prior_attempt_feedback"][
+        "observed_primary_diagnostics"
+    ] == ["err_use_of_undeclared_identifier"]
+    manifest = json.loads((tmp_path / "out" / "manifest.json").read_text())
+    assert manifest["counts"]["records"] == 1
+    assert manifest["counts"]["feedback_round_requests"] == 1

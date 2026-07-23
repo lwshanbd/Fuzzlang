@@ -9,7 +9,7 @@ from __future__ import annotations
 
 import json
 from dataclasses import dataclass
-from typing import Any, Mapping
+from typing import Any, Mapping, Sequence
 
 from gen.fuzzlang_dsl.synthesis import extract_first_json_object
 
@@ -132,6 +132,33 @@ def build_code_witness_messages(request: CodeWitnessRequest) -> list[dict[str, s
         {"role": "system", "content": system},
         {"role": "user", "content": json.dumps(task, ensure_ascii=False)},
     ]
+
+
+def build_code_witness_retry_messages(
+    request: CodeWitnessRequest,
+    *,
+    rejection_reasons: Sequence[str],
+    observed_diagnostics: Sequence[str],
+) -> list[dict[str, str]]:
+    """Prompt a second candidate round with bounded compiler feedback.
+
+    Only stable diagnostic names and local rejection categories are included.
+    Raw compiler output and failed source are deliberately excluded so retry
+    prompts remain compact, auditable, and safe to archive.
+    """
+    messages = build_code_witness_messages(request)
+    messages[0]["content"] += (
+        " A previous candidate round did not reach the target. Use the "
+        "structured feedback to revise the approach; do not repeat the same "
+        "edit merely with different formatting."
+    )
+    task = json.loads(messages[1]["content"])
+    task["prior_attempt_feedback"] = {
+        "observed_primary_diagnostics": sorted(set(observed_diagnostics)),
+        "rejection_categories": sorted(set(rejection_reasons)),
+    }
+    messages[1]["content"] = json.dumps(task, ensure_ascii=False)
+    return messages
 
 
 def parse_code_witness_patch(
