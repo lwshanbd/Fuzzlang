@@ -22,6 +22,9 @@ from gen.fuzzlang_dsl.injector import FuzzLangInjector
 from gen.realcorpus.recipes import extract_recipe
 
 
+DEFAULT_RECIPE_CONTEXT_TOKENS = (0, 1, 2)
+
+
 def _load(path: Path) -> list[CodeWitnessRequest]:
     return [CodeWitnessRequest.from_dict(json.loads(line)) for line in path.read_text().splitlines() if line.strip()]
 
@@ -54,6 +57,34 @@ def load_excluded_injector_ids(paths: Iterable[Path]) -> tuple[str, ...]:
     return tuple(sorted(identities))
 
 
+def extract_contextual_injectors(
+    record: Record,
+    *,
+    diag_id: int | None,
+    context_tokens: Iterable[int],
+) -> tuple[FuzzLangInjector, ...]:
+    """Distil one exact witness into distinct FuzzLang DSL context levels.
+
+    A shorter context is a separately identified Injector, not a second
+    training record.  It is only retained after the same strict replay gate
+    used for every other Injector.
+    """
+    injectors: dict[str, FuzzLangInjector] = {}
+    for level in sorted(set(context_tokens)):
+        recipe = extract_recipe(
+            record,
+            context_tokens=level,
+            allow_fresh_identifiers=True,
+            allow_literal_payloads=True,
+            normalize_token_edits=True,
+        )
+        if recipe is None or not recipe.portable:
+            continue
+        injector = FuzzLangInjector.from_recipe(recipe, diag_id=diag_id)
+        injectors[injector.injector_id] = injector
+    return tuple(injectors.values())
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--requests", type=Path, required=True)
@@ -70,9 +101,20 @@ def main() -> int:
     parser.add_argument("--max-tokens", type=int, default=400)
     parser.add_argument("--timeout", type=float, default=5.0)
     parser.add_argument("--seed", type=int, default=0)
+    parser.add_argument(
+        "--recipe-context-tokens", type=int, action="append", default=None,
+        help="repeatable lexical-context level; defaults to 0, 1, and 2",
+    )
     args = parser.parse_args()
     if args.candidates <= 0 or args.max_tokens <= 0 or args.timeout <= 0:
         parser.error("candidate, token, and timeout bounds must be positive")
+    context_tokens = tuple(
+        args.recipe_context_tokens
+        if args.recipe_context_tokens is not None
+        else DEFAULT_RECIPE_CONTEXT_TOKENS
+    )
+    if any(level < 0 for level in context_tokens):
+        parser.error("recipe context levels must be non-negative")
     requests = _load(args.requests)
     excluded_injector_ids = frozenset(load_excluded_injector_ids(args.exclude_injectors))
     backend = LocalGemma31BBackend(DEFAULT_GEMMA_31B_SNAPSHOT, seed=args.seed)
@@ -118,9 +160,11 @@ def main() -> int:
                     "target_diag": request.diag_name, "primary_matches_target": True,
                 }),
             )
-            recipe = extract_recipe(record, context_tokens=2, allow_fresh_identifiers=True, allow_literal_payloads=True, normalize_token_edits=True)
-            if recipe is not None and recipe.portable:
-                injector = FuzzLangInjector.from_recipe(recipe, diag_id=verified.diag.diag_id)
+            for injector in extract_contextual_injectors(
+                record,
+                diag_id=verified.diag.diag_id,
+                context_tokens=context_tokens,
+            ):
                 if injector.injector_id in excluded_injector_ids:
                     row["injector_status"] = "duplicate_excluded_injector"
                     duplicate_existing_injector_candidates += 1
@@ -136,7 +180,7 @@ def main() -> int:
     _write_checkpoint(
         args.output_dir, attempts=attempts, records=records, injectors=injectors,
     )
-    manifest = {"schema": "fuzzlang.code_witness_bootstrap", "model": {"name": DEFAULT_GEMMA_31B_MODEL, "revision": DEFAULT_GEMMA_31B_REVISION, "parameters": "31B"}, "paid_api_calls": False, "counts": {"requests": len(requests), "attempts": len(attempts), "records": len(records), "portable_injectors": len(injectors), "excluded_injector_identities": len(excluded_injector_ids), "duplicate_existing_injector_candidates": duplicate_existing_injector_candidates}}
+    manifest = {"schema": "fuzzlang.code_witness_bootstrap", "model": {"name": DEFAULT_GEMMA_31B_MODEL, "revision": DEFAULT_GEMMA_31B_REVISION, "parameters": "31B"}, "paid_api_calls": False, "recipe_context_tokens": list(context_tokens), "counts": {"requests": len(requests), "attempts": len(attempts), "records": len(records), "portable_injectors": len(injectors), "excluded_injector_identities": len(excluded_injector_ids), "duplicate_existing_injector_candidates": duplicate_existing_injector_candidates}}
     (args.output_dir / "manifest.json").write_text(json.dumps(manifest, sort_keys=True) + "\n")
     print(json.dumps(manifest["counts"], sort_keys=True))
     return 0
