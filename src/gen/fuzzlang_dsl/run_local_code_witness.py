@@ -121,11 +121,16 @@ def main() -> int:
                     "target_diag": request.diag_name, "primary_matches_target": True,
                 }),
             )
-            for injector in extract_contextual_injectors(
-                record,
-                diag_id=verified.diag.diag_id,
+            extracted_injectors = tuple(extract_contextual_injectors(
+                record, diag_id=verified.diag.diag_id,
                 context_tokens=context_tokens,
-            ):
+            ))
+            if not extracted_injectors:
+                row["status"] = "exact_target_not_distillable"
+                row["reason"] = "no_portable_injector_extracted"
+                attempts.append(row)
+                continue
+            for injector in extracted_injectors:
                 if injector.injector_id in excluded_injector_ids:
                     row["injector_status"] = "duplicate_excluded_injector"
                     duplicate_existing_injector_candidates += 1

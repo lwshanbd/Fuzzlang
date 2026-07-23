@@ -315,3 +315,64 @@ def test_code_witness_cli_processes_every_request_and_writes_manifest(
     # The two requests have identical edit semantics, so each level deduplicates.
     assert manifest["counts"]["portable_injectors"] == 4
     assert len((tmp_path / "out" / "injectors.jsonl").read_text().splitlines()) == 4
+
+
+def test_code_witness_cli_does_not_archive_exact_but_undistillable_edits(
+    tmp_path, monkeypatch,
+):
+    request = _request()
+    request_path = tmp_path / "requests.jsonl"
+    request_path.write_text(json.dumps(request.to_dict()) + "\n")
+
+    class _Backend:
+        def __init__(self, *args, **kwargs):
+            pass
+
+        def chat(self, **kwargs):
+            return [ChatResponse(
+                '{"old_text":"value","new_text":"bad"}', 4,
+            )]
+
+    class _Verifier:
+        def __init__(self, *args, **kwargs):
+            pass
+
+        def verify(self, candidate, compile_cmd, *, logical_path):
+            if "bad" not in candidate:
+                return VerifierResult(True, None, "")
+            return VerifierResult(False, DiagInfo(
+                diag_id=17,
+                diag_name="err_expected_expression",
+                diag_msg="target",
+                file=logical_path,
+                line=1,
+                col=1,
+                start_byte=0,
+                end_byte=1,
+                span_snippet="bad",
+            ), "")
+
+    monkeypatch.setattr(witness_cli, "LocalGemma31BBackend", _Backend)
+    monkeypatch.setattr(witness_cli, "FuzzlangClangVerifier", _Verifier)
+    monkeypatch.setattr(
+        witness_cli, "extract_contextual_injectors", lambda *args, **kwargs: (),
+    )
+    monkeypatch.setattr(sys, "argv", [
+        "run_local_code_witness.py",
+        "--requests", str(request_path),
+        "--clang-bin", "/mock/clang++",
+        "--clang-c-bin", "/mock/clang",
+        "--diagtool-bin", "/mock/diagtool",
+        "--output-dir", str(tmp_path / "out"),
+        "--candidates", "1",
+    ])
+
+    assert witness_cli.main() == 0
+    attempts = [
+        json.loads(line)
+        for line in (tmp_path / "out" / "attempts.jsonl").read_text().splitlines()
+    ]
+    manifest = json.loads((tmp_path / "out" / "manifest.json").read_text())
+    assert attempts[0]["status"] == "exact_target_not_distillable"
+    assert manifest["counts"]["records"] == 0
+    assert manifest["counts"]["portable_injectors"] == 0
