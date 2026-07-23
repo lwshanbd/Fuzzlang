@@ -169,16 +169,23 @@ def test_target_anchor_selection_covers_common_long_tail_cpp_contexts():
         "err_attribute_invalid_argument": "[[nodiscard]] int f();",
         "err_asm_invalid_output_size": 'asm("mov" : "=r"(value));',
         "err_atomic_builtin_must_be_pointer": "__atomic_load_n(ptr, 0);",
+        "err_builtin_launder_invalid_arg": "__builtin_launder(pointer);",
+        "err_c23_constexpr_invalid_type": "constexpr int value = 1;",
+        "err_impcast_complex_scalar": "std::complex<double> value;",
         "err_constraint_not_bool": "template<class T> requires Ready<T>",
         "err_coroutine_return_type": "co_return value;",
         "err_delete_incomplete": "delete pointer;",
         "err_expected_namespace_name": "namespace detail {",
+        "err_in_class_initializer_bad_type": "int member = value;",
+        "err_incomplete_member_access": "class Node;",
         "err_invalid_static_assert_message": "static_assert(ready);",
         "err_lambda_in_invalid_context": "[&](int value) { return value; }",
+        "err_matrix_invalid_dimension": "Matrix<int> values;",
         "err_new_incomplete_type": "new Node;",
         "err_storageclass_invalid_for_member": "static int member;",
         "err_typedef_changes_linkage": "typedef int Value;",
         "err_using_decl_nested_name_specifier_is_not_class": "using Base::value;",
+        "err_vector_initializer_non_vector": "Vector<int> values;",
     }
 
     for diagnostic, source in examples.items():

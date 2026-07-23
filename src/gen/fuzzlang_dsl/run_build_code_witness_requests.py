@@ -64,6 +64,24 @@ def _anchor_pattern(diag_name: str) -> re.Pattern[str]:
         return re.compile(r"\b(?:asm|__asm__)\s*\(")
     if "atomic" in diag_name:
         return re.compile(r"\b(?:__atomic_\w+|atomic(?:_\w+|\s*<))")
+    if "builtin" in diag_name:
+        return re.compile(r"\b__builtin_\w+\s*\(")
+    if "constexpr" in diag_name:
+        return re.compile(r"\bconstexpr\b")
+    if "complex" in diag_name:
+        return re.compile(r"\b(?:complex|Complex)\b")
+    if "matrix" in diag_name:
+        return re.compile(r"\b(?:matrix|Matrix)\b")
+    if "vector" in diag_name:
+        return re.compile(r"\b(?:vector|Vector)\b")
+    if "delete" in diag_name:
+        return re.compile(r"\bdelete\b")
+    if re.search(r"(?:^|_)new(?:_|$)", diag_name):
+        return re.compile(r"\bnew\b")
+    if "incomplete" in diag_name:
+        return re.compile(r"\b(?:class|struct)\b")
+    if "initializer" in diag_name:
+        return re.compile(r"(?<![=!<>])=(?!=)")
     if "constraint" in diag_name or "concept" in diag_name:
         return re.compile(r"\b(?:concept|requires)\b")
     if "coroutine" in diag_name or "coawait" in diag_name:
@@ -80,10 +98,6 @@ def _anchor_pattern(diag_name: str) -> re.Pattern[str]:
         return re.compile(r"\busing\b")
     if "lambda" in diag_name:
         return re.compile(r"\[[^\]\n]*\]\s*(?:<[^>\n]*>\s*)?\(")
-    if "delete" in diag_name:
-        return re.compile(r"\bdelete\b")
-    if re.search(r"(?:^|_)new(?:_|$)", diag_name):
-        return re.compile(r"\bnew\b")
     if "template" in diag_name:
         return re.compile(r"\btemplate\s*<")
     if "enumerator" in diag_name or "enum_" in diag_name:
