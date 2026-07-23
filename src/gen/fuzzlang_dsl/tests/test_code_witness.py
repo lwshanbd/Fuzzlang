@@ -1,7 +1,9 @@
 from __future__ import annotations
 
 import json
+import sys
 
+from foundation.types import DiagInfo, VerifierResult
 from gen.fuzzlang_dsl.code_witness import (
     CodeWitnessRequest,
     apply_code_witness_patch,
@@ -14,6 +16,8 @@ from gen.fuzzlang_dsl.run_local_code_witness import (
     load_excluded_injector_ids,
 )
 from gen.fuzzlang_dsl.run_build_code_witness_requests import _anchor_pattern
+from gen.fuzzlang_dsl import run_local_code_witness as witness_cli
+from repair.agent.chat_backend import ChatResponse
 
 
 def _request() -> CodeWitnessRequest:
@@ -129,3 +133,77 @@ def test_code_witness_checkpoint_preserves_completed_requests(tmp_path):
     assert json.loads((tmp_path / "injectors.jsonl").read_text()) == {
         "injector_id": "injector-1",
     }
+
+
+def test_code_witness_cli_processes_every_request_and_writes_manifest(
+    tmp_path, monkeypatch,
+):
+    source = "int f() { return value; }\n"
+    requests = [
+        CodeWitnessRequest(
+            diag_name="err_typecheck_invalid_lvalue_addrof",
+            diag_id=101,
+            diag_message="cannot take the address of an rvalue",
+            language="c++",
+            tablegen_definition="def err_target : Error<\"target\">;",
+            source_id=f"llvm:llvm/lib/F{index}.cpp",
+            source_path=f"llvm/lib/F{index}.cpp",
+            project="llvm",
+            compile_cmd=("__CLANG__", "-fsyntax-only", "__SRC__"),
+            corrected_src=source,
+            window_start=0,
+            window_end=len(source),
+        )
+        for index in range(2)
+    ]
+    request_path = tmp_path / "requests.jsonl"
+    request_path.write_text("".join(
+        json.dumps(request.to_dict()) + "\n" for request in requests
+    ))
+
+    class _Backend:
+        def __init__(self, *args, **kwargs):
+            pass
+
+        def chat(self, *, n, **kwargs):
+            return [
+                ChatResponse('{"old_text":"value","new_text":"&value"}', 4)
+                for _ in range(n)
+            ]
+
+    class _Verifier:
+        def __init__(self, *args, **kwargs):
+            pass
+
+        def verify(self, candidate, compile_cmd, *, logical_path):
+            if "&value" not in candidate:
+                return VerifierResult(True, None, "")
+            return VerifierResult(False, DiagInfo(
+                diag_id=101,
+                diag_name="err_typecheck_invalid_lvalue_addrof",
+                diag_msg="target",
+                file=logical_path,
+                line=1,
+                col=1,
+                start_byte=0,
+                end_byte=1,
+                span_snippet="value",
+            ), "")
+
+    monkeypatch.setattr(witness_cli, "LocalGemma31BBackend", _Backend)
+    monkeypatch.setattr(witness_cli, "FuzzlangClangVerifier", _Verifier)
+    monkeypatch.setattr(sys, "argv", [
+        "run_local_code_witness.py",
+        "--requests", str(request_path),
+        "--clang-bin", "/mock/clang++",
+        "--clang-c-bin", "/mock/clang",
+        "--diagtool-bin", "/mock/diagtool",
+        "--output-dir", str(tmp_path / "out"),
+        "--candidates", "1",
+    ])
+
+    assert witness_cli.main() == 0
+    manifest = json.loads((tmp_path / "out" / "manifest.json").read_text())
+    assert manifest["counts"]["requests"] == 2
+    assert manifest["counts"]["attempts"] == 2
+    assert manifest["counts"]["records"] == 2
