@@ -18,6 +18,7 @@ _SPECIAL_MODE_RE = re.compile(
     r"module|modules|pch|header_unit|pragma|pp|"
     r"c23|c2y|c17|c11|c99|"
     r"ptrauth|kernel|spirv|receiver|message_super|super_scope|program_scope|"
+    r"address_space|addrspace|aix|darwin|nvptx|sme|zt0|"
     r"avr|arm|aarch64|riscv|wasm|webassembly|"
     r"amdgpu|bpf|hexagon|mips|ppc|sve|rvv|neon"
     r")(?:_|$)",
