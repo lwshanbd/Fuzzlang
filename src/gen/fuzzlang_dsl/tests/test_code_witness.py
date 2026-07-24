@@ -352,6 +352,7 @@ def test_code_witness_checkpoint_preserves_completed_requests(tmp_path):
         tmp_path,
         attempts=[{"request_index": 0, "status": "exact_target"}],
         records=[{"record_id": "seed-1"}],
+        undistillable_records=[],
         injectors={"injector-1": {"injector_id": "injector-1"}},
     )
 
@@ -361,6 +362,7 @@ def test_code_witness_checkpoint_preserves_completed_requests(tmp_path):
     assert json.loads((tmp_path / "records.jsonl").read_text()) == {
         "record_id": "seed-1",
     }
+    assert (tmp_path / "undistillable_records.jsonl").read_text() == ""
     assert json.loads((tmp_path / "injectors.jsonl").read_text()) == {
         "injector_id": "injector-1",
     }
@@ -444,7 +446,7 @@ def test_code_witness_cli_processes_every_request_and_writes_manifest(
     assert len((tmp_path / "out" / "injectors.jsonl").read_text().splitlines()) == 4
 
 
-def test_code_witness_cli_does_not_archive_exact_but_undistillable_edits(
+def test_code_witness_cli_preserves_undistillable_pairs_outside_core_records(
     tmp_path, monkeypatch,
 ):
     request = _request()
@@ -500,9 +502,18 @@ def test_code_witness_cli_does_not_archive_exact_but_undistillable_edits(
         for line in (tmp_path / "out" / "attempts.jsonl").read_text().splitlines()
     ]
     manifest = json.loads((tmp_path / "out" / "manifest.json").read_text())
+    recovery_records = [
+        json.loads(line)
+        for line in (
+            tmp_path / "out" / "undistillable_records.jsonl"
+        ).read_text().splitlines()
+    ]
     assert attempts[0]["status"] == "exact_target_not_distillable"
     assert manifest["counts"]["records"] == 0
+    assert manifest["counts"]["undistillable_records"] == 1
     assert manifest["counts"]["portable_injectors"] == 0
+    assert recovery_records[0]["corrected_src"] == request.corrected_src
+    assert recovery_records[0]["erroneous_src"] != request.corrected_src
 
 
 def test_code_witness_cli_uses_compiler_feedback_for_second_candidate_round(

@@ -41,11 +41,16 @@ def _write_checkpoint(
     *,
     attempts: list[dict],
     records: list[dict],
+    undistillable_records: list[dict],
     injectors: dict[str, dict],
 ) -> None:
     """Persist all completed request results before issuing another model call."""
     _write(output_dir / "attempts.jsonl", attempts)
     _write(output_dir / "records.jsonl", records)
+    _write(
+        output_dir / "undistillable_records.jsonl",
+        undistillable_records,
+    )
     _write(output_dir / "injectors.jsonl", list(injectors.values()))
 
 
@@ -85,11 +90,16 @@ def main() -> int:
     verifier = FuzzlangClangVerifier(args.clang_bin, args.diagtool_bin, args.timeout, clang_c_bin=args.clang_c_bin)
     attempts: list[dict] = []
     records: list[dict] = []
+    undistillable_records: list[dict] = []
     injectors: dict[str, dict] = {}
     duplicate_existing_injector_candidates = 0
     feedback_round_requests = 0
     _write_checkpoint(
-        args.output_dir, attempts=attempts, records=records, injectors=injectors,
+        args.output_dir,
+        attempts=attempts,
+        records=records,
+        undistillable_records=undistillable_records,
+        injectors=injectors,
     )
     for request_index, request in enumerate(requests):
         if not supports_ordinary_cpp_diagnostic_name(request.diag_name):
@@ -102,6 +112,7 @@ def main() -> int:
                 args.output_dir,
                 attempts=attempts,
                 records=records,
+                undistillable_records=undistillable_records,
                 injectors=injectors,
             )
             continue
@@ -109,7 +120,11 @@ def main() -> int:
         if not baseline.ok:
             attempts.append({"request_index": request_index, "diag_name": request.diag_name, "status": "baseline_not_clean"})
             _write_checkpoint(
-                args.output_dir, attempts=attempts, records=records, injectors=injectors,
+                args.output_dir,
+                attempts=attempts,
+                records=records,
+                undistillable_records=undistillable_records,
+                injectors=injectors,
             )
             continue
         first_round_candidates = (
@@ -210,7 +225,9 @@ def main() -> int:
                 if not extracted_injectors:
                     row["status"] = "exact_target_not_distillable"
                     row["reason"] = "no_portable_injector_extracted"
+                    row["recovery_record_id"] = record.record_id
                     attempts.append(row)
+                    undistillable_records.append(record.to_dict())
                     rejection_reasons.add(row["reason"])
                     continue
                 for injector in extracted_injectors:
@@ -226,12 +243,20 @@ def main() -> int:
                 accepted = True
                 break
         _write_checkpoint(
-            args.output_dir, attempts=attempts, records=records, injectors=injectors,
+            args.output_dir,
+            attempts=attempts,
+            records=records,
+            undistillable_records=undistillable_records,
+            injectors=injectors,
         )
     _write_checkpoint(
-        args.output_dir, attempts=attempts, records=records, injectors=injectors,
+        args.output_dir,
+        attempts=attempts,
+        records=records,
+        undistillable_records=undistillable_records,
+        injectors=injectors,
     )
-    manifest = {"schema": "fuzzlang.code_witness_bootstrap", "model": {"name": DEFAULT_GEMMA_31B_MODEL, "revision": DEFAULT_GEMMA_31B_REVISION, "parameters": "31B"}, "paid_api_calls": False, "recipe_context_tokens": list(context_tokens), "counts": {"requests": len(requests), "attempts": len(attempts), "records": len(records), "portable_injectors": len(injectors), "excluded_injector_identities": len(excluded_injector_ids), "duplicate_existing_injector_candidates": duplicate_existing_injector_candidates, "feedback_round_requests": feedback_round_requests}}
+    manifest = {"schema": "fuzzlang.code_witness_bootstrap", "model": {"name": DEFAULT_GEMMA_31B_MODEL, "revision": DEFAULT_GEMMA_31B_REVISION, "parameters": "31B"}, "paid_api_calls": False, "recipe_context_tokens": list(context_tokens), "counts": {"requests": len(requests), "attempts": len(attempts), "records": len(records), "undistillable_records": len(undistillable_records), "portable_injectors": len(injectors), "excluded_injector_identities": len(excluded_injector_ids), "duplicate_existing_injector_candidates": duplicate_existing_injector_candidates, "feedback_round_requests": feedback_round_requests}}
     (args.output_dir / "manifest.json").write_text(json.dumps(manifest, sort_keys=True) + "\n")
     print(json.dumps(manifest["counts"], sort_keys=True))
     return 0
