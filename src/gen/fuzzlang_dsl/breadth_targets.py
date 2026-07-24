@@ -15,8 +15,11 @@ _SUPPORTED_COMPONENTS = frozenset({"Lex", "Parse", "Sema"})
 _SPECIAL_MODE_RE = re.compile(
     r"(?:^|_)("
     r"objc|arc|blocks|openmp|omp|openacc|acc|cuda|hip|hlsl|opencl|sycl|"
-    r"module|modules|pch|header_unit|pragma|pp|"
+    r"module|modules|mmap|modulemap|pch|header_unit|pragma|pp|"
     r"c23|c2y|c17|c11|c99|"
+    r"implementation|ivar|property|superclass|atimport|atsign|synthesize|"
+    r"selector|nullability|ownership|interface|category|"
+    r"ns(?:attribute|consumed|errordomain|object|constant)|"
     r"ptrauth|kernel|spirv|receiver|message_super|super_scope|program_scope|"
     r"address_space|addrspace|aix|darwin|nvptx|sme|zt0|"
     r"avr|arm|aarch64|riscv|wasm|webassembly|"
