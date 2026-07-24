@@ -48,6 +48,8 @@ def test_select_uncovered_diagnostics_rejects_special_language_and_build_modes()
         _entry("err_atimport", component="Parse"),
         _entry("err_synthesize_category_decl"),
         _entry("err_implied_coroutine_type_not_found"),
+        _entry("err_illegal_message_expr_incomplete_type"),
+        _entry("err_implied_comparison_category_type_not_found"),
         _entry("err_export_within_export"),
         _entry("err_three_way_vector_comparison"),
         _entry("err_exceptions_disabled"),
