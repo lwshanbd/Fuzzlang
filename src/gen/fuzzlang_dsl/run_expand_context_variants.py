@@ -28,6 +28,11 @@ def main() -> int:
     parser.add_argument("--manifest-out", type=Path, required=True)
     parser.add_argument("--exclude-injectors", type=Path, action="append", default=[])
     parser.add_argument("--recipe-context-tokens", type=int, action="append", default=None)
+    parser.add_argument(
+        "--preserve-inserted-identifier-spellings",
+        action="store_true",
+        help="emit literal-name variants for identifiers introduced by the edit",
+    )
     args = parser.parse_args()
     context_tokens = tuple(
         args.recipe_context_tokens
@@ -50,6 +55,9 @@ def main() -> int:
             record,
             diag_id=diagnostic.diag_id,
             context_tokens=context_tokens,
+            preserve_inserted_identifier_spellings=(
+                args.preserve_inserted_identifier_spellings
+            ),
         ):
             if injector.injector_id not in excluded:
                 injectors[injector.injector_id] = injector.to_dict()
@@ -58,6 +66,9 @@ def main() -> int:
         "schema": "fuzzlang.context_variant_extraction",
         "schema_version": 1,
         "recipe_context_tokens": list(context_tokens),
+        "preserve_inserted_identifier_spellings": (
+            args.preserve_inserted_identifier_spellings
+        ),
         "counts": {
             "input_records": len(records),
             "excluded_injectors": len(excluded),

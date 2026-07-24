@@ -31,6 +31,7 @@ def extract_contextual_injectors(
     *,
     diag_id: int | None,
     context_tokens: Iterable[int],
+    preserve_inserted_identifier_spellings: bool = False,
 ) -> tuple[FuzzLangInjector, ...]:
     """Distil one exact witness into separately identified context levels."""
     injectors: dict[str, FuzzLangInjector] = {}
@@ -41,6 +42,9 @@ def extract_contextual_injectors(
             allow_fresh_identifiers=True,
             allow_literal_payloads=True,
             normalize_token_edits=True,
+            preserve_inserted_identifier_spellings=(
+                preserve_inserted_identifier_spellings
+            ),
         )
         if recipe is None or not recipe.portable:
             continue

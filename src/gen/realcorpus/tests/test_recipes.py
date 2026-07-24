@@ -217,6 +217,29 @@ def test_inserted_identifier_can_bind_to_left_context():
     )] == ["int g(){ return item(item); }"]
 
 
+def test_inserted_identifier_spelling_can_be_preserved_as_literal_payload():
+    rec = _record(
+        "a",
+        "int f(){ return 0; }",
+        "int f(){ Missing value; return 0; }",
+        diag="err_x",
+    )
+
+    recipe = extract_recipe(
+        rec,
+        context_tokens=2,
+        allow_fresh_identifiers=True,
+        preserve_inserted_identifier_spellings=True,
+    )
+
+    assert recipe is not None and recipe.portable
+    assert ("literal", "Missing") in recipe.replacement_parts
+    assert ("literal", "value") in recipe.replacement_parts
+    assert [app.src for app in apply_recipe(
+        "int g(){ return 0; }", recipe,
+    )] == ["int g(){ Missing value; return 0; }"]
+
+
 def test_recipe_json_round_trip_preserves_replacement_bindings():
     from gen.realcorpus.recipes import LearnedRecipe
 

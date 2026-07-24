@@ -175,6 +175,7 @@ def _replacement_template(
     *,
     allow_fresh_identifiers: bool = False,
     allow_literal_payloads: bool = False,
+    preserve_inserted_identifier_spellings: bool = False,
 ) -> tuple[tuple[tuple[str, str], ...], bool]:
     if not text:
         return (), True
@@ -193,12 +194,16 @@ def _replacement_template(
             continue
         label = identifier_labels.get(token.text)
         if label is None:
-            if not allow_fresh_identifiers:
+            if preserve_inserted_identifier_spellings:
+                label = token.text
+                kind = "literal"
+            elif not allow_fresh_identifiers:
                 return (("literal", text),), False
-            label = fresh_labels.setdefault(
-                token.text, f"FRESH{len(fresh_labels)}"
-            )
-            kind = "fresh"
+            else:
+                label = fresh_labels.setdefault(
+                    token.text, f"FRESH{len(fresh_labels)}"
+                )
+                kind = "fresh"
         else:
             kind = "binding"
         if token.start > cursor:
@@ -331,6 +336,7 @@ def extract_recipe(
     allow_fresh_identifiers: bool = False,
     allow_literal_payloads: bool = False,
     normalize_token_edits: bool = False,
+    preserve_inserted_identifier_spellings: bool = False,
 ) -> Optional[LearnedRecipe]:
     """Extract one lexical recipe from a verified paired Record."""
     if record.corrected_src is None or record.primary_diagnostic is None:
@@ -370,6 +376,9 @@ def extract_recipe(
         identifier_labels,
         allow_fresh_identifiers=allow_fresh_identifiers,
         allow_literal_payloads=allow_literal_payloads,
+        preserve_inserted_identifier_spellings=(
+            preserve_inserted_identifier_spellings
+        ),
     )
     portable = bool(
         aligned and (left_context or right_context or old_patterns)
@@ -407,6 +416,7 @@ def extract_recipes(
     allow_fresh_identifiers: bool = False,
     allow_literal_payloads: bool = False,
     normalize_token_edits: bool = False,
+    preserve_inserted_identifier_spellings: bool = False,
 ) -> list[LearnedRecipe]:
     """Extract and aggregate identical diagnostic-specific lexical recipes."""
     grouped: dict[tuple, LearnedRecipe] = {}
@@ -418,6 +428,9 @@ def extract_recipes(
             allow_fresh_identifiers=allow_fresh_identifiers,
             allow_literal_payloads=allow_literal_payloads,
             normalize_token_edits=normalize_token_edits,
+            preserve_inserted_identifier_spellings=(
+                preserve_inserted_identifier_spellings
+            ),
         )
         if recipe is None:
             continue
