@@ -169,6 +169,26 @@ def test_opt_in_token_normalization_expands_partial_numeric_edit():
     )] == ["int g(){ return 1294; }"]
 
 
+def test_opt_in_token_normalization_absorbs_intertoken_whitespace():
+    rec = _record(
+        "a",
+        "template <typename T> bool f(T *p) { return true; }",
+        "template <typename> bool f(typename *p) { return true; }",
+        diag="err_x",
+    )
+
+    conservative = extract_recipe(rec)
+    normalized = extract_recipe(rec, normalize_token_edits=True)
+
+    assert conservative is not None and not conservative.portable
+    assert normalized is not None and normalized.portable
+    assert [app.src for app in apply_recipe(
+        "template <typename U> bool g(U *q) { return false; }", normalized,
+    )] == [
+        "template <typename> bool g(typename *q) { return false; }",
+    ]
+
+
 def test_new_identifier_reused_from_context_becomes_metavariable():
     rec = _record(
         "a",

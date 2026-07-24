@@ -238,8 +238,32 @@ def _normalize_edit_to_token_span(
             return start, old_text, new_text
         expanded_start = edited[0].start
         expanded_end = edited[-1].end
-        if expanded_start > start or expanded_end < end:
-            return start, old_text, new_text
+        if expanded_start > start:
+            # A minimal diff can begin in whitespace that is removed together
+            # with the first edited token.  Absorb the preceding token so the
+            # replay span is token-aligned while still reproducing the pair
+            # byte-for-byte.
+            if not corrected[start:expanded_start].isspace():
+                return start, old_text, new_text
+            previous = next(
+                (token for token in reversed(tokens) if token.end <= start),
+                None,
+            )
+            if previous is None:
+                return start, old_text, new_text
+            expanded_start = previous.start
+        if expanded_end < end:
+            # Symmetrically absorb the following token when the minimal diff
+            # ends in inter-token whitespace.
+            if not corrected[expanded_end:end].isspace():
+                return start, old_text, new_text
+            following = next(
+                (token for token in tokens if token.start >= end),
+                None,
+            )
+            if following is None:
+                return start, old_text, new_text
+            expanded_end = following.end
     else:
         enclosing = next(
             (token for token in tokens if token.start < start < token.end),
