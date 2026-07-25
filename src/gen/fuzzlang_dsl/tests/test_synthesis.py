@@ -86,7 +86,7 @@ def test_prompt_contains_diagnostic_evidence_real_snippets_and_v1_contract():
     assert '"schema_version": 1' in user
     assert '"source_recipe_id": null' in user
     assert "machine_checked_match_shapes" in user
-    assert "MUST equal one listed full shape" in messages[0]["content"]
+    assert "MUST also return match_selection" in messages[0]["content"]
 
 
 def test_machine_checked_match_shapes_normalize_real_identifiers():
@@ -96,6 +96,51 @@ def test_machine_checked_match_shapes_normalize_real_identifiers():
 
     assert ["return", "<ID0>", ";"] in shapes
     assert all("value" not in shape and "item" not in shape for shape in shapes)
+
+
+def test_synthesis_rehydrates_match_from_model_selected_verified_shape():
+    """A model may choose the edit semantics without spelling a matcher.
+
+    The selection transport binds that edit to a lexer-confirmed real-code
+    shape, preventing a hallucinated matcher from wasting an otherwise useful
+    compiler-validation attempt.
+    """
+    request = _request()
+    payload = _valid_payload()
+    payload["match"] = {
+        "left_context": ["not", "a", "real", "shape"],
+        "old_patterns": [],
+        "right_context": [],
+    }
+    shapes = _machine_checked_match_shapes(request.correct_snippets)
+    payload["match_selection"] = {
+        "shape_index": 0,
+        "edit_start": len(shapes[0]),
+        "edit_end": len(shapes[0]),
+    }
+    backend = MockChatBackend([[ChatResponse(json.dumps(payload), 11)]])
+
+    result = synthesize_injector(request, backend)
+
+    assert len(result.accepted_injectors) == 1
+    injector = result.accepted_injectors[0]
+    assert injector.left_context == tuple(shapes[0])
+    assert injector.old_patterns == ()
+    assert injector.right_context == ()
+
+
+def test_synthesis_rejects_invalid_model_match_selection():
+    payload = _valid_payload()
+    payload["match_selection"] = {
+        "shape_index": 99,
+        "edit_start": 0,
+        "edit_end": 0,
+    }
+    backend = MockChatBackend([[ChatResponse(json.dumps(payload), 11)]])
+
+    result = synthesize_injector(_request(), backend)
+
+    assert result.attempts[0].reason == "match_selection:shape_index_out_of_range"
 
 
 def test_prompt_uses_requested_c_language_in_its_schema_example():
