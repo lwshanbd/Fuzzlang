@@ -46,6 +46,16 @@ def test_minimal_edit_handles_insert_delete_and_replace():
     assert minimal_edit("class X", "union X") == (0, "class", "union")
 
 
+def test_zero_context_extracts_no_lexical_anchor_tokens():
+    rec = _record("a", "int f() { return x; }", "int f() { return &x; }")
+
+    recipe = extract_recipe(rec, context_tokens=0)
+
+    assert recipe is not None
+    assert recipe.left_context == ()
+    assert recipe.right_context == ()
+
+
 def test_extract_and_apply_insertion_recipe_abstracts_identifiers():
     rec = _record("a", "int f() { return x; }", "int f() { return &x; }")
     recipe = extract_recipe(rec, context_tokens=2)

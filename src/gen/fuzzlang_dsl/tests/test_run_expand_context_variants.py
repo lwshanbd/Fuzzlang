@@ -53,9 +53,9 @@ def test_expand_context_variants_omits_existing_canonical_injector(
     ])
 
     assert variants_cli.main() == 0
-    assert len(out.read_text().splitlines()) == 3
+    assert len(out.read_text().splitlines()) == 2
     assert json.loads(manifest.read_text())["counts"] == {
         "input_records": 1,
         "excluded_injectors": 1,
-        "emitted_injectors": 3,
+        "emitted_injectors": 2,
     }

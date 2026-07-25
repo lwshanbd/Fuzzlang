@@ -440,10 +440,22 @@ def test_code_witness_cli_processes_every_request_and_writes_manifest(
     assert manifest["counts"]["requests"] == 2
     assert manifest["counts"]["attempts"] == 2
     assert manifest["counts"]["records"] == 2
-    # One verified seed edit is distilled at four lexical-context levels.
-    # The two requests have identical edit semantics, so each level deduplicates.
-    assert manifest["counts"]["portable_injectors"] == 4
-    assert len((tmp_path / "out" / "injectors.jsonl").read_text().splitlines()) == 4
+    # Generation keeps one replay-verified, minimal Injector per witness.
+    # The two requests have identical edit semantics, so that Injector deduplicates.
+    assert manifest["counts"]["portable_injectors"] == 1
+    injectors = [
+        json.loads(line)
+        for line in (tmp_path / "out" / "injectors.jsonl").read_text().splitlines()
+    ]
+    records = [
+        json.loads(line)
+        for line in (tmp_path / "out" / "records.jsonl").read_text().splitlines()
+    ]
+    assert len(injectors) == 1
+    assert all(
+        record["provenance"]["detail"]["injector_id"] == injectors[0]["injector_id"]
+        for record in records
+    )
 
 
 def test_code_witness_cli_preserves_undistillable_pairs_outside_core_records(

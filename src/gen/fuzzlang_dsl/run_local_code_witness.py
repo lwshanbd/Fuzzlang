@@ -21,6 +21,7 @@ from gen.fuzzlang_dsl.context_variants import (
     extract_contextual_injectors,
     load_excluded_injector_ids,
 )
+from gen.fuzzlang_dsl.injector import FuzzLangInjector, apply_injector
 from gen.fuzzlang_dsl.local_gemma import (
     DEFAULT_GEMMA_31B_MODEL, DEFAULT_GEMMA_31B_REVISION,
     DEFAULT_GEMMA_31B_SNAPSHOT, LocalGemma31BBackend,
@@ -54,6 +55,39 @@ def _write_checkpoint(
     _write(output_dir / "injectors.jsonl", list(injectors.values()))
 
 
+def _select_exact_replay(
+    *,
+    corrected_src: str,
+    candidates: tuple[FuzzLangInjector, ...],
+    diag_name: str,
+    diag_id: int,
+    compile_cmd: list[str],
+    logical_path: str,
+    verifier: FuzzlangClangVerifier,
+) -> tuple[FuzzLangInjector, str, object] | None:
+    """Return one Injector whose own replay reproduces the typed target.
+
+    A model patch is only a witness.  Core FuzzLang data is admitted only
+    after the emitted DSL artifact itself is applied to the clean source and
+    the compiler reports the requested diagnostic name *and* numeric ID.
+    """
+    for injector in candidates:
+        for application in apply_injector(
+            corrected_src, injector, max_candidates=1,
+        ):
+            replayed = verifier.verify(
+                application.src, compile_cmd, logical_path=logical_path,
+            )
+            if (
+                not replayed.ok
+                and replayed.diag is not None
+                and replayed.diag.diag_name == diag_name
+                and replayed.diag.diag_id == diag_id
+            ):
+                return injector, application.src, replayed.diag
+    return None
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--requests", type=Path, required=True)
@@ -72,7 +106,7 @@ def main() -> int:
     parser.add_argument("--seed", type=int, default=0)
     parser.add_argument(
         "--recipe-context-tokens", type=int, action="append", default=None,
-        help="repeatable lexical-context level; defaults to 0, 1, and 2",
+        help="repeatable lexical-context level; defaults to 1, 2, and 3",
     )
     args = parser.parse_args()
     if args.candidates <= 0 or args.max_tokens <= 0 or args.timeout <= 0:
@@ -217,29 +251,64 @@ def main() -> int:
                         },
                     ),
                 )
-                extracted_injectors = tuple(extract_contextual_injectors(
-                    record,
+                candidate_injectors: dict[str, FuzzLangInjector] = {}
+                for preserve_spelling in (False, True):
+                    for injector in extract_contextual_injectors(
+                        record,
+                        diag_id=verified.diag.diag_id,
+                        context_tokens=context_tokens,
+                        preserve_inserted_identifier_spellings=preserve_spelling,
+                    ):
+                        candidate_injectors[injector.injector_id] = injector
+                selected = _select_exact_replay(
+                    corrected_src=request.corrected_src,
+                    candidates=tuple(candidate_injectors.values()),
+                    diag_name=request.diag_name,
                     diag_id=verified.diag.diag_id,
-                    context_tokens=context_tokens,
-                ))
-                if not extracted_injectors:
+                    compile_cmd=list(request.compile_cmd),
+                    logical_path=request.source_path,
+                    verifier=verifier,
+                )
+                if selected is None:
                     row["status"] = "exact_target_not_distillable"
-                    row["reason"] = "no_portable_injector_extracted"
+                    row["reason"] = "no_exact_replayable_injector"
                     row["recovery_record_id"] = record.record_id
                     attempts.append(row)
                     undistillable_records.append(record.to_dict())
                     rejection_reasons.add(row["reason"])
                     continue
-                for injector in extracted_injectors:
-                    if injector.injector_id in excluded_injector_ids:
-                        row["injector_status"] = "duplicate_excluded_injector"
-                        duplicate_existing_injector_candidates += 1
-                    else:
-                        injectors[injector.injector_id] = injector.to_dict()
+                injector, replayed_src, replayed_diag = selected
+                replay_record_id = "code-witness-injector-" + hashlib.sha256(
+                    (request.source_id + "\0" + injector.injector_id + "\0" + replayed_src).encode()
+                ).hexdigest()[:24]
+                replay_record = Record(
+                    record_id=replay_record_id,
+                    erroneous_src=replayed_src,
+                    corrected_src=request.corrected_src,
+                    diagnostics=(replayed_diag,),
+                    split=Split.TRAIN,
+                    language=request.language,
+                    provenance=Provenance(
+                        origin=Origin.MUTATE,
+                        source=request.source_id,
+                        detail={
+                            **record.provenance.detail,
+                            "strategy": "gemma_code_witness_injector_replay",
+                            "injector_id": injector.injector_id,
+                            "injector_replay_exact": True,
+                        },
+                    ),
+                )
+                if injector.injector_id in excluded_injector_ids:
+                    row["injector_status"] = "duplicate_excluded_injector"
+                    duplicate_existing_injector_candidates += 1
+                else:
+                    injectors[injector.injector_id] = injector.to_dict()
                 row["status"] = "exact_target"
-                row["record_id"] = record.record_id
+                row["record_id"] = replay_record.record_id
+                row["injector_id"] = injector.injector_id
                 attempts.append(row)
-                records.append(record.to_dict())
+                records.append(replay_record.to_dict())
                 accepted = True
                 break
         _write_checkpoint(

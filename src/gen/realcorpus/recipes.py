@@ -362,8 +362,12 @@ def extract_recipe(
         )
         aligned, edited_tokens = _edit_is_token_aligned(tokens, start, old_text)
     end = start + len(old_text)
+    # ``tokens[-0:]`` means the entire sequence in Python.  Zero is a useful
+    # explicit request for an unanchored recipe, so it must not accidentally
+    # turn into the most-specific possible lexical context.
     left_tokens = tuple(
-        [token for token in tokens if token.end <= start][-context_tokens:]
+        () if context_tokens == 0
+        else [token for token in tokens if token.end <= start][-context_tokens:]
     )
     right_tokens = tuple(
         [token for token in tokens if token.start >= end][:context_tokens]
