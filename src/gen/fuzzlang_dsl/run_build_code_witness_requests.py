@@ -53,6 +53,30 @@ def _source_variant_orders(
     )
 
 
+def _matching_source_candidates(
+    sources: Sequence[_SourceT],
+    pattern: re.Pattern[str],
+    cache: dict[tuple[str, int], tuple[tuple[_SourceT, re.Match[str]], ...]],
+) -> tuple[tuple[_SourceT, re.Match[str]], ...]:
+    """Cache anchor matches for one ordered source pool.
+
+    Large breadth runs reuse a small set of anchor regexes across thousands of
+    TableGen names.  Caching prevents repeatedly scanning every full real TU
+    for the ubiquitous fallback anchors.
+    """
+    key = (pattern.pattern, pattern.flags)
+    matched = cache.get(key)
+    if matched is None:
+        matched = tuple(
+            (source, match)
+            for source in sources
+            for match in (pattern.search(source.corrected_src),)
+            if match is not None
+        )
+        cache[key] = matched
+    return matched
+
+
 def _window(source: str, anchor: int) -> tuple[int, int]:
     left = source.rfind("\n", 0, max(0, anchor - 280)) + 1
     newline = source.find("\n", min(len(source), anchor + 520))
@@ -238,6 +262,29 @@ def _successful_diagnostic_names_from_attempts(
     return tuple(names)
 
 
+def _attempted_diagnostic_names_from_attempts(
+    paths: Sequence[Path],
+) -> tuple[str, ...]:
+    """Load prior ordinary-mode targets without rereading large source requests."""
+    names: list[str] = []
+    seen: set[str] = set()
+    for path in paths:
+        for line in path.read_text().splitlines():
+            if not line.strip():
+                continue
+            value = json.loads(line)
+            name = value.get("diag_name")
+            if (
+                value.get("status") != "unsupported_ordinary_cpp_mode"
+                and isinstance(name, str)
+                and name
+                and name not in seen
+            ):
+                seen.add(name)
+                names.append(name)
+    return tuple(names)
+
+
 def _diagnostic_names_from_audits(paths: Sequence[Path]) -> set[str]:
     """Load only Injector-backed diagnostic names from strict audit reports."""
     names: set[str] = set()
@@ -306,6 +353,10 @@ def main() -> int:
         help="retry targets with a prior exact compiler witness on new sources",
     )
     parser.add_argument(
+        "--attempted-targets", type=Path, action="append", default=[],
+        help="retry any prior ordinary-mode target from compact attempt logs",
+    )
+    parser.add_argument(
         "--auto-uncovered-limit", type=int,
         help="select this many unattempted Lex/Parse/Sema TableGen gaps",
     )
@@ -361,12 +412,13 @@ def main() -> int:
         args.auto_uncovered_limit is not None,
         bool(args.retry_requests),
         bool(args.successful_attempts),
+        bool(args.attempted_targets),
     ))
     if modes != 1:
         parser.error(
             "choose exactly one target mode: --diag-name, "
             "--auto-uncovered-limit, --retry-requests, or "
-            "--successful-attempts"
+            "--successful-attempts, or --attempted-targets"
         )
     explicit_names = tuple(args.diag_name)
     if args.retry_requests:
@@ -383,7 +435,19 @@ def main() -> int:
             )
             if name not in covered
         )
-    if (args.retry_requests or args.successful_attempts) and not explicit_names:
+    if args.attempted_targets:
+        explicit_names = tuple(
+            name
+            for name in _attempted_diagnostic_names_from_attempts(
+                args.attempted_targets,
+            )
+            if name not in covered
+        )
+    if (
+        args.retry_requests
+        or args.successful_attempts
+        or args.attempted_targets
+    ) and not explicit_names:
         targets = ()
     else:
         try:
@@ -410,6 +474,9 @@ def main() -> int:
     used_global: set[str] = set()
     used_by_target: dict[str, set[str]] = {}
     for sources_for_variant in source_orders:
+        anchor_cache: dict[
+            tuple[str, int], tuple[tuple[object, re.Match[str]], ...],
+        ] = {}
         for entry in targets:
             target_used = used_by_target.setdefault(entry.name, set())
 
@@ -421,14 +488,14 @@ def main() -> int:
                 return next(
                     (
                         (item, match)
-                        for item in sources_for_variant
+                        for item, match in _matching_source_candidates(
+                            sources_for_variant, pattern, anchor_cache,
+                        )
                         if item.source_id not in target_used
                         and (
                             not require_globally_new
                             or item.source_id not in used_global
                         )
-                        for match in [pattern.search(item.corrected_src)]
-                        if match is not None
                     ),
                     None,
                 )

@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import sys
+from types import SimpleNamespace
 
 from foundation.diagnostics.catalog import Catalog, DiagEntry
 from foundation.types import DiagInfo, VerifierResult
@@ -19,8 +20,10 @@ from gen.fuzzlang_dsl.run_local_code_witness import (
     load_excluded_injector_ids,
 )
 from gen.fuzzlang_dsl.run_build_code_witness_requests import (
+    _attempted_diagnostic_names_from_attempts,
     _anchor_pattern,
     _anchor_patterns,
+    _matching_source_candidates,
     _diagnostic_names_from_audits,
     _diagnostic_names_from_jsonl,
     _ordered_diagnostic_names_from_jsonl,
@@ -249,6 +252,21 @@ def test_source_variants_bind_each_target_to_distinct_real_source_orders():
     )
 
 
+def test_source_anchor_matches_are_cached_per_pattern_and_source_order():
+    sources = (
+        SimpleNamespace(source_id="first", corrected_src="int f(){ return 1; }"),
+        SimpleNamespace(source_id="second", corrected_src="int g(){ return 2; }"),
+    )
+    cache = {}
+    pattern = _anchor_pattern("err_expected_expression")
+
+    first = _matching_source_candidates(sources, pattern, cache)
+    second = _matching_source_candidates(sources, pattern, cache)
+
+    assert [source.source_id for source, _ in first] == ["first", "second"]
+    assert second is first
+
+
 def test_coverage_first_target_resolution_uses_uncovered_unattempted_errors():
     catalog = Catalog([
         DiagEntry("err_expected_expression", "Error", "expected expression", "Parse"),
@@ -336,6 +354,20 @@ def test_successful_attempt_loader_keeps_only_previously_exact_targets(tmp_path)
 
     assert _successful_diagnostic_names_from_attempts([attempts]) == (
         "err_second", "err_third",
+    )
+
+
+def test_attempted_target_loader_keeps_all_ordinary_attempts_in_order(tmp_path):
+    attempts = tmp_path / "attempts.jsonl"
+    attempts.write_text(
+        '{"diag_name":"err_first","status":"rejected"}\n'
+        '{"diag_name":"err_unsupported","status":"unsupported_ordinary_cpp_mode"}\n'
+        '{"diag_name":"err_second","status":"exact_target"}\n'
+        '{"diag_name":"err_first","status":"baseline_not_clean"}\n'
+    )
+
+    assert _attempted_diagnostic_names_from_attempts([attempts]) == (
+        "err_first", "err_second",
     )
 
 
