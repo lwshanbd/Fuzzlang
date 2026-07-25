@@ -94,6 +94,12 @@ def test_syntax_target_prompt_requires_a_local_grammar_change():
     assert "minimal local grammar change" in messages[0]["content"]
 
 
+def test_non_undeclared_targets_forbid_identifier_removal_shortcuts():
+    messages = build_code_witness_messages(_request())
+
+    assert "Do not introduce an unknown identifier" in messages[0]["content"]
+
+
 def test_direct_injector_requests_group_distinct_real_source_windows():
     first = _request()
     second = CodeWitnessRequest(**{

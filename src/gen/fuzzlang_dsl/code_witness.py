@@ -153,8 +153,9 @@ def build_direct_injector_requests(
 
 def build_code_witness_messages(request: CodeWitnessRequest) -> list[dict[str, str]]:
     """Prompt a local model for one bounded source-specific witness patch."""
+    target_name = request.diag_name.lower()
     semantic_target = any(
-        term in request.diag_name.lower()
+        term in target_name
         for term in (
             "typecheck", "overload", "conversion", "deduction", "template",
             "undeclared", "redefinition", "incomplete", "invalid_operands",
@@ -170,6 +171,12 @@ def build_code_witness_messages(request: CodeWitnessRequest) -> list[dict[str, s
         "for a syntax target while preserving the surrounding construct; do not "
         "settle for an unrelated error."
     )
+    anti_shortcut_guidance = (
+        " Do not introduce an unknown identifier, remove a declaration, or "
+        "rename a symbol merely to make compilation fail: those shortcuts "
+        "produce high-frequency unrelated diagnostics."
+        if "undeclared" not in target_name else ""
+    )
     system = (
         "Return exactly one JSON object and no prose. You propose one bounded "
         "code replacement inside the supplied real correct-code window so that "
@@ -183,6 +190,7 @@ def build_code_witness_messages(request: CodeWitnessRequest) -> list[dict[str, s
         "rather than a project-specific identifier or API change. The edit must "
         "make the edited source fail compilation; do not return a no-op or a "
         "formatting-only change."
+        + anti_shortcut_guidance
         + target_guidance
     )
     task = {
