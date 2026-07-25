@@ -129,7 +129,9 @@ def _compile_mode_evidence(command: Sequence[str]) -> str | None:
         argument
         for argument in command
         if argument.startswith("-std=")
-        or argument in {"-fopenmp", "-fopenacc", "-fblocks"}
+        or argument in {
+            "-fopenmp", "-fopenacc", "-fblocks", "-fmodules", "-fcxx-modules",
+        }
     )
     if not mode_args:
         return None

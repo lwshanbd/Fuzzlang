@@ -49,6 +49,9 @@ _C23_MODE_RE = re.compile(r"(?:^|_)(?:c23|c2y)(?:_|$)")
 _OPENMP_MODE_RE = re.compile(r"(?:^|_)(?:omp|openmp)(?:_|$)")
 _BLOCKS_MODE_RE = re.compile(r"(?:^|_)(?:blocks?)(?:_|$)")
 _OPENACC_MODE_RE = re.compile(r"(?:^|_)(?:acc|openacc)(?:_|$)")
+_MODULES_MODE_RE = re.compile(
+    r"(?:^|_)(?:module|modules|modulemap|header_unit|pch|import)(?:_|$)",
+)
 _PREPROCESSOR_MODE_RE = re.compile(
     r"(?:^|_)(?:pp|pragma|directive|macro|include|"
     r"expected_sequence_or_directive|expected_semantic_identifier|"
@@ -87,11 +90,11 @@ def supports_default_diagnostic_name(
     if c_standard not in {"c99", "c11", "c17", "c23"}:
         raise ValueError("c_standard must be one of c99, c11, c17, or c23")
     if feature_mode not in {
-        "ordinary", "openmp", "blocks", "openacc", "preprocessor",
+        "ordinary", "openmp", "blocks", "openacc", "modules", "preprocessor",
     }:
         raise ValueError(
             "feature_mode must be 'ordinary', 'openmp', 'blocks', 'openacc', "
-            "or 'preprocessor'"
+            "'modules', or 'preprocessor'"
         )
     lowered = name.lower()
     if _SPECIAL_MODE_RE.search(lowered) and not (
@@ -100,6 +103,8 @@ def supports_default_diagnostic_name(
         feature_mode == "blocks" and _BLOCKS_MODE_RE.search(lowered)
     ) and not (
         feature_mode == "openacc" and _OPENACC_MODE_RE.search(lowered)
+    ) and not (
+        feature_mode == "modules" and _MODULES_MODE_RE.search(lowered)
     ) and not (
         feature_mode == "preprocessor" and _PREPROCESSOR_MODE_RE.search(lowered)
     ):
@@ -142,6 +147,8 @@ def is_feature_specific_diagnostic_name(name: str, *, feature_mode: str) -> bool
         return bool(_BLOCKS_MODE_RE.search(lowered))
     if feature_mode == "openacc":
         return bool(_OPENACC_MODE_RE.search(lowered))
+    if feature_mode == "modules":
+        return bool(_MODULES_MODE_RE.search(lowered))
     if feature_mode == "preprocessor":
         return bool(_PREPROCESSOR_MODE_RE.search(lowered))
     raise ValueError(f"unsupported feature_mode: {feature_mode}")

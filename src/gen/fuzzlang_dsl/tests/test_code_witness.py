@@ -171,6 +171,29 @@ def test_direct_injector_requests_preserve_verified_compile_mode_as_evidence():
     )
 
 
+def test_direct_injector_requests_preserve_verified_modules_mode_as_evidence():
+    first = CodeWitnessRequest(**{
+        **_request().to_dict(),
+        "compile_cmd": [
+            "__CLANG__", "-std=c++20", "-fmodules", "-fcxx-modules", "__SRC__",
+        ],
+    })
+    second = CodeWitnessRequest(**{
+        **first.to_dict(),
+        "source_id": "demo:lib/g.cc",
+        "source_path": "lib/g.cc",
+        "corrected_src": "int g() { return item; }\n",
+        "window_start": 0,
+        "window_end": len("int g() { return item; }\n"),
+    })
+
+    request = build_direct_injector_requests((first, second))[0]
+
+    assert request.evidence.emission_evidence == (
+        "Verified compilation mode: -std=c++20 -fmodules -fcxx-modules"
+    )
+
+
 def test_direct_request_loader_pools_files_and_filters_targets(tmp_path):
     first = _request()
     second = CodeWitnessRequest(**{

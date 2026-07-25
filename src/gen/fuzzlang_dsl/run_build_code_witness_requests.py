@@ -464,7 +464,7 @@ def main() -> int:
     )
     parser.add_argument(
         "--feature-mode", choices=(
-            "ordinary", "openmp", "blocks", "openacc", "preprocessor",
+            "ordinary", "openmp", "blocks", "openacc", "modules", "preprocessor",
         ),
         default="ordinary",
         help="compiler feature mode of the verified source pool",

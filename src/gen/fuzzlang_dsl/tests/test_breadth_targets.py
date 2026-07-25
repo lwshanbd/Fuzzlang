@@ -263,6 +263,20 @@ def test_select_uncovered_diagnostics_allows_preprocessor_targets_in_preprocesso
     assert [entry.name for entry in preprocessor] == ["err_pp_invalid_directive"]
 
 
+def test_select_uncovered_diagnostics_allows_module_targets_in_modules_mode():
+    entries = [
+        _entry("err_module_not_found", component="Lex"),
+        _entry("err_expected_semi_after_stmt", component="Parse"),
+    ]
+
+    selected = select_uncovered_diagnostics(
+        entries, covered=set(), attempted=set(), limit=10,
+        feature_mode="modules", feature_specific_only=True,
+    )
+
+    assert [entry.name for entry in selected] == ["err_module_not_found"]
+
+
 def test_select_uncovered_diagnostics_prioritizes_parse_then_common_cpp_sema():
     entries = [
         _entry("err_template_argument_mismatch", message="template argument mismatch"),
