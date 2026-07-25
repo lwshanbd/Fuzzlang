@@ -174,6 +174,25 @@ def test_select_uncovered_diagnostics_respects_c_standard_modes():
     }
 
 
+def test_select_uncovered_diagnostics_allows_openmp_targets_only_in_openmp_mode():
+    entries = [
+        _entry("err_omp_expected_clause", component="Parse"),
+        _entry("err_expected_semi_after_stmt", component="Parse"),
+    ]
+
+    ordinary = select_uncovered_diagnostics(
+        entries, covered=set(), attempted=set(), limit=10,
+    )
+    openmp = select_uncovered_diagnostics(
+        entries, covered=set(), attempted=set(), limit=10, feature_mode="openmp",
+    )
+
+    assert [entry.name for entry in ordinary] == ["err_expected_semi_after_stmt"]
+    assert {entry.name for entry in openmp} == {
+        "err_omp_expected_clause", "err_expected_semi_after_stmt",
+    }
+
+
 def test_select_uncovered_diagnostics_prioritizes_parse_then_common_cpp_sema():
     entries = [
         _entry("err_template_argument_mismatch", message="template argument mismatch"),

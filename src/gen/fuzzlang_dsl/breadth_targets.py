@@ -46,6 +46,7 @@ _CPP23_MODE_RE = re.compile(
 )
 _C11_MODE_RE = re.compile(r"(?:^|_)c11(?:_|$)")
 _C23_MODE_RE = re.compile(r"(?:^|_)(?:c23|c2y)(?:_|$)")
+_OPENMP_MODE_RE = re.compile(r"(?:^|_)(?:omp|openmp)(?:_|$)")
 
 # These spellings identify C++-only parser and semantic paths.  They are
 # filtered only for a C campaign; the default C++ campaign intentionally keeps
@@ -69,7 +70,7 @@ _HIGH_VALUE_TERMS = (
 
 def supports_default_diagnostic_name(
     name: str, *, language: str, cpp_standard: str = "c++17",
-    c_standard: str = "c17",
+    c_standard: str = "c17", feature_mode: str = "ordinary",
 ) -> bool:
     """Whether a diagnostic is plausible in a selected C/C++ TU campaign."""
     if language not in {"c", "c++"}:
@@ -78,8 +79,12 @@ def supports_default_diagnostic_name(
         raise ValueError("cpp_standard must be one of c++17, c++20, or c++23")
     if c_standard not in {"c99", "c11", "c17", "c23"}:
         raise ValueError("c_standard must be one of c99, c11, c17, or c23")
+    if feature_mode not in {"ordinary", "openmp"}:
+        raise ValueError("feature_mode must be 'ordinary' or 'openmp'")
     lowered = name.lower()
-    if _SPECIAL_MODE_RE.search(lowered):
+    if _SPECIAL_MODE_RE.search(lowered) and not (
+        feature_mode == "openmp" and _OPENMP_MODE_RE.search(lowered)
+    ):
         return False
     if language == "c":
         if _CPP_ONLY_RE.search(lowered):
@@ -110,7 +115,7 @@ def supports_ordinary_c_diagnostic_name(name: str) -> bool:
 
 def diagnostic_priority(
     entry: DiagEntry, *, language: str = "c++", cpp_standard: str = "c++17",
-    c_standard: str = "c17",
+    c_standard: str = "c17", feature_mode: str = "ordinary",
 ) -> int | None:
     """Return an ordinary-C++ injectability score, or ``None`` if ineligible."""
     if (
@@ -122,7 +127,7 @@ def diagnostic_priority(
     lowered = entry.name.lower()
     if not supports_default_diagnostic_name(
         lowered, language=language, cpp_standard=cpp_standard,
-        c_standard=c_standard,
+        c_standard=c_standard, feature_mode=feature_mode,
     ):
         return None
     component_score = {"Parse": 300, "Sema": 200, "Lex": 100}[entry.component]
@@ -146,6 +151,7 @@ def select_uncovered_diagnostics(
     language: str = "c++",
     cpp_standard: str = "c++17",
     c_standard: str = "c17",
+    feature_mode: str = "ordinary",
 ) -> tuple[DiagEntry, ...]:
     """Choose distinct, deterministic coverage-first TableGen error targets."""
     if isinstance(limit, bool) or not isinstance(limit, int) or limit <= 0:
@@ -162,7 +168,7 @@ def select_uncovered_diagnostics(
         seen.add(entry.name)
         score = diagnostic_priority(
             entry, language=language, cpp_standard=cpp_standard,
-            c_standard=c_standard,
+            c_standard=c_standard, feature_mode=feature_mode,
         )
         if score is not None:
             ranked.append((-score, entry.name, entry))
