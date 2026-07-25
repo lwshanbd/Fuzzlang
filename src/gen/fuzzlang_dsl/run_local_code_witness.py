@@ -120,6 +120,13 @@ def main() -> int:
     parser.add_argument("--timeout", type=float, default=5.0)
     parser.add_argument("--seed", type=int, default=0)
     parser.add_argument(
+        "--admit-observed-errors", action="store_true",
+        help=(
+            "when a candidate misses its requested target, retain its actual "
+            "primary error only if it can itself be distilled and exactly replayed"
+        ),
+    )
+    parser.add_argument(
         "--recipe-context-tokens", type=int, action="append", default=None,
         help="repeatable lexical-context level; defaults to 1, 2, and 3",
     )
@@ -227,11 +234,7 @@ def main() -> int:
                     list(request.compile_cmd),
                     logical_path=request.source_path,
                 )
-                if (
-                    verified.ok
-                    or verified.diag is None
-                    or verified.diag.diag_name != request.diag_name
-                ):
+                if verified.ok or verified.diag is None:
                     row["status"] = "rejected"
                     row["reason"] = "candidate_clean_or_wrong_primary"
                     row["observed_diag"] = (
@@ -242,6 +245,19 @@ def main() -> int:
                     if verified.diag is not None:
                         observed_diagnostics.add(verified.diag.diag_name)
                     continue
+                target_diag_name = request.diag_name
+                opportunistic = False
+                if verified.diag.diag_name != request.diag_name:
+                    observed_diagnostics.add(verified.diag.diag_name)
+                    if not args.admit_observed_errors:
+                        row["status"] = "rejected"
+                        row["reason"] = "candidate_clean_or_wrong_primary"
+                        row["observed_diag"] = verified.diag.diag_name
+                        attempts.append(row)
+                        rejection_reasons.add(row["reason"])
+                        continue
+                    target_diag_name = verified.diag.diag_name
+                    opportunistic = True
                 record_id = "code-witness-" + hashlib.sha256(
                     (request.source_id + "\0" + erroneous).encode()
                 ).hexdigest()[:24]
@@ -260,8 +276,9 @@ def main() -> int:
                             "project": request.project,
                             "source_path": request.source_path,
                             "compile_cmd": list(request.compile_cmd),
-                            "target_diag": request.diag_name,
+                            "target_diag": target_diag_name,
                             "primary_matches_target": True,
+                            "opportunistic_observed_diagnostic": opportunistic,
                         },
                     ),
                 )
@@ -277,7 +294,7 @@ def main() -> int:
                 selected = _select_exact_replay(
                     corrected_src=request.corrected_src,
                     candidates=tuple(candidate_injectors.values()),
-                    diag_name=request.diag_name,
+                    diag_name=target_diag_name,
                     diag_id=verified.diag.diag_id,
                     compile_cmd=list(request.compile_cmd),
                     logical_path=request.source_path,
@@ -318,9 +335,14 @@ def main() -> int:
                     duplicate_existing_injector_candidates += 1
                 else:
                     injectors[injector.injector_id] = injector.to_dict()
-                row["status"] = "exact_target"
+                row["status"] = (
+                    "exact_observed_diagnostic"
+                    if opportunistic else "exact_target"
+                )
                 row["record_id"] = replay_record.record_id
                 row["injector_id"] = injector.injector_id
+                if opportunistic:
+                    row["observed_diag"] = target_diag_name
                 attempts.append(row)
                 records.append(replay_record.to_dict())
                 accepted = True

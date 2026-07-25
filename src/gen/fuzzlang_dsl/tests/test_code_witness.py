@@ -676,6 +676,73 @@ def test_code_witness_cli_uses_compiler_feedback_for_second_candidate_round(
     assert manifest["counts"]["feedback_round_requests"] == 1
 
 
+def test_code_witness_cli_can_admit_an_exactly_replayed_observed_error(
+    tmp_path, monkeypatch,
+):
+    request = _request()
+    request_path = tmp_path / "requests.jsonl"
+    request_path.write_text(json.dumps(request.to_dict()) + "\n")
+
+    class _Backend:
+        def __init__(self, *args, **kwargs):
+            pass
+
+        def chat(self, **kwargs):
+            return [ChatResponse(
+                '{"old_text":"value","new_text":"wrong"}', 4,
+            )]
+
+    class _Verifier:
+        def __init__(self, *args, **kwargs):
+            pass
+
+        def verify(self, candidate, compile_cmd, *, logical_path):
+            if candidate == request.corrected_src:
+                return VerifierResult(True, None, "")
+            return VerifierResult(False, DiagInfo(
+                diag_id=99,
+                diag_name="err_use_of_undeclared_identifier",
+                diag_msg="unknown identifier",
+                file=logical_path,
+                line=1,
+                col=1,
+                start_byte=0,
+                end_byte=1,
+                span_snippet="wrong",
+            ), "")
+
+    monkeypatch.setattr(witness_cli, "LocalGemma31BBackend", _Backend)
+    monkeypatch.setattr(witness_cli, "FuzzlangClangVerifier", _Verifier)
+    monkeypatch.setattr(sys, "argv", [
+        "run_local_code_witness.py",
+        "--requests", str(request_path),
+        "--clang-bin", "/mock/clang++",
+        "--clang-c-bin", "/mock/clang",
+        "--diagtool-bin", "/mock/diagtool",
+        "--output-dir", str(tmp_path / "out"),
+        "--candidates", "1",
+        "--admit-observed-errors",
+    ])
+
+    assert witness_cli.main() == 0
+    attempts = [
+        json.loads(line)
+        for line in (tmp_path / "out" / "attempts.jsonl").read_text().splitlines()
+    ]
+    records = [
+        json.loads(line)
+        for line in (tmp_path / "out" / "records.jsonl").read_text().splitlines()
+    ]
+    assert attempts[0]["status"] == "exact_observed_diagnostic"
+    assert attempts[0]["observed_diag"] == "err_use_of_undeclared_identifier"
+    assert records[0]["provenance"]["detail"]["target_diag"] == (
+        "err_use_of_undeclared_identifier"
+    )
+    assert records[0]["provenance"]["detail"][
+        "opportunistic_observed_diagnostic"
+    ] is True
+
+
 def test_code_witness_cli_skips_targets_unreachable_in_ordinary_cpp_mode(
     tmp_path, monkeypatch,
 ):
