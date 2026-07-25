@@ -16,7 +16,9 @@ from gen.fuzzlang_dsl.breadth_targets import (
 )
 from gen.fuzzlang_dsl.code_witness import (
     CodeWitnessRequest, apply_code_witness_patch, build_code_witness_messages,
-    build_code_witness_retry_messages, parse_code_witness_patch,
+    apply_code_append_fragment, build_code_append_messages,
+    build_code_append_retry_messages, build_code_witness_retry_messages,
+    parse_code_append_fragment, parse_code_witness_patch,
 )
 from gen.fuzzlang_dsl.context_variants import (
     DEFAULT_RECIPE_CONTEXT_TOKENS,
@@ -190,6 +192,13 @@ def main() -> int:
     parser.add_argument("--max-tokens", type=int, default=400)
     parser.add_argument("--timeout", type=float, default=5.0)
     parser.add_argument(
+        "--witness-mode", choices=("replace", "append"), default="replace",
+        help=(
+            "replace a bounded real-code substring, or append a bounded "
+            "declaration witness before extracting the replayable Injector"
+        ),
+    )
+    parser.add_argument(
         "--regression-test-root", type=Path,
         default=DEFAULT_REGRESSION_TEST_ROOT,
         help=(
@@ -299,7 +308,11 @@ def main() -> int:
             )
             if args.regression_evidence else request
         )
-        messages = build_code_witness_messages(model_request)
+        messages = (
+            build_code_append_messages(model_request)
+            if args.witness_mode == "append"
+            else build_code_witness_messages(model_request)
+        )
         rejection_reasons: set[str] = set()
         observed_diagnostics: set[str] = set()
         accepted = False
@@ -312,7 +325,12 @@ def main() -> int:
                 continue
             if round_index > 0:
                 feedback_round_requests += 1
-                messages = build_code_witness_retry_messages(
+                retry = (
+                    build_code_append_retry_messages
+                    if args.witness_mode == "append"
+                    else build_code_witness_retry_messages
+                )
+                messages = retry(
                     model_request,
                     rejection_reasons=tuple(rejection_reasons),
                     observed_diagnostics=tuple(observed_diagnostics),
@@ -325,7 +343,14 @@ def main() -> int:
             )
             round_rejection_reasons: set[str] = set()
             for response in responses:
-                patch, reason = parse_code_witness_patch(response.text, request)
+                if args.witness_mode == "append":
+                    patch, reason = parse_code_append_fragment(
+                        response.text, request,
+                    )
+                else:
+                    patch, reason = parse_code_witness_patch(
+                        response.text, request,
+                    )
                 row = {
                     "request_index": request_index,
                     "diag_name": request.diag_name,
@@ -342,7 +367,11 @@ def main() -> int:
                         rejection_reasons.add(reason)
                         round_rejection_reasons.add(reason)
                     continue
-                erroneous = apply_code_witness_patch(request, patch)
+                erroneous = (
+                    apply_code_append_fragment(request, patch)
+                    if args.witness_mode == "append"
+                    else apply_code_witness_patch(request, patch)
+                )
                 verified = verifier.verify(
                     erroneous,
                     list(request.compile_cmd),
@@ -406,7 +435,11 @@ def main() -> int:
                         origin=Origin.MUTATE,
                         source=request.source_id,
                         detail={
-                            "strategy": "gemma_code_witness_bootstrap",
+                            "strategy": (
+                                "gemma_append_witness_bootstrap"
+                                if args.witness_mode == "append"
+                                else "gemma_code_witness_bootstrap"
+                            ),
                             "project": request.project,
                             "source_path": request.source_path,
                             "compile_cmd": list(request.compile_cmd),
@@ -459,7 +492,11 @@ def main() -> int:
                         source=request.source_id,
                         detail={
                             **record.provenance.detail,
-                            "strategy": "gemma_code_witness_injector_replay",
+                            "strategy": (
+                                "gemma_append_witness_injector_replay"
+                                if args.witness_mode == "append"
+                                else "gemma_code_witness_injector_replay"
+                            ),
                             "injector_id": injector.injector_id,
                             "injector_replay_exact": True,
                         },
@@ -504,7 +541,7 @@ def main() -> int:
         undistillable_records=undistillable_records,
         injectors=injectors,
     )
-    manifest = {"schema": "fuzzlang.code_witness_bootstrap", "model": {"name": DEFAULT_GEMMA_31B_MODEL, "revision": DEFAULT_GEMMA_31B_REVISION, "parameters": "31B"}, "paid_api_calls": False, "recipe_context_tokens": list(context_tokens), "counts": {"requests": len(requests), "attempts": len(attempts), "records": len(records), "undistillable_records": len(undistillable_records), "portable_injectors": len(injectors), "excluded_injector_identities": len(excluded_injector_ids), "duplicate_existing_injector_candidates": duplicate_existing_injector_candidates, "feedback_round_requests": feedback_round_requests, "known_covered_observed_short_circuits": known_covered_observed_short_circuits}}
+    manifest = {"schema": "fuzzlang.code_witness_bootstrap", "model": {"name": DEFAULT_GEMMA_31B_MODEL, "revision": DEFAULT_GEMMA_31B_REVISION, "parameters": "31B"}, "paid_api_calls": False, "witness_mode": args.witness_mode, "recipe_context_tokens": list(context_tokens), "counts": {"requests": len(requests), "attempts": len(attempts), "records": len(records), "undistillable_records": len(undistillable_records), "portable_injectors": len(injectors), "excluded_injector_identities": len(excluded_injector_ids), "duplicate_existing_injector_candidates": duplicate_existing_injector_candidates, "feedback_round_requests": feedback_round_requests, "known_covered_observed_short_circuits": known_covered_observed_short_circuits}}
     (args.output_dir / "manifest.json").write_text(json.dumps(manifest, sort_keys=True) + "\n")
     print(json.dumps(manifest["counts"], sort_keys=True))
     return 0

@@ -7,12 +7,16 @@ from types import SimpleNamespace
 from foundation.diagnostics.catalog import Catalog, DiagEntry
 from foundation.types import DiagInfo, VerifierResult
 from gen.fuzzlang_dsl.code_witness import (
+    CodeAppendFragment,
     CodeWitnessRequest,
+    apply_code_append_fragment,
     apply_code_witness_patch,
+    build_code_append_messages,
     build_direct_injector_requests,
     build_code_witness_messages,
     build_code_witness_retry_messages,
     parse_code_witness_patch,
+    parse_code_append_fragment,
 )
 from gen.fuzzlang_dsl.injector import FuzzLangInjector
 from gen.fuzzlang_dsl.run_local_code_witness import (
@@ -73,6 +77,22 @@ def test_code_witness_prompt_and_single_occurrence_patch_round_trip():
     assert reason is None
     assert patch is not None
     assert apply_code_witness_patch(request, patch) == "int f() { return ; }\n"
+
+
+def test_append_witness_prompt_and_fragment_round_trip():
+    request = _request()
+    messages = build_code_append_messages(request)
+    fragment, reason = parse_code_append_fragment(
+        '{"fragment":"int fuzzlang_bad = ;\\n"}', request,
+    )
+
+    assert "top-level declaration fragment" in messages[0]["content"]
+    assert "err_expected_expression" in messages[1]["content"]
+    assert reason is None
+    assert fragment == CodeAppendFragment("int fuzzlang_bad = ;\n")
+    assert apply_code_append_fragment(request, fragment) == (
+        "int f() { return value; }\nint fuzzlang_bad = ;\n"
+    )
 
 
 def test_semantic_target_prompt_protects_parse_structure():
@@ -640,6 +660,67 @@ def test_code_witness_cli_processes_every_request_and_writes_manifest(
     assert all(
         record["provenance"]["detail"]["injector_id"] == injectors[0]["injector_id"]
         for record in records
+    )
+
+
+def test_code_witness_cli_append_mode_extracts_a_replayable_injector(
+    tmp_path, monkeypatch,
+):
+    request = _request()
+    request_path = tmp_path / "requests.jsonl"
+    request_path.write_text(json.dumps(request.to_dict()) + "\n")
+
+    class _Backend:
+        def __init__(self, *args, **kwargs):
+            pass
+
+        def chat(self, *, n, **kwargs):
+            return [ChatResponse(
+                '{"fragment":"int fuzzlang_bad = ;\\n"}', 4,
+            ) for _ in range(n)]
+
+    class _Verifier:
+        def __init__(self, *args, **kwargs):
+            pass
+
+        def verify(self, candidate, compile_cmd, *, logical_path):
+            if "int fuzzlang_bad = ;" not in candidate:
+                return VerifierResult(True, None, "")
+            return VerifierResult(False, DiagInfo(
+                diag_id=17,
+                diag_name="err_expected_expression",
+                diag_msg="target",
+                file=logical_path,
+                line=2,
+                col=20,
+                start_byte=0,
+                end_byte=1,
+                span_snippet=";",
+            ), "")
+
+    monkeypatch.setattr(witness_cli, "LocalGemma31BBackend", _Backend)
+    monkeypatch.setattr(witness_cli, "FuzzlangClangVerifier", _Verifier)
+    monkeypatch.setattr(sys, "argv", [
+        "run_local_code_witness.py",
+        "--requests", str(request_path),
+        "--clang-bin", "/mock/clang++",
+        "--clang-c-bin", "/mock/clang",
+        "--diagtool-bin", "/mock/diagtool",
+        "--output-dir", str(tmp_path / "out"),
+        "--witness-mode", "append",
+        "--candidates", "1",
+    ])
+
+    assert witness_cli.main() == 0
+    manifest = json.loads((tmp_path / "out" / "manifest.json").read_text())
+    records = [
+        json.loads(line)
+        for line in (tmp_path / "out" / "records.jsonl").read_text().splitlines()
+    ]
+    assert manifest["witness_mode"] == "append"
+    assert manifest["counts"]["records"] == 1
+    assert records[0]["provenance"]["detail"]["strategy"] == (
+        "gemma_append_witness_injector_replay"
     )
 
 
