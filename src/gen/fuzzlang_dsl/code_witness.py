@@ -166,7 +166,9 @@ def build_code_witness_messages(request: CodeWitnessRequest) -> list[dict[str, s
         "type, value, declaration, expression, or binding instead."
         if semantic_target else
         " Infer the exact diagnostic precondition from the TableGen definition "
-        "and compiler emission evidence; do not settle for an unrelated error."
+        "and compiler emission evidence; use the minimal local grammar change "
+        "for a syntax target while preserving the surrounding construct; do not "
+        "settle for an unrelated error."
     )
     system = (
         "Return exactly one JSON object and no prose. You propose one bounded "

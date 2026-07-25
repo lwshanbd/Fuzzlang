@@ -86,6 +86,12 @@ def test_semantic_target_prompt_protects_parse_structure():
     )
 
 
+def test_syntax_target_prompt_requires_a_local_grammar_change():
+    messages = build_code_witness_messages(_request())
+
+    assert "minimal local grammar change" in messages[0]["content"]
+
+
 def test_direct_injector_requests_group_distinct_real_source_windows():
     first = _request()
     second = CodeWitnessRequest(**{
