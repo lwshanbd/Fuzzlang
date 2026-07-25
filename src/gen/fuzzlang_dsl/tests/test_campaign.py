@@ -230,6 +230,27 @@ def test_campaign_enforces_global_and_per_injector_verification_budgets():
     assert result.budget_usage["records"] == 3
 
 
+def test_campaign_emits_periodic_replay_checkpoints():
+    """Long strict replays preserve prior verified work before job timeout."""
+    source = _source_record("checkpoint", "llvm:llvm/lib/Checkpoint.cpp")
+    checkpoints: list[tuple[int, int]] = []
+
+    result = run_campaign(
+        [_injector("bad_exact"), _injector("bad_other")],
+        [source],
+        _FakeVerifier(),
+        budget=CampaignBudget(max_verifications=4),
+        checkpoint_every=1,
+        checkpoint_callback=lambda records, rejections: checkpoints.append(
+            (len(records), len(rejections)),
+        ),
+    )
+
+    assert checkpoints
+    assert checkpoints[-1] == (len(result.records), len(result.rejections))
+    assert checkpoints[-1][0] == 1
+
+
 def test_campaign_can_cap_records_per_diagnostic_for_coverage_first_replay():
     sources = [
         _source_record(

@@ -80,6 +80,15 @@ def _parser() -> argparse.ArgumentParser:
         default=10_000,
         help="coverage-first cap across all Injectors with the same target diagnostic",
     )
+    parser.add_argument(
+        "--checkpoint-every",
+        type=_positive_int,
+        default=20,
+        help=(
+            "persist verified replay outputs every N mutant compilations so "
+            "long jobs retain completed work before a scheduler timeout"
+        ),
+    )
     return parser
 
 
@@ -198,6 +207,11 @@ def main(argv: Sequence[str] | None = None) -> int:
         args.timeout,
         clang_c_bin=args.clang_c_bin,
     )
+
+    def write_checkpoint(records, rejections) -> None:
+        _write_jsonl(records_path, (record.to_dict() for record in records))
+        _write_jsonl(rejections_path, (item.to_dict() for item in rejections))
+
     result = run_campaign(
         injectors,
         source_records,
@@ -205,6 +219,8 @@ def main(argv: Sequence[str] | None = None) -> int:
         clean_sources=clean_sources,
         clean_source_split=Split(args.clean_source_split),
         budget=budget,
+        checkpoint_every=args.checkpoint_every,
+        checkpoint_callback=write_checkpoint,
     )
 
     record_count = _write_jsonl(
@@ -234,6 +250,7 @@ def main(argv: Sequence[str] | None = None) -> int:
             "timeout_s": args.timeout,
         },
         "budget": budget.to_dict(),
+        "checkpoint_every_mutant_verifications": args.checkpoint_every,
         "budget_usage": dict(result.budget_usage),
         "source_pool": {
             **result.source_pool,

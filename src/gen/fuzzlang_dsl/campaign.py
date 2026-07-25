@@ -13,7 +13,7 @@ import json
 from collections import OrderedDict
 from dataclasses import dataclass, field, replace
 from pathlib import Path
-from typing import Any, Mapping, Sequence
+from typing import Any, Callable, Mapping, Sequence
 
 from foundation.record import Origin, Provenance, Record, Split
 from foundation.verifier.base import BaseVerifier
@@ -230,11 +230,21 @@ def run_campaign(
     clean_sources: Sequence[CleanSourceTU] = (),
     clean_source_split: Split = Split.TRAIN,
     budget: CampaignBudget | None = None,
+    checkpoint_every: int = 0,
+    checkpoint_callback: Callable[
+        [tuple[Record, ...], tuple[CampaignRejection, ...]], None,
+    ] | None = None,
 ) -> CampaignResult:
     """Replay Injectors on verified-clean, non-test real translation units."""
     if not isinstance(clean_source_split, Split) or clean_source_split is Split.AUXILIARY:
         raise ValueError("clean_source_split must be a core Record split")
     budget = budget or CampaignBudget()
+    if isinstance(checkpoint_every, bool) or not isinstance(checkpoint_every, int):
+        raise TypeError("checkpoint_every must be an integer")
+    if checkpoint_every < 0:
+        raise ValueError("checkpoint_every must be non-negative")
+    if checkpoint_callback is not None and not callable(checkpoint_callback):
+        raise TypeError("checkpoint_callback must be callable or null")
     rejections: list[CampaignRejection] = []
     sources = _prepare_source_pool(source_records, rejections)
     sources.extend(_prepare_clean_source_pool(
@@ -259,6 +269,20 @@ def run_campaign(
     diagnostic_records: dict[str, int] = {}
     baseline_verifications = 0
     mutant_verifications = 0
+    last_checkpoint_verifications = 0
+
+    def checkpoint_if_due(*, force: bool = False) -> None:
+        """Persist completed work periodically without relaxing any gate."""
+        nonlocal last_checkpoint_verifications
+        if checkpoint_callback is None:
+            return
+        if not force and (
+            checkpoint_every == 0
+            or mutant_verifications - last_checkpoint_verifications < checkpoint_every
+        ):
+            return
+        checkpoint_callback(tuple(output), tuple(rejections))
+        last_checkpoint_verifications = mutant_verifications
 
     for injector in unique_injectors:
         metric = metrics_by_id[injector.injector_id]
@@ -364,6 +388,11 @@ def run_campaign(
 
                 mutant_verifications += 1
                 metric.compiled += 1
+                # Checkpoint work completed before this in-flight compiler call.
+                # The final forced checkpoint below includes this candidate's
+                # outcome, while a scheduler timeout can lose at most one
+                # interval of already verified records.
+                checkpoint_if_due()
                 try:
                     verified = verifier.verify(
                         application.src,
@@ -458,6 +487,7 @@ def run_campaign(
                 metric.records_emitted += 1
                 metric.note_exact(source_key, source.project)
 
+    checkpoint_if_due(force=True)
     return CampaignResult(
         records=tuple(output),
         rejections=tuple(rejections),
