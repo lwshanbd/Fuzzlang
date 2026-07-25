@@ -25,19 +25,24 @@ def prioritize_witness_sources(
     Witness-builder audits carry one ``witness_source_id``.  The broader
     request builder has no mutated witness but does carry the two real snippet
     ``source_ids`` on which a synthesized lexical Injector is required to
-    match.  Both are valuable replay anchors.
+    match.  Direct code-witness requests carry one ``source_id`` and have no
+    audit status yet.  All three are valuable replay anchors.
     """
     source_list = tuple(sources)
     by_id = {source.source_id: source for source in source_list}
     requested: list[str] = []
     seen: set[str] = set()
     for row in audit_rows:
-        if row.get("status") != "selected":
+        status = row.get("status")
+        if status is not None and status != "selected":
             continue
         row_source_ids: list[str] = []
         witness_source_id = row.get("witness_source_id")
         if isinstance(witness_source_id, str) and witness_source_id:
             row_source_ids.append(witness_source_id)
+        direct_source_id = row.get("source_id")
+        if isinstance(direct_source_id, str) and direct_source_id:
+            row_source_ids.append(direct_source_id)
         snippet_source_ids = row.get("source_ids")
         if isinstance(snippet_source_ids, (list, tuple)):
             row_source_ids.extend(

@@ -57,3 +57,20 @@ def test_prioritizes_real_snippet_sources_from_non_witness_request_audits():
     assert result.prioritized_source_ids == (
         "llvm:lib/c.cpp", "llvm:lib/a.cpp",
     )
+
+
+def test_prioritizes_direct_code_witness_source_without_audit_status():
+    result = prioritize_witness_sources(
+        [_source("a"), _source("b"), _source("c")],
+        [
+            {
+                "diag_name": "err_expected_semi",
+                "source_id": "llvm:lib/c.cpp",
+            },
+        ],
+    )
+
+    assert [source.source_id for source in result.sources] == [
+        "llvm:lib/c.cpp", "llvm:lib/a.cpp", "llvm:lib/b.cpp",
+    ]
+    assert result.prioritized_source_ids == ("llvm:lib/c.cpp",)
