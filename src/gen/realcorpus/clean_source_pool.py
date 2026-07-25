@@ -9,8 +9,9 @@ from __future__ import annotations
 
 import hashlib
 import json
+import re
 from concurrent.futures import ThreadPoolExecutor
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from pathlib import Path
 from typing import Any, Iterable, Mapping, Sequence
 
@@ -159,6 +160,93 @@ def load_clean_sources_jsonl(path: str | Path) -> list[CleanSourceTU]:
         except (KeyError, TypeError, ValueError, json.JSONDecodeError) as error:
             raise ValueError(f"{path}:{line_number}: invalid CleanSourceTU: {error}") from error
     return result
+
+
+_CPP_STANDARD_FLAG_RE = re.compile(r"^(?P<prefix>--?std=)(?:gnu\+\+|c\+\+).+$")
+_CPP_STANDARD_RE = re.compile(r"^(?:gnu\+\+|c\+\+)\d[a-z0-9]*$")
+
+
+def _with_cpp_standard(command: Sequence[str], *, standard: str) -> tuple[str, ...]:
+    """Replace (or add) the C++ standard flag in a clean-pool command."""
+    if not _CPP_STANDARD_RE.fullmatch(standard):
+        raise ValueError("standard must be a concrete C++ standard, e.g. 'c++20'")
+    result: list[str] = []
+    replaced = False
+    for argument in command:
+        match = _CPP_STANDARD_FLAG_RE.fullmatch(argument)
+        if match is None:
+            result.append(argument)
+            continue
+        if not replaced:
+            result.append(f"{match.group('prefix')}{standard}")
+            replaced = True
+    if not replaced:
+        try:
+            insertion = result.index("__CLANG__") + 1
+        except ValueError as error:  # CleanSourceTU already protects this invariant.
+            raise ValueError("compile command lacks __CLANG__") from error
+        result.insert(insertion, f"-std={standard}")
+    return tuple(result)
+
+
+def revalidate_cpp_standard_pool(
+    sources: Iterable[CleanSourceTU],
+    verifier: BaseVerifier,
+    *,
+    standard: str,
+    workers: int = 8,
+) -> CleanSourcePoolResult:
+    """Create a clean real-source pool under a distinct C++ standard mode.
+
+    This does not modify source text or its production provenance.  It only
+    substitutes the language-standard compiler flag, then clean-gates every
+    parent again before it can be used by a mode-specific Injector campaign.
+    """
+    if workers <= 0:
+        raise ValueError("workers must be positive")
+    # Validate before scheduling work, including when the input is empty.
+    if not _CPP_STANDARD_RE.fullmatch(standard):
+        raise ValueError("standard must be a concrete C++ standard, e.g. 'c++20'")
+    values = tuple(sources)
+    candidates = [source for source in values if source.language == "c++"]
+    non_cpp_sources = sum(1 for source in values if source.language != "c++")
+
+    def process(source: CleanSourceTU):
+        command = _with_cpp_standard(source.compile_cmd, standard=standard)
+        try:
+            result = verifier.verify(
+                source.corrected_src, list(command), logical_path=source.source_path,
+            )
+        except Exception as error:
+            return None, CleanSourceRejection(
+                "retargeted_verifier_error", source.source_id, source.source_path,
+                f"{type(error).__name__}: {error}",
+            )
+        if not result.ok:
+            return None, CleanSourceRejection(
+                "retargeted_not_clean", source.source_id, source.source_path,
+                observed_diag=(result.diag.diag_name if result.diag else None),
+            )
+        return replace(source, compile_cmd=command), None
+
+    accepted: list[CleanSourceTU] = []
+    rejections: list[CleanSourceRejection] = []
+    with ThreadPoolExecutor(max_workers=workers) as executor:
+        for source, rejection in executor.map(process, candidates):
+            if source is not None:
+                accepted.append(source)
+            elif rejection is not None:
+                rejections.append(rejection)
+    return CleanSourcePoolResult(
+        sources=tuple(accepted),
+        rejections=tuple(rejections),
+        counts={
+            "input_clean_sources": len(candidates) + non_cpp_sources,
+            "non_cpp_sources": non_cpp_sources,
+            "attempted_clean_gates": len(candidates),
+            "accepted_clean_sources": len(accepted),
+        },
+    )
 
 
 def build_clean_source_pool(

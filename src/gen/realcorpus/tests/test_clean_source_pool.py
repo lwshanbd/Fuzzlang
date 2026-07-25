@@ -15,6 +15,7 @@ from gen.realcorpus.clean_source_pool import (
     build_clean_source_pool,
     build_clean_source_pool_from_records,
     load_clean_sources_jsonl,
+    revalidate_cpp_standard_pool,
 )
 from gen.realcorpus import run_clean_source_pool as cli
 from gen.realcorpus import run_clean_source_pool_from_records as record_cli
@@ -75,6 +76,34 @@ def test_clean_source_tu_rejects_test_paths_bad_hash_and_invalid_command():
             source_sha256="0" * 64,
             baseline_compiler="llvmorg-22.1.8",
         )
+
+
+def test_revalidate_cpp_standard_pool_rewrites_flags_and_keeps_only_clean_sources():
+    good = _source(path="llvm/lib/IR/Good.cpp", text="int good() { return 0; }\n")
+    bad = _source(path="llvm/lib/IR/Bad.cpp", text="int bad() { return 0; }\n")
+
+    def verify(source: str, command: list[str], path: str):
+        if "-std=c++20" not in command or "Bad.cpp" in path:
+            return VerifierResult(False, _diag(path), "error")
+        return ok_result()
+
+    result = revalidate_cpp_standard_pool(
+        [good, bad], MockVerifier(verify), standard="c++20", workers=2,
+    )
+
+    assert [item.source_id for item in result.sources] == ["llvm:llvm/lib/IR/Good.cpp"]
+    assert result.sources[0].compile_cmd == (
+        "__CLANG__", "-std=c++20", "-fsyntax-only", "__SRC__",
+    )
+    assert [(item.status, item.source_id) for item in result.rejections] == [
+        ("retargeted_not_clean", "llvm:llvm/lib/IR/Bad.cpp"),
+    ]
+    assert result.counts == {
+        "input_clean_sources": 2,
+        "non_cpp_sources": 0,
+        "attempted_clean_gates": 2,
+        "accepted_clean_sources": 1,
+    }
     with pytest.raises(ValueError, match="compile_cmd"):
         CleanSourceTU(
             source_id="llvm:llvm/lib/IR/Bad.cpp",
