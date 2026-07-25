@@ -66,6 +66,7 @@ def test_code_witness_prompt_and_single_occurrence_patch_round_trip():
 
     assert "exactly one JSON object" in messages[0]["content"]
     assert "generalize across real code" in messages[0]["content"]
+    assert "must make the edited source fail compilation" in messages[0]["content"]
     assert "err_expected_expression" in messages[1]["content"]
     assert reason is None
     assert patch is not None
