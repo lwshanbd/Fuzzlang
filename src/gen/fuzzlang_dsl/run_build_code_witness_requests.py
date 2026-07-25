@@ -209,6 +209,35 @@ def _diagnostic_names_from_jsonl(paths: Sequence[Path]) -> set[str]:
     return set(_ordered_diagnostic_names_from_jsonl(paths))
 
 
+def _successful_diagnostic_names_from_attempts(
+    paths: Sequence[Path],
+) -> tuple[str, ...]:
+    """Load distinct targets that previously reached the exact compiler goal.
+
+    An exact-but-undistillable witness remains useful for a new source attempt:
+    it proves that the compiler target is reachable even if its earlier edit
+    could not be represented by the narrow lexical Injector language.
+    """
+    accepted = {"exact_target", "exact_target_not_distillable"}
+    names: list[str] = []
+    seen: set[str] = set()
+    for path in paths:
+        for line in path.read_text().splitlines():
+            if not line.strip():
+                continue
+            value = json.loads(line)
+            name = value.get("diag_name")
+            if (
+                value.get("status") in accepted
+                and isinstance(name, str)
+                and name
+                and name not in seen
+            ):
+                seen.add(name)
+                names.append(name)
+    return tuple(names)
+
+
 def _diagnostic_names_from_audits(paths: Sequence[Path]) -> set[str]:
     """Load only Injector-backed diagnostic names from strict audit reports."""
     names: set[str] = set()
@@ -273,6 +302,10 @@ def main() -> int:
         help="retry target diagnostics from these request JSONLs on new sources",
     )
     parser.add_argument(
+        "--successful-attempts", type=Path, action="append", default=[],
+        help="retry targets with a prior exact compiler witness on new sources",
+    )
+    parser.add_argument(
         "--auto-uncovered-limit", type=int,
         help="select this many unattempted Lex/Parse/Sema TableGen gaps",
     )
@@ -327,11 +360,13 @@ def main() -> int:
         bool(args.diag_name),
         args.auto_uncovered_limit is not None,
         bool(args.retry_requests),
+        bool(args.successful_attempts),
     ))
     if modes != 1:
         parser.error(
             "choose exactly one target mode: --diag-name, "
-            "--auto-uncovered-limit, or --retry-requests"
+            "--auto-uncovered-limit, --retry-requests, or "
+            "--successful-attempts"
         )
     explicit_names = tuple(args.diag_name)
     if args.retry_requests:
@@ -340,7 +375,15 @@ def main() -> int:
             for name in _ordered_diagnostic_names_from_jsonl(args.retry_requests)
             if name not in covered
         )
-    if args.retry_requests and not explicit_names:
+    if args.successful_attempts:
+        explicit_names = tuple(
+            name
+            for name in _successful_diagnostic_names_from_attempts(
+                args.successful_attempts,
+            )
+            if name not in covered
+        )
+    if (args.retry_requests or args.successful_attempts) and not explicit_names:
         targets = ()
     else:
         try:

@@ -23,6 +23,7 @@ from gen.fuzzlang_dsl.run_build_code_witness_requests import (
     _diagnostic_names_from_audits,
     _diagnostic_names_from_jsonl,
     _ordered_diagnostic_names_from_jsonl,
+    _successful_diagnostic_names_from_attempts,
     _resolve_target_entries,
     _rotated_sources,
     _source_variant_orders,
@@ -314,6 +315,20 @@ def test_ordered_diagnostic_name_loader_supports_retry_queue_deduplication(tmp_p
 
     assert _ordered_diagnostic_names_from_jsonl([first, second]) == (
         "err_second", "err_first", "err_third",
+    )
+
+
+def test_successful_attempt_loader_keeps_only_previously_exact_targets(tmp_path):
+    attempts = tmp_path / "attempts.jsonl"
+    attempts.write_text(
+        '{"diag_name":"err_first","status":"rejected"}\n'
+        '{"diag_name":"err_second","status":"exact_target"}\n'
+        '{"diag_name":"err_third","status":"exact_target_not_distillable"}\n'
+        '{"diag_name":"err_second","status":"exact_target"}\n'
+    )
+
+    assert _successful_diagnostic_names_from_attempts([attempts]) == (
+        "err_second", "err_third",
     )
 
 
