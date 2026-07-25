@@ -5,6 +5,7 @@ from __future__ import annotations
 import argparse
 import json
 import re
+from collections import Counter
 from pathlib import Path
 from typing import Sequence, TypeVar
 
@@ -285,6 +286,33 @@ def _attempted_diagnostic_names_from_attempts(
     return tuple(names)
 
 
+def _observed_diagnostic_names_from_attempts(
+    paths: Sequence[Path], *, min_count: int,
+) -> tuple[str, ...]:
+    """Rank compiler-emitted wrong-target diagnostics by observed reachability."""
+    if min_count <= 0:
+        raise ValueError("minimum observed count must be positive")
+    counts: Counter[str] = Counter()
+    for path in paths:
+        for line in path.read_text().splitlines():
+            if not line.strip():
+                continue
+            value = json.loads(line)
+            name = value.get("observed_diag")
+            if (
+                value.get("status") == "rejected"
+                and isinstance(name, str)
+                and name
+            ):
+                counts[name] += 1
+    return tuple(
+        name for name, count in sorted(
+            counts.items(), key=lambda item: (-item[1], item[0]),
+        )
+        if count >= min_count
+    )
+
+
 def _diagnostic_names_from_audits(paths: Sequence[Path]) -> set[str]:
     """Load only Injector-backed diagnostic names from strict audit reports."""
     names: set[str] = set()
@@ -357,6 +385,18 @@ def main() -> int:
         help="retry any prior ordinary-mode target from compact attempt logs",
     )
     parser.add_argument(
+        "--observed-attempts", type=Path, action="append", default=[],
+        help="prior attempts whose compiler-emitted wrong-target diagnostics are ranked",
+    )
+    parser.add_argument(
+        "--observed-min-count", type=int, default=1,
+        help="minimum prior compiler observations for an observed-diagnostic target",
+    )
+    parser.add_argument(
+        "--observed-limit", type=int,
+        help="cap ranked observed-diagnostic targets after coverage exclusion",
+    )
+    parser.add_argument(
         "--auto-uncovered-limit", type=int,
         help="select this many unattempted Lex/Parse/Sema TableGen gaps",
     )
@@ -399,6 +439,10 @@ def main() -> int:
         parser.error("--source-variant-stride must be positive")
     if args.auto_uncovered_limit is not None and args.auto_uncovered_limit <= 0:
         parser.error("--auto-uncovered-limit must be positive")
+    if args.observed_min_count <= 0:
+        parser.error("--observed-min-count must be positive")
+    if args.observed_limit is not None and args.observed_limit <= 0:
+        parser.error("--observed-limit must be positive")
     catalog = load_catalog(args.catalog_dir)
     emission_index = (
         load_emission_index(args.emission_index)
@@ -420,12 +464,13 @@ def main() -> int:
         bool(args.retry_requests),
         bool(args.successful_attempts),
         bool(args.attempted_targets),
+        bool(args.observed_attempts),
     ))
     if modes != 1:
         parser.error(
             "choose exactly one target mode: --diag-name, "
             "--auto-uncovered-limit, --retry-requests, or "
-            "--successful-attempts, or --attempted-targets"
+            "--successful-attempts, --attempted-targets, or --observed-attempts"
         )
     explicit_names = tuple(args.diag_name)
     if args.retry_requests:
@@ -450,10 +495,21 @@ def main() -> int:
             )
             if name not in covered
         )
+    if args.observed_attempts:
+        explicit_names = tuple(
+            name for name in _observed_diagnostic_names_from_attempts(
+                args.observed_attempts,
+                min_count=args.observed_min_count,
+            )
+            if name not in covered
+        )
+        if args.observed_limit is not None:
+            explicit_names = explicit_names[:args.observed_limit]
     if (
         args.retry_requests
         or args.successful_attempts
         or args.attempted_targets
+        or args.observed_attempts
     ) and not explicit_names:
         targets = ()
     else:

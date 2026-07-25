@@ -25,6 +25,7 @@ from gen.fuzzlang_dsl.run_build_code_witness_requests import (
     _anchor_pattern,
     _anchor_patterns,
     _matching_source_candidates,
+    _observed_diagnostic_names_from_attempts,
     _diagnostic_names_from_audits,
     _diagnostic_names_from_jsonl,
     _ordered_diagnostic_names_from_jsonl,
@@ -160,6 +161,24 @@ def test_target_anchor_selection_prefers_relevant_real_code_shapes():
     assert _anchor_pattern("err_typecheck_member_reference_struct_union").search("x.y")
     assert _anchor_pattern("err_typecheck_invalid_operands").search("x + y")
     assert _anchor_pattern("err_expected_expression").search("return x;")
+
+
+def test_observed_diagnostic_target_ranking_uses_compiler_frequency(tmp_path):
+    attempts = tmp_path / "attempts.jsonl"
+    attempts.write_text("\n".join(json.dumps(item) for item in [
+        {"status": "rejected", "observed_diag": "err_second"},
+        {"status": "rejected", "observed_diag": "err_first"},
+        {"status": "rejected", "observed_diag": "err_first"},
+        {"status": "exact_target", "observed_diag": "err_ignored"},
+        {"status": "rejected", "observed_diag": None},
+    ]) + "\n")
+
+    assert _observed_diagnostic_names_from_attempts(
+        [attempts], min_count=1,
+    ) == ("err_first", "err_second")
+    assert _observed_diagnostic_names_from_attempts(
+        [attempts], min_count=2,
+    ) == ("err_first",)
 
 
 def test_target_anchor_selection_understands_parser_contexts():
