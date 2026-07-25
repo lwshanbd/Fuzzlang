@@ -5,12 +5,12 @@ LLVM is pinned to `llvmorg-22.1.8`; the current test suite has 479 passing and
 5 environment-dependent skips. Detailed generation history is in
 `data/gen/README.md`.
 
-## Live Strict Injector Campaign (2026-07-24)
+## Live Strict Injector Campaign (2026-07-25)
 
 The active coverage objective is **at least 1,000 distinct Clang TableGen
 error diagnostics**, measured only by the current strict FuzzLang Injector
-audit.  The latest independent live audit reports **461 / 3,891** catalog
-error types, backed by 5,085 paired records and 7,354 unique portable
+audit.  The latest independent live audit reports **529 / 3,891** catalog
+error types, backed by 5,314 paired records and 7,432 unique portable
 Injectors.  It rejects records that lack the concrete Injector required by
 their replay provenance and excludes test/test-support sources.
 
