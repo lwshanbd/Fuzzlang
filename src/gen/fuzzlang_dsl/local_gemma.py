@@ -191,6 +191,27 @@ class LocalGemma31BBackend:
                 return_dict=True,
             )
 
+    @staticmethod
+    def _render_prompt(tokenizer, messages: list[dict[str, str]]) -> str:
+        """Render one chat to text so distinct requests can be padded together."""
+        chat = flatten_messages_for_gemma(messages)
+        try:
+            return tokenizer.apply_chat_template(
+                chat,
+                add_generation_prompt=True,
+                tokenize=False,
+            )
+        except Exception:
+            plain = [{
+                "role": "user",
+                "content": chat[0]["content"][0]["text"],
+            }]
+            return tokenizer.apply_chat_template(
+                plain,
+                add_generation_prompt=True,
+                tokenize=False,
+            )
+
     def count_prompt_tokens(self, messages: list[dict[str, str]]) -> int:
         return int(self._tokenize(messages)["input_ids"].shape[-1])
 
@@ -205,10 +226,38 @@ class LocalGemma31BBackend:
     ) -> list[ChatResponse]:
         """Generate locally; ``response_format`` is enforced after decoding."""
         del response_format
+        return self.chat_batch(
+            messages_batch=[messages],
+            temperature=temperature,
+            max_tokens=max_tokens,
+            n=n,
+        )[0]
+
+    def chat_batch(
+        self,
+        *,
+        messages_batch: list[list[dict[str, str]]],
+        temperature: float,
+        max_tokens: int,
+        n: int = 1,
+    ) -> list[list[ChatResponse]]:
+        """Generate distinct prompts in one padded model invocation.
+
+        This is the throughput primitive for wide FuzzLang discovery batches:
+        different TableGen targets can share the same Gemma forward/generate
+        call.  Each outer result corresponds to one input prompt and contains
+        its ``n`` sampled candidates in generation order.
+        """
+        if not messages_batch:
+            return []
         if n > 1 and temperature <= 0:
             raise ValueError("multiple Gemma candidates require temperature > 0")
         tokenizer, model, torch = self._ensure_model()
-        inputs = self._tokenize(messages)
+        prompts = [
+            self._render_prompt(tokenizer, messages)
+            for messages in messages_batch
+        ]
+        inputs = tokenizer(prompts, padding=True, return_tensors="pt")
         inputs = {key: value.to(model.device) for key, value in inputs.items()}
         input_tokens = int(inputs["input_ids"].shape[-1])
         generation: dict[str, Any] = {
@@ -223,11 +272,16 @@ class LocalGemma31BBackend:
             torch.cuda.manual_seed_all(self.seed)
         with torch.inference_mode():
             outputs = model.generate(**inputs, **generation)
-        responses: list[ChatResponse] = []
+        flat: list[ChatResponse] = []
         for output in outputs:
             generated = output[input_tokens:]
-            responses.append(ChatResponse(
+            flat.append(ChatResponse(
                 text=tokenizer.decode(generated, skip_special_tokens=True),
                 output_tokens=int(generated.shape[-1]),
             ))
-        return responses
+        expected = len(messages_batch) * n
+        if len(flat) != expected:
+            raise RuntimeError(
+                f"Gemma returned {len(flat)} sequences for {expected} requested"
+            )
+        return [flat[offset:offset + n] for offset in range(0, len(flat), n)]

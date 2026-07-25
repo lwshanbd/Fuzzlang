@@ -788,11 +788,15 @@ def test_code_witness_cli_processes_every_request_and_writes_manifest(
         def __init__(self, *args, **kwargs):
             pass
 
-        def chat(self, *, n, **kwargs):
-            return [
+        def chat(self, **kwargs):
+            raise AssertionError("wide mode must batch distinct prompts")
+
+        def chat_batch(self, *, messages_batch, n, **kwargs):
+            assert len(messages_batch) == 2
+            return [[
                 ChatResponse('{"old_text":"value","new_text":"&value"}', 4)
                 for _ in range(n)
-            ]
+            ] for _ in messages_batch]
 
     class _Verifier:
         def __init__(self, *args, **kwargs):
@@ -823,6 +827,8 @@ def test_code_witness_cli_processes_every_request_and_writes_manifest(
         "--diagtool-bin", "/mock/diagtool",
         "--output-dir", str(tmp_path / "out"),
         "--candidates", "1",
+        "--feedback-rounds", "1",
+        "--request-batch-size", "2",
     ])
 
     assert witness_cli.main() == 0

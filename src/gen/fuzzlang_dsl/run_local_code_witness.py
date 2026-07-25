@@ -247,6 +247,13 @@ def main() -> int:
         "--feedback-rounds", type=int, default=2,
         help="adaptive model rounds sharing the fixed candidate budget",
     )
+    parser.add_argument(
+        "--request-batch-size", type=int, default=1,
+        help=(
+            "number of distinct diagnostic prompts generated together; wide "
+            "mode requires one feedback round and preserves compiler gating"
+        ),
+    )
     parser.add_argument("--temperature", type=float, default=0.5)
     parser.add_argument("--max-tokens", type=int, default=400)
     parser.add_argument("--timeout", type=float, default=5.0)
@@ -291,10 +298,13 @@ def main() -> int:
     if (
         args.candidates <= 0
         or args.feedback_rounds <= 0
+        or args.request_batch_size <= 0
         or args.max_tokens <= 0
         or args.timeout <= 0
     ):
         parser.error("candidate, token, and timeout bounds must be positive")
+    if args.request_batch_size > 1 and args.feedback_rounds != 1:
+        parser.error("--request-batch-size > 1 requires --feedback-rounds 1")
     context_tokens = tuple(
         args.recipe_context_tokens
         if args.recipe_context_tokens is not None
@@ -329,6 +339,8 @@ def main() -> int:
     duplicate_existing_injector_candidates = 0
     feedback_round_requests = 0
     known_covered_observed_short_circuits = 0
+    prefetched_responses: dict[int, list] = {}
+    prefetched_prompt_count = 0
     _write_checkpoint(
         args.output_dir,
         attempts=attempts,
@@ -336,6 +348,36 @@ def main() -> int:
         undistillable_records=undistillable_records,
         injectors=injectors,
     )
+    if args.request_batch_size > 1:
+        # Wide discovery mode batches *different* diagnostic prompts in one
+        # Gemma generate call.  Compiler validation below remains unchanged.
+        # It intentionally uses one feedback round: adaptive retries depend on
+        # per-request compiler output and therefore cannot be precomputed.
+        prompt_rows: list[tuple[int, list[dict[str, str]]]] = []
+        for request_index, request in enumerate(requests):
+            model_request = (
+                with_regression_trigger_evidence(
+                    request, args.regression_test_root,
+                )
+                if args.regression_evidence else request
+            )
+            messages = (
+                build_code_append_messages(model_request)
+                if args.witness_mode == "append"
+                else build_code_witness_messages(model_request)
+            )
+            prompt_rows.append((request_index, messages))
+        for offset in range(0, len(prompt_rows), args.request_batch_size):
+            batch = prompt_rows[offset:offset + args.request_batch_size]
+            generated = backend.chat_batch(
+                messages_batch=[messages for _, messages in batch],
+                temperature=args.temperature,
+                max_tokens=args.max_tokens,
+                n=args.candidates,
+            )
+            for (request_index, _), responses in zip(batch, generated, strict=True):
+                prefetched_responses[request_index] = responses
+            prefetched_prompt_count += len(batch)
     for request_index, request in enumerate(requests):
         if request_index in completed_request_indices:
             continue
@@ -415,12 +457,16 @@ def main() -> int:
                     rejection_reasons=tuple(rejection_reasons),
                     observed_diagnostics=tuple(observed_diagnostics),
                 )
-            responses = backend.chat(
-                messages=messages,
-                temperature=args.temperature,
-                max_tokens=args.max_tokens,
-                n=candidate_count,
-            )
+            prefetched = prefetched_responses.get(request_index)
+            if round_index == 0 and prefetched:
+                responses = prefetched_responses.pop(request_index)
+            else:
+                responses = backend.chat(
+                    messages=messages,
+                    temperature=args.temperature,
+                    max_tokens=args.max_tokens,
+                    n=candidate_count,
+                )
             round_rejection_reasons: set[str] = set()
             for response in responses:
                 if args.witness_mode == "append":
@@ -621,7 +667,7 @@ def main() -> int:
         undistillable_records=undistillable_records,
         injectors=injectors,
     )
-    manifest = {"schema": "fuzzlang.code_witness_bootstrap", "model": {"name": DEFAULT_GEMMA_31B_MODEL, "revision": DEFAULT_GEMMA_31B_REVISION, "parameters": "31B"}, "paid_api_calls": False, "witness_mode": args.witness_mode, "recipe_context_tokens": list(context_tokens), "counts": {"requests": len(requests), "attempts": len(attempts), "records": len(records), "undistillable_records": len(undistillable_records), "portable_injectors": len(injectors), "excluded_injector_identities": len(excluded_injector_ids), "duplicate_existing_injector_candidates": duplicate_existing_injector_candidates, "feedback_round_requests": feedback_round_requests, "known_covered_observed_short_circuits": known_covered_observed_short_circuits}}
+    manifest = {"schema": "fuzzlang.code_witness_bootstrap", "model": {"name": DEFAULT_GEMMA_31B_MODEL, "revision": DEFAULT_GEMMA_31B_REVISION, "parameters": "31B"}, "paid_api_calls": False, "witness_mode": args.witness_mode, "request_batch_size": args.request_batch_size, "prefetched_prompt_count": prefetched_prompt_count, "recipe_context_tokens": list(context_tokens), "counts": {"requests": len(requests), "attempts": len(attempts), "records": len(records), "undistillable_records": len(undistillable_records), "portable_injectors": len(injectors), "excluded_injector_identities": len(excluded_injector_ids), "duplicate_existing_injector_candidates": duplicate_existing_injector_candidates, "feedback_round_requests": feedback_round_requests, "known_covered_observed_short_circuits": known_covered_observed_short_circuits}}
     (args.output_dir / "manifest.json").write_text(json.dumps(manifest, sort_keys=True) + "\n")
     print(json.dumps(manifest["counts"], sort_keys=True))
     return 0

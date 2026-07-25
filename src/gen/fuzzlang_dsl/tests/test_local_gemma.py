@@ -8,6 +8,7 @@ import pytest
 from gen.fuzzlang_dsl.local_gemma import (
     DEFAULT_GEMMA_31B_MODEL,
     DEFAULT_GEMMA_31B_REVISION,
+    LocalGemma31BBackend,
     flatten_messages_for_gemma,
     load_request_file,
     require_gemma_31b,
@@ -76,3 +77,54 @@ def test_load_request_file_accepts_jsonl_and_validates_evidence(tmp_path: Path):
     assert requests[0].diag_name == "err_example"
     assert requests[0].evidence.tablegen_definition.startswith("def err_example")
     assert requests[0].correct_snippets[1].startswith("int g")
+
+
+def test_local_gemma_batches_distinct_prompts_in_one_generate_call(monkeypatch):
+    torch = pytest.importorskip("torch")
+
+    class _Tokenizer:
+        def apply_chat_template(self, chat, *, tokenize, **kwargs):
+            assert tokenize is False
+            return chat[0]["content"][0]["text"]
+
+        def __call__(self, prompts, *, padding, return_tensors):
+            assert padding is True
+            assert return_tensors == "pt"
+            assert len(prompts) == 2
+            return {
+                "input_ids": torch.tensor([[1, 2], [3, 4]]),
+                "attention_mask": torch.tensor([[1, 1], [1, 1]]),
+            }
+
+        def decode(self, tokens, *, skip_special_tokens):
+            assert skip_special_tokens is True
+            return str(int(tokens[0]))
+
+    class _Model:
+        device = torch.device("cpu")
+
+        def __init__(self):
+            self.calls = 0
+
+        def generate(self, **kwargs):
+            self.calls += 1
+            assert kwargs["input_ids"].shape == (2, 2)
+            return torch.tensor([[1, 2, 10], [3, 4, 20]])
+
+    model = _Model()
+    backend = LocalGemma31BBackend(seed=7)
+    monkeypatch.setattr(
+        backend, "_ensure_model", lambda: (_Tokenizer(), model, torch),
+    )
+
+    responses = backend.chat_batch(
+        messages_batch=[
+            [{"role": "user", "content": "first"}],
+            [{"role": "user", "content": "second"}],
+        ],
+        temperature=0.0,
+        max_tokens=8,
+    )
+
+    assert model.calls == 1
+    assert [[item.text for item in group] for group in responses] == [["10"], ["20"]]
