@@ -217,7 +217,9 @@ def build_code_witness_retry_messages(
     messages[0]["content"] += (
         " A previous candidate round did not reach the target. Use the "
         "structured feedback to revise the approach; do not repeat the same "
-        "edit merely with different formatting."
+        "edit merely with different formatting. The observed already-covered "
+        "diagnostics are not acceptable outcomes: choose an edit that avoids "
+        "them and reaches the requested target."
     )
     task = json.loads(messages[1]["content"])
     task["prior_attempt_feedback"] = {

@@ -160,6 +160,9 @@ def test_code_witness_retry_prompt_uses_only_structured_compiler_feedback():
         "observed_primary_diagnostics": ["err_expected_semi"],
         "rejection_categories": ["old_text_not_unique_in_window"],
     }
+    assert "already-covered diagnostics are not acceptable" in (
+        messages[0]["content"]
+    )
     assert "revise the approach" in messages[0]["content"]
     assert "stderr" not in messages[1]["content"]
 
