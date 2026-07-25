@@ -72,6 +72,20 @@ def test_code_witness_prompt_and_single_occurrence_patch_round_trip():
     assert apply_code_witness_patch(request, patch) == "int f() { return ; }\n"
 
 
+def test_semantic_target_prompt_protects_parse_structure():
+    request = CodeWitnessRequest(**{
+        **_request().to_dict(),
+        "diag_name": "err_typecheck_call_too_few_args",
+        "diag_message": "too few arguments to function call",
+    })
+
+    messages = build_code_witness_messages(request)
+
+    assert "preserve all delimiters, braces, statement separators" in (
+        messages[0]["content"]
+    )
+
+
 def test_direct_injector_requests_group_distinct_real_source_windows():
     first = _request()
     second = CodeWitnessRequest(**{
