@@ -65,7 +65,10 @@ def _record_rejection(
     # New witness generation writes the concrete replayed Injector ID into
     # provenance.  Its audit must not be satisfied by an unrelated Injector
     # which happens to share the same diagnostic name.
-    if detail.get("strategy") == "gemma_code_witness_injector_replay":
+    if detail.get("strategy") in {
+        "gemma_code_witness_injector_replay",
+        "gemma_append_witness_injector_replay",
+    }:
         injector_id = detail.get("injector_id")
         injector = (
             injectors_by_id.get(injector_id)

@@ -135,6 +135,23 @@ def test_coverage_audit_requires_the_recorded_injector_for_new_witness_rows(tmp_
     assert report["rejections"] == {"recorded_injector_missing_or_mismatched": 1}
 
 
+def test_coverage_audit_requires_the_recorded_injector_for_append_witness_rows(tmp_path):
+    """Append witnesses are not exempt from exact Injector provenance."""
+    injectors = tmp_path / "injectors.jsonl"
+    records = tmp_path / "records.jsonl"
+    _write_jsonl(injectors, [_injector()])
+    value = _record(
+        strategy="gemma_append_witness_injector_replay",
+    ).to_dict()
+    value["provenance"]["detail"]["injector_id"] = "fuzzlang-v1-missing"
+    records.write_text(json.dumps(value) + "\n")
+
+    report = audit_verified_injector_coverage([injectors], [records])
+
+    assert report["counts"]["verified_diagnostic_types"] == 0
+    assert report["rejections"] == {"recorded_injector_missing_or_mismatched": 1}
+
+
 def test_coverage_audit_can_require_a_pinned_catalog_error_name(tmp_path):
     injectors = tmp_path / "injectors.jsonl"
     records = tmp_path / "records.jsonl"
