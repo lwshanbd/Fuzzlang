@@ -8,6 +8,7 @@ from gen.fuzzlang_dsl.injector import FuzzLangInjector
 from gen.fuzzlang_dsl.synthesis import (
     DiagnosticEvidence,
     SynthesisRequest,
+    _machine_checked_match_shapes,
     build_synthesis_messages,
     extract_first_json_object,
     synthesize_injector,
@@ -84,6 +85,16 @@ def test_prompt_contains_diagnostic_evidence_real_snippets_and_v1_contract():
     assert "int f()" in user and "int g()" in user
     assert '"schema_version": 1' in user
     assert '"source_recipe_id": null' in user
+    assert "machine_checked_match_shapes" in user
+
+
+def test_machine_checked_match_shapes_normalize_real_identifiers():
+    shapes = _machine_checked_match_shapes((
+        "return value;", "return item;",
+    ))
+
+    assert ["return", "<ID0>", ";"] in shapes
+    assert all("value" not in shape and "item" not in shape for shape in shapes)
 
 
 def test_prompt_uses_requested_c_language_in_its_schema_example():
