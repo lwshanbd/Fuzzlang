@@ -86,6 +86,7 @@ def test_prompt_contains_diagnostic_evidence_real_snippets_and_v1_contract():
     assert '"schema_version": 1' in user
     assert '"source_recipe_id": null' in user
     assert "machine_checked_match_shapes" in user
+    assert "MUST equal one listed full shape" in messages[0]["content"]
 
 
 def test_machine_checked_match_shapes_normalize_real_identifiers():
