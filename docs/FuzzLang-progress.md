@@ -9,8 +9,8 @@ LLVM is pinned to `llvmorg-22.1.8`; the current test suite has 495 passing and
 
 The active coverage objective is **at least 1,000 distinct Clang TableGen
 error diagnostics**, measured only by the current strict FuzzLang Injector
-audit.  The latest independent live audit reports **551 / 3,891** catalog
-error types, backed by 5,347 paired records and 7,454 unique portable
+audit.  The latest independent live audit reports **552 / 3,891** catalog
+error types, backed by 5,348 paired records and 7,455 unique portable
 Injectors.  It rejects records that lack the concrete Injector required by
 their replay provenance and excludes test/test-support sources.
 
