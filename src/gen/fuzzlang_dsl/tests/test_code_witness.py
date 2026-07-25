@@ -21,6 +21,7 @@ from gen.fuzzlang_dsl.code_witness import (
 from gen.fuzzlang_dsl.injector import FuzzLangInjector
 from gen.fuzzlang_dsl.run_local_code_witness import (
     _candidate_round_counts,
+    _load_resume_checkpoint,
     _known_covered_only_round_streak,
     _write_checkpoint,
     with_regression_trigger_evidence,
@@ -146,6 +147,27 @@ def test_candidate_round_counts_spread_budget_across_feedback_rounds():
     assert _candidate_round_counts(8, 4) == (2, 2, 2, 2)
     assert _candidate_round_counts(7, 3) == (3, 2, 2)
     assert _candidate_round_counts(2, 4) == (1, 1)
+
+
+def test_resume_checkpoint_preserves_completed_request_rows(tmp_path):
+    (tmp_path / "attempts.jsonl").write_text(
+        '{"request_index":2,"status":"rejected"}\n'
+    )
+    (tmp_path / "records.jsonl").write_text('{"record_id":"r"}\n')
+    (tmp_path / "undistillable_records.jsonl").write_text("")
+    (tmp_path / "injectors.jsonl").write_text(
+        '{"injector_id":"fuzzlang-v1-demo"}\n'
+    )
+
+    attempts, records, undistillable, injectors, completed = (
+        _load_resume_checkpoint(tmp_path)
+    )
+
+    assert attempts == [{"request_index": 2, "status": "rejected"}]
+    assert records == [{"record_id": "r"}]
+    assert undistillable == []
+    assert injectors == {"fuzzlang-v1-demo": {"injector_id": "fuzzlang-v1-demo"}}
+    assert completed == {2}
 
 
 def test_known_covered_only_round_streak_stops_repeated_unproductive_retries():

@@ -79,6 +79,39 @@ def _write_checkpoint(
     _write(output_dir / "injectors.jsonl", list(injectors.values()))
 
 
+def _load_resume_checkpoint(
+    output_dir: Path,
+) -> tuple[list[dict], list[dict], list[dict], dict[str, dict], set[int]]:
+    """Load a request-boundary checkpoint from a timed generation job."""
+    def load_rows(name: str) -> list[dict]:
+        path = output_dir / name
+        if not path.exists():
+            return []
+        rows = [json.loads(line) for line in path.read_text().splitlines() if line]
+        if any(not isinstance(row, dict) for row in rows):
+            raise ValueError(f"resume checkpoint {path} contains a non-object row")
+        return rows
+
+    attempts = load_rows("attempts.jsonl")
+    records = load_rows("records.jsonl")
+    undistillable_records = load_rows("undistillable_records.jsonl")
+    injector_rows = load_rows("injectors.jsonl")
+    injectors = {
+        row["injector_id"]: row
+        for row in injector_rows
+        if isinstance(row.get("injector_id"), str) and row["injector_id"]
+    }
+    if len(injectors) != len(injector_rows):
+        raise ValueError("resume checkpoint Injector row lacks injector_id")
+    completed_indices = {
+        row["request_index"]
+        for row in attempts
+        if isinstance(row.get("request_index"), int)
+        and not isinstance(row["request_index"], bool)
+    }
+    return attempts, records, undistillable_records, injectors, completed_indices
+
+
 def _candidate_round_counts(
     candidates: int, feedback_rounds: int,
 ) -> tuple[int, ...]:
@@ -192,6 +225,10 @@ def main() -> int:
     parser.add_argument("--max-tokens", type=int, default=400)
     parser.add_argument("--timeout", type=float, default=5.0)
     parser.add_argument(
+        "--resume", action="store_true",
+        help="continue from the request-boundary checkpoint in --output-dir",
+    )
+    parser.add_argument(
         "--witness-mode", choices=("replace", "append"), default="replace",
         help=(
             "replace a bounded real-code substring, or append a bounded "
@@ -245,13 +282,24 @@ def main() -> int:
     excluded_injector_target_names = load_excluded_injector_target_names(
         args.exclude_injectors,
     )
-    observed_admitted_target_names = set(excluded_injector_target_names)
     backend = LocalGemma31BBackend(DEFAULT_GEMMA_31B_SNAPSHOT, seed=args.seed)
     verifier = FuzzlangClangVerifier(args.clang_bin, args.diagtool_bin, args.timeout, clang_c_bin=args.clang_c_bin)
-    attempts: list[dict] = []
-    records: list[dict] = []
-    undistillable_records: list[dict] = []
-    injectors: dict[str, dict] = {}
+    if args.resume:
+        (
+            attempts, records, undistillable_records, injectors,
+            completed_request_indices,
+        ) = _load_resume_checkpoint(args.output_dir)
+    else:
+        attempts = []
+        records = []
+        undistillable_records = []
+        injectors = {}
+        completed_request_indices = set()
+    observed_admitted_target_names = set(excluded_injector_target_names)
+    observed_admitted_target_names.update(
+        FuzzLangInjector.from_dict(row).target_diag
+        for row in injectors.values()
+    )
     duplicate_existing_injector_candidates = 0
     feedback_round_requests = 0
     known_covered_observed_short_circuits = 0
@@ -263,6 +311,8 @@ def main() -> int:
         injectors=injectors,
     )
     for request_index, request in enumerate(requests):
+        if request_index in completed_request_indices:
+            continue
         if request.diag_name in excluded_injector_target_names:
             attempts.append({
                 "request_index": request_index,
