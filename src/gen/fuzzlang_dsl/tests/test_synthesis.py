@@ -286,6 +286,17 @@ def test_schema_valid_injector_must_apply_to_a_supplied_real_snippet():
     assert result.attempts[0].reason == "no_exemplar_match"
 
 
+def test_synthesis_canonicalizes_raw_identifier_match_tokens_before_validation():
+    payload = _valid_payload()
+    payload["match"]["right_context"] = ["value", ";"]
+    backend = MockChatBackend([[ChatResponse(json.dumps(payload), 9)]])
+
+    result = synthesize_injector(_request(), backend)
+
+    assert result.attempts[0].status == "accepted"
+    assert result.accepted_injectors[0].right_context == ("<ID0>", ";")
+
+
 def test_synthesis_rejects_unanchored_match_even_if_schema_accepts_it():
     payload = _valid_payload()
     payload["match"] = {

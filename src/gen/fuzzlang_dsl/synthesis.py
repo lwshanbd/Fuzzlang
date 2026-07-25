@@ -7,6 +7,7 @@ importing or testing this module performs no network, API, or GPU operation.
 from __future__ import annotations
 
 import json
+import re
 from collections import Counter
 from dataclasses import dataclass, field
 from typing import Callable, Optional
@@ -17,6 +18,7 @@ from repair.agent.chat_backend import ChatBackend, ChatResponse
 
 
 _SYNTHESIS_SCHEMA_VERSION = 1
+_BOUND_PATTERN_RE = re.compile(r"<(ID\d+)>")
 
 _RESPONSE_FORMAT = {
     "type": "json_schema",
@@ -362,6 +364,70 @@ def _canonicalize_literal_exemplar(value: dict) -> dict:
     return normalized
 
 
+def _canonicalize_match_tokens(value: dict) -> dict:
+    """Normalize model-spelled identifier/number matcher tokens to DSL forms.
+
+    The portable DSL matches user identifiers and numeric literals through
+    lexer-normalized placeholders, whereas a model will sometimes echo a
+    spelling from the supplied real snippet.  This is a deterministic surface
+    canonicalization only: keywords, compiler-reserved spellings, punctuation,
+    and already-valid placeholders are untouched.  The strict exemplar and
+    compiler replay gates still decide whether the resulting Injector is kept.
+    """
+    match = value.get("match")
+    if not isinstance(match, dict):
+        return value
+    fields = ("left_context", "old_patterns", "right_context")
+    if any(not isinstance(match.get(field, ()), list) for field in fields):
+        return value
+
+    used_labels = {
+        token[1:-1]
+        for field in fields
+        for token in match.get(field, ())
+        if isinstance(token, str) and _BOUND_PATTERN_RE.fullmatch(token)
+    }
+    raw_labels: dict[str, str] = {}
+
+    def next_label() -> str:
+        index = 0
+        while f"ID{index}" in used_labels:
+            index += 1
+        label = f"ID{index}"
+        used_labels.add(label)
+        return label
+
+    changed = False
+    normalized_match = dict(match)
+    for field in fields:
+        normalized_tokens: list[object] = []
+        for token in match.get(field, ()):
+            replacement = token
+            if (
+                isinstance(token, str)
+                and token not in {"<ID>", "<NUM>"}
+                and not _BOUND_PATTERN_RE.fullmatch(token)
+            ):
+                lexical = lex_tokens(token)
+                if len(lexical) == 1 and lexical[0].text == token:
+                    if lexical[0].kind == "id":
+                        label = raw_labels.get(token)
+                        if label is None:
+                            label = next_label()
+                            raw_labels[token] = label
+                        replacement = f"<{label}>"
+                    elif lexical[0].kind == "num":
+                        replacement = "<NUM>"
+            changed = changed or replacement != token
+            normalized_tokens.append(replacement)
+        normalized_match[field] = normalized_tokens
+    if not changed:
+        return value
+    normalized = dict(value)
+    normalized["match"] = normalized_match
+    return normalized
+
+
 def _semantic_reason(
     injector: FuzzLangInjector,
     request: SynthesisRequest,
@@ -406,6 +472,7 @@ def _validate_candidate(
             response.output_tokens, response.text,
         )
     value = _canonicalize_literal_exemplar(value)
+    value = _canonicalize_match_tokens(value)
     try:
         injector = FuzzLangInjector.from_dict(value)
     except Exception as error:
