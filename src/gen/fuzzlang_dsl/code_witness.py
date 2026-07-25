@@ -123,6 +123,19 @@ class CodeAppendFragment:
             raise ValueError("append fragment must be at most 256 characters")
 
 
+def _compile_mode_evidence(command: Sequence[str]) -> str | None:
+    """Expose only language/feature flags relevant to Injector synthesis."""
+    mode_args = tuple(
+        argument
+        for argument in command
+        if argument.startswith("-std=")
+        or argument in {"-fopenmp", "-fopenacc", "-fblocks"}
+    )
+    if not mode_args:
+        return None
+    return "Verified compilation mode: " + " ".join(mode_args)
+
+
 def build_direct_injector_requests(
     witnesses: Sequence[CodeWitnessRequest],
     *,
@@ -156,6 +169,13 @@ def build_direct_injector_requests(
         if len(selected) != snippets_per_target:
             continue
         first = selected[0]
+        mode_evidence = _compile_mode_evidence(first.compile_cmd)
+        emission_evidence = first.emission_evidence
+        if mode_evidence is not None:
+            emission_evidence = (
+                mode_evidence if emission_evidence is None
+                else emission_evidence + "\n\n" + mode_evidence
+            )
         result.append(SynthesisRequest(
             diag_name=first.diag_name,
             diag_id=first.diag_id,
@@ -165,7 +185,7 @@ def build_direct_injector_requests(
             correct_snippets=tuple(item.window for item in selected),
             evidence=DiagnosticEvidence(
                 tablegen_definition=first.tablegen_definition,
-                emission_evidence=first.emission_evidence,
+                emission_evidence=emission_evidence,
             ),
         ))
     return tuple(result)
