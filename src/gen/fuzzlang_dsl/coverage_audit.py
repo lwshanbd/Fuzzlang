@@ -32,6 +32,7 @@ def _record_rejection(
     injectors_by_target: dict[
         tuple[str, str], tuple[FuzzLangInjector, ...]
     ],
+    injectors_by_id: dict[str, FuzzLangInjector],
 ) -> str | None:
     detail = record.provenance.detail
     source_path = detail.get("source_path")
@@ -57,6 +58,27 @@ def _record_rejection(
         or detail.get("primary_matches_target") is not True
     ):
         return "primary_target_mismatch"
+    # New witness generation writes the concrete replayed Injector ID into
+    # provenance.  Its audit must not be satisfied by an unrelated Injector
+    # which happens to share the same diagnostic name.
+    if detail.get("strategy") == "gemma_code_witness_injector_replay":
+        injector_id = detail.get("injector_id")
+        injector = (
+            injectors_by_id.get(injector_id)
+            if isinstance(injector_id, str)
+            else None
+        )
+        if (
+            injector is None
+            or injector.target_diag != target
+            or injector.language != record.language
+            or (
+                injector.target_diag_id is not None
+                and injector.target_diag_id != primary.diag_id
+            )
+        ):
+            return "recorded_injector_missing_or_mismatched"
+        return None
     candidates = injectors_by_target.get((target, record.language), ())
     if not candidates:
         return "missing_portable_injector"
@@ -104,7 +126,9 @@ def audit_verified_injector_coverage(
     verified_names: set[str] = set()
     replay_names: set[str] = set()
     for record in records:
-        reason = _record_rejection(record, injectors_by_target)
+        reason = _record_rejection(
+            record, injectors_by_target, injectors_by_id,
+        )
         if reason is not None:
             rejections[reason] += 1
             continue

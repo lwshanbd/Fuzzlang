@@ -118,3 +118,17 @@ def test_coverage_audit_counts_cross_source_replay_types(tmp_path):
 
     assert report["counts"]["cross_source_replay_diagnostic_types"] == 1
     assert report["cross_source_replay_diagnostic_names"] == ["err_target"]
+
+
+def test_coverage_audit_requires_the_recorded_injector_for_new_witness_rows(tmp_path):
+    injectors = tmp_path / "injectors.jsonl"
+    records = tmp_path / "records.jsonl"
+    _write_jsonl(injectors, [_injector()])
+    value = _record(strategy="gemma_code_witness_injector_replay").to_dict()
+    value["provenance"]["detail"]["injector_id"] = "fuzzlang-v1-missing"
+    records.write_text(json.dumps(value) + "\n")
+
+    report = audit_verified_injector_coverage([injectors], [records])
+
+    assert report["counts"]["verified_diagnostic_types"] == 0
+    assert report["rejections"] == {"recorded_injector_missing_or_mismatched": 1}
