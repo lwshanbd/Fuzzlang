@@ -17,7 +17,13 @@ _SPECIAL_MODE_RE = re.compile(
     r"objc\w*|arc|blocks|openmp|omp|openacc|acc|cuda|hip|hlsl|opencl\w*|sycl|"
     r"module|modules|mmap|modulemap|pch|header_unit|pragma|pp|"
     r"c23|c2y|c17|c11|c99|"
+    # The current broad LLVM source pool is compiled as C++17.  Treat newer
+    # C++ language modes and TS-only features as special-mode targets; they
+    # belong in a future source-pool campaign with matching compile flags.
     r"coroutine|coawait|co_await|co_return|co_yield|export|three_way|spaceship|"
+    r"concept|requires|consteval|constinit|char8|deducing_this|explicit_object|"
+    r"static_lambda|if_consteval|defer_ts|"
+    r"import|ms_asm|gnu_inline_asm_disabled|"
     r"exceptions_disabled|seh|"
     r"implementation|ivar|property|superclass|atimport|atsign|at_defs|at_in_class|synthesize|"
     r"selector|nullability|ownership|interface|category|protocol|"

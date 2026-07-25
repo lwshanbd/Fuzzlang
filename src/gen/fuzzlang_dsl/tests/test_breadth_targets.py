@@ -98,6 +98,25 @@ def test_select_uncovered_diagnostics_rejects_special_language_and_build_modes()
     assert [entry.name for entry in selected] == ["err_expected_semi"]
 
 
+def test_select_uncovered_diagnostics_rejects_newer_cpp_standard_modes():
+    entries = [
+        _entry("err_concept_definition_not_identifier", component="Parse"),
+        _entry("err_requires_clause_must_appear_after_trailing_return", component="Parse"),
+        _entry("err_static_lambda_captures", component="Parse"),
+        _entry("err_defer_ts_labeled_stmt", component="Parse"),
+        _entry("err_import_not_allowed_here", component="Parse"),
+        _entry("err_inline_ms_asm_parsing", component="Parse"),
+        _entry("err_gnu_inline_asm_disabled", component="Sema"),
+        _entry("err_expected_semi_after_stmt", component="Parse"),
+    ]
+
+    selected = select_uncovered_diagnostics(
+        entries, covered=set(), attempted=set(), limit=10,
+    )
+
+    assert [entry.name for entry in selected] == ["err_expected_semi_after_stmt"]
+
+
 def test_select_uncovered_diagnostics_prioritizes_parse_then_common_cpp_sema():
     entries = [
         _entry("err_template_argument_mismatch", message="template argument mismatch"),
