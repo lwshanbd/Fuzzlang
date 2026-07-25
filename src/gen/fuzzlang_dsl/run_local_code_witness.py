@@ -5,6 +5,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+from dataclasses import replace
 from pathlib import Path
 
 from foundation.diagnostics.catalog import load_catalog
@@ -27,6 +28,10 @@ from gen.fuzzlang_dsl.local_gemma import (
     DEFAULT_GEMMA_31B_MODEL, DEFAULT_GEMMA_31B_REVISION,
     DEFAULT_GEMMA_31B_SNAPSHOT, LocalGemma31BBackend,
 )
+from gen.fuzzlang_dsl.regression_evidence import regression_evidence_for
+
+
+DEFAULT_REGRESSION_TEST_ROOT = Path("external/llvm-project/clang/test")
 
 
 def _load(path: Path) -> list[CodeWitnessRequest]:
@@ -112,6 +117,26 @@ def is_catalog_error_diagnostic_name(
     return diagnostic_name in catalog_error_names
 
 
+def with_regression_trigger_evidence(
+    request: CodeWitnessRequest,
+    test_root: Path,
+) -> CodeWitnessRequest:
+    """Attach optional compiler-test evidence without changing dataset source.
+
+    The returned request retains its original production ``corrected_src``,
+    source identity, and compile command.  The test snippet is only prompt
+    context used to infer a rare diagnostic's trigger condition.
+    """
+    regression = regression_evidence_for(request.diag_message, test_root)
+    if regression is None:
+        return request
+    evidence = (
+        regression if request.emission_evidence is None
+        else request.emission_evidence + "\n\n" + regression
+    )
+    return replace(request, emission_evidence=evidence)
+
+
 def _select_exact_replay(
     *,
     corrected_src: str,
@@ -164,6 +189,19 @@ def main() -> int:
     parser.add_argument("--temperature", type=float, default=0.5)
     parser.add_argument("--max-tokens", type=int, default=400)
     parser.add_argument("--timeout", type=float, default=5.0)
+    parser.add_argument(
+        "--regression-test-root", type=Path,
+        default=DEFAULT_REGRESSION_TEST_ROOT,
+        help=(
+            "optional Clang regression-test root used only as model prompt "
+            "evidence; test files are never data sources"
+        ),
+    )
+    parser.add_argument(
+        "--regression-evidence", action=argparse.BooleanOptionalAction,
+        default=True,
+        help="attach bounded test trigger evidence to model prompts when found",
+    )
     parser.add_argument("--seed", type=int, default=0)
     parser.add_argument(
         "--admit-observed-errors", action=argparse.BooleanOptionalAction,
@@ -255,7 +293,13 @@ def main() -> int:
                 injectors=injectors,
             )
             continue
-        messages = build_code_witness_messages(request)
+        model_request = (
+            with_regression_trigger_evidence(
+                request, args.regression_test_root,
+            )
+            if args.regression_evidence else request
+        )
+        messages = build_code_witness_messages(model_request)
         rejection_reasons: set[str] = set()
         observed_diagnostics: set[str] = set()
         accepted = False
@@ -269,7 +313,7 @@ def main() -> int:
             if round_index > 0:
                 feedback_round_requests += 1
                 messages = build_code_witness_retry_messages(
-                    request,
+                    model_request,
                     rejection_reasons=tuple(rejection_reasons),
                     observed_diagnostics=tuple(observed_diagnostics),
                 )

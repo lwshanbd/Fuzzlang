@@ -19,6 +19,7 @@ from gen.fuzzlang_dsl.run_local_code_witness import (
     _candidate_round_counts,
     _known_covered_only_round_streak,
     _write_checkpoint,
+    with_regression_trigger_evidence,
     is_catalog_error_diagnostic_name,
     load_excluded_injector_ids,
 )
@@ -163,6 +164,25 @@ def test_code_witness_prompt_includes_optional_compiler_emission_evidence():
 
     assert "compiler_emission_evidence" in messages[1]["content"]
     assert "Parser.cpp:17" in messages[1]["content"]
+
+
+def test_regression_evidence_is_prompt_only_and_preserves_the_real_source_request(
+    tmp_path, monkeypatch,
+):
+    request = _request()
+    test_root = tmp_path / "clang-test"
+    test_root.mkdir()
+    monkeypatch.setattr(
+        witness_cli,
+        "regression_evidence_for",
+        lambda _message, _root: "Regression-test trigger evidence",
+    )
+
+    enriched = with_regression_trigger_evidence(request, test_root)
+
+    assert enriched.corrected_src == request.corrected_src
+    assert enriched.source_id == request.source_id
+    assert enriched.emission_evidence == "Regression-test trigger evidence"
 
 
 def test_code_witness_retry_prompt_uses_only_structured_compiler_feedback():
