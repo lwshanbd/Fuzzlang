@@ -30,6 +30,7 @@ from gen.fuzzlang_dsl.run_local_code_witness import (
 from gen.fuzzlang_dsl.run_build_code_witness_requests import (
     _attempted_diagnostic_names_from_attempts,
     _failed_diagnostic_names_from_attempts,
+    _failed_target_slice,
     _anchor_pattern,
     _anchor_patterns,
     _matching_source_candidates,
@@ -521,6 +522,17 @@ def test_failed_attempt_loader_excludes_any_target_with_an_exact_witness(tmp_pat
 
     assert _failed_diagnostic_names_from_attempts([attempts]) == (
         "err_retry",
+    )
+
+
+def test_failed_target_slice_supports_disjoint_bounded_retry_batches():
+    names = ("err_a", "err_b", "err_c", "err_d")
+
+    assert _failed_target_slice(names, offset=0, limit=2) == (
+        "err_a", "err_b",
+    )
+    assert _failed_target_slice(names, offset=2, limit=2) == (
+        "err_c", "err_d",
     )
 
 

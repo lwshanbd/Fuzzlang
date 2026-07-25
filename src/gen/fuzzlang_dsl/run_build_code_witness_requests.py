@@ -319,6 +319,18 @@ def _failed_diagnostic_names_from_attempts(
     return tuple(name for name in attempted if name not in exact)
 
 
+def _failed_target_slice(
+    names: Sequence[str], *, offset: int, limit: int | None,
+) -> tuple[str, ...]:
+    """Select a deterministic disjoint slice from ordered failed targets."""
+    if offset < 0:
+        raise ValueError("failed target offset must be non-negative")
+    if limit is not None and limit <= 0:
+        raise ValueError("failed target limit must be positive")
+    values = tuple(names)[offset:]
+    return values if limit is None else values[:limit]
+
+
 def _observed_diagnostic_names_from_attempts(
     paths: Sequence[Path], *, min_count: int,
 ) -> tuple[str, ...]:
@@ -429,6 +441,10 @@ def main() -> int:
         help="cap the selected failed-target retry slice",
     )
     parser.add_argument(
+        "--failed-offset", type=int, default=0,
+        help="skip this many ordered failed targets before applying the limit",
+    )
+    parser.add_argument(
         "--observed-attempts", type=Path, action="append", default=[],
         help="prior attempts whose compiler-emitted wrong-target diagnostics are ranked",
     )
@@ -489,6 +505,8 @@ def main() -> int:
         parser.error("--observed-limit must be positive")
     if args.failed_limit is not None and args.failed_limit <= 0:
         parser.error("--failed-limit must be positive")
+    if args.failed_offset < 0:
+        parser.error("--failed-offset must be non-negative")
     catalog = load_catalog(args.catalog_dir)
     emission_index = (
         load_emission_index(args.emission_index)
@@ -544,15 +562,18 @@ def main() -> int:
             if name not in covered
         )
     if args.failed_attempts:
-        explicit_names = tuple(
+        failed_names = tuple(
             name
             for name in _failed_diagnostic_names_from_attempts(
                 args.failed_attempts,
             )
             if name not in covered
         )
-        if args.failed_limit is not None:
-            explicit_names = explicit_names[:args.failed_limit]
+        explicit_names = _failed_target_slice(
+            failed_names,
+            offset=args.failed_offset,
+            limit=args.failed_limit,
+        )
     if args.observed_attempts:
         explicit_names = tuple(
             name for name in _observed_diagnostic_names_from_attempts(
