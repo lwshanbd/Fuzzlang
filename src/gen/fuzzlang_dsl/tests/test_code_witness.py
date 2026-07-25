@@ -45,7 +45,9 @@ from gen.fuzzlang_dsl.run_build_code_witness_requests import (
     _source_variant_orders,
 )
 from gen.fuzzlang_dsl import run_local_code_witness as witness_cli
+from gen.fuzzlang_dsl import run_build_direct_injector_requests as direct_cli
 from gen.fuzzlang_dsl.run_build_direct_injector_requests import (
+    add_regression_trigger_evidence,
     load_selected_witnesses,
 )
 from repair.agent.chat_backend import ChatResponse
@@ -164,6 +166,29 @@ def test_direct_request_loader_pools_files_and_filters_targets(tmp_path):
     )
 
     assert selected == (first,)
+
+
+def test_direct_requests_keep_regression_tests_as_prompt_only_evidence(
+    tmp_path, monkeypatch,
+):
+    first = _request()
+    second = CodeWitnessRequest(**{
+        **first.to_dict(),
+        "source_id": "demo:lib/g.cc",
+        "source_path": "lib/g.cc",
+        "corrected_src": "int g() { return item; }\n",
+        "window_start": 0,
+        "window_end": len("int g() { return item; }\n"),
+    })
+    request = build_direct_injector_requests((first, second))[0]
+    monkeypatch.setattr(
+        direct_cli, "regression_evidence_for", lambda message, root: "test-only hint",
+    )
+
+    enriched = add_regression_trigger_evidence((request,), test_root=tmp_path)
+
+    assert enriched[0].correct_snippets == request.correct_snippets
+    assert enriched[0].evidence.emission_evidence == "test-only hint"
 
 
 def test_candidate_round_counts_spread_budget_across_feedback_rounds():

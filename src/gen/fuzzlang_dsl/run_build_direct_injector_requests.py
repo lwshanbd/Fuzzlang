@@ -4,11 +4,14 @@ from __future__ import annotations
 
 import argparse
 import json
+from dataclasses import replace
 from pathlib import Path
 
 from gen.fuzzlang_dsl.code_witness import (
     CodeWitnessRequest, build_direct_injector_requests,
 )
+from gen.fuzzlang_dsl.synthesis import DiagnosticEvidence, SynthesisRequest
+from gen.fuzzlang_dsl.regression_evidence import regression_evidence_for
 from gen.fuzzlang_dsl.request_builder import request_to_dict
 
 
@@ -28,6 +31,35 @@ def load_selected_witnesses(
     return tuple(witnesses)
 
 
+def add_regression_trigger_evidence(
+    requests: tuple[SynthesisRequest, ...], *, test_root: Path | None,
+) -> tuple[SynthesisRequest, ...]:
+    """Append test-derived trigger context as prompt-only evidence.
+
+    Regression tests are never sources of a generated record.  Their bounded
+    snippets merely help the model infer the target diagnostic precondition;
+    replay is still restricted to real clean source TUs.
+    """
+    if test_root is None:
+        return requests
+    enriched: list[SynthesisRequest] = []
+    for request in requests:
+        regression = regression_evidence_for(request.diag_message, test_root)
+        if regression is None:
+            enriched.append(request)
+            continue
+        existing = request.evidence.emission_evidence
+        evidence = regression if existing is None else existing + "\n\n" + regression
+        enriched.append(replace(
+            request,
+            evidence=DiagnosticEvidence(
+                tablegen_definition=request.evidence.tablegen_definition,
+                emission_evidence=evidence,
+            ),
+        ))
+    return tuple(enriched)
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
@@ -40,13 +72,23 @@ def main() -> int:
         "--diag-name", action="append",
         help="restrict synthesis to this target diagnostic; repeatable",
     )
+    parser.add_argument(
+        "--regression-test-root", type=Path,
+        help=(
+            "optional Clang test root used only for bounded prompt evidence; "
+            "never as a generated-record source"
+        ),
+    )
     args = parser.parse_args()
     requested_names = frozenset(args.diag_name or ())
     witnesses = load_selected_witnesses(
         args.witness_requests, diagnostic_names=requested_names,
     )
-    requests = build_direct_injector_requests(
-        witnesses, snippets_per_target=args.snippets_per_target,
+    requests = add_regression_trigger_evidence(
+        build_direct_injector_requests(
+            witnesses, snippets_per_target=args.snippets_per_target,
+        ),
+        test_root=args.regression_test_root,
     )
     args.out.parent.mkdir(parents=True, exist_ok=True)
     args.out.write_text("".join(
