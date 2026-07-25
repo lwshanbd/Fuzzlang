@@ -132,6 +132,7 @@ def run_direct_source_campaign(
                        record_id=record.record_id)
             attempts.append(row)
             exact = True
+            break
         _write(output_dir / "attempts.jsonl", attempts)
         _write(output_dir / "injectors.jsonl", injectors.values())
         _write(output_dir / "records.jsonl", records)
