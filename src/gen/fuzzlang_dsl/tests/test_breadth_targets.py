@@ -212,6 +212,25 @@ def test_select_uncovered_diagnostics_allows_blocks_targets_only_in_blocks_mode(
     }
 
 
+def test_select_uncovered_diagnostics_allows_openacc_targets_only_in_openacc_mode():
+    entries = [
+        _entry("err_acc_construct_appertainment", component="Sema"),
+        _entry("err_expected_semi_after_stmt", component="Parse"),
+    ]
+
+    ordinary = select_uncovered_diagnostics(
+        entries, covered=set(), attempted=set(), limit=10,
+    )
+    openacc = select_uncovered_diagnostics(
+        entries, covered=set(), attempted=set(), limit=10, feature_mode="openacc",
+    )
+
+    assert [entry.name for entry in ordinary] == ["err_expected_semi_after_stmt"]
+    assert {entry.name for entry in openacc} == {
+        "err_acc_construct_appertainment", "err_expected_semi_after_stmt",
+    }
+
+
 def test_select_uncovered_diagnostics_prioritizes_parse_then_common_cpp_sema():
     entries = [
         _entry("err_template_argument_mismatch", message="template argument mismatch"),

@@ -48,6 +48,7 @@ _C11_MODE_RE = re.compile(r"(?:^|_)c11(?:_|$)")
 _C23_MODE_RE = re.compile(r"(?:^|_)(?:c23|c2y)(?:_|$)")
 _OPENMP_MODE_RE = re.compile(r"(?:^|_)(?:omp|openmp)(?:_|$)")
 _BLOCKS_MODE_RE = re.compile(r"(?:^|_)(?:blocks?)(?:_|$)")
+_OPENACC_MODE_RE = re.compile(r"(?:^|_)(?:acc|openacc)(?:_|$)")
 
 # These spellings identify C++-only parser and semantic paths.  They are
 # filtered only for a C campaign; the default C++ campaign intentionally keeps
@@ -80,15 +81,17 @@ def supports_default_diagnostic_name(
         raise ValueError("cpp_standard must be one of c++17, c++20, or c++23")
     if c_standard not in {"c99", "c11", "c17", "c23"}:
         raise ValueError("c_standard must be one of c99, c11, c17, or c23")
-    if feature_mode not in {"ordinary", "openmp", "blocks"}:
+    if feature_mode not in {"ordinary", "openmp", "blocks", "openacc"}:
         raise ValueError(
-            "feature_mode must be 'ordinary', 'openmp', or 'blocks'"
+            "feature_mode must be 'ordinary', 'openmp', 'blocks', or 'openacc'"
         )
     lowered = name.lower()
     if _SPECIAL_MODE_RE.search(lowered) and not (
         feature_mode == "openmp" and _OPENMP_MODE_RE.search(lowered)
     ) and not (
         feature_mode == "blocks" and _BLOCKS_MODE_RE.search(lowered)
+    ) and not (
+        feature_mode == "openacc" and _OPENACC_MODE_RE.search(lowered)
     ):
         return False
     if language == "c":
