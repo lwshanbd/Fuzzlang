@@ -4,6 +4,7 @@
 total-jsons/
 *.json
 data/gen/experiments/
+data/gen/builds/
 !data/gen/releases/**/manifest.json
 !data/gen/releases/**/release-manifest.json
 !data/repair/releases/**/manifest.json
