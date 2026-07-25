@@ -850,6 +850,56 @@ def test_code_witness_cli_skips_observed_types_with_an_existing_injector(
     assert (tmp_path / "out" / "records.jsonl").read_text() == ""
 
 
+def test_code_witness_cli_skips_a_requested_type_with_an_existing_injector(
+    tmp_path, monkeypatch,
+):
+    request = _request()
+    request_path = tmp_path / "requests.jsonl"
+    request_path.write_text(json.dumps(request.to_dict()) + "\n")
+    excluded = tmp_path / "injectors.jsonl"
+    excluded.write_text(json.dumps(FuzzLangInjector(
+        target_diag=request.diag_name,
+        target_diag_id=request.diag_id,
+        language="c++",
+        operation="replace",
+        old_patterns=("value",),
+        new_text="bad",
+        left_context=("return",),
+        right_context=(";",),
+        replacement_parts=(("literal", "bad"),),
+        portable=True,
+    ).to_dict()) + "\n")
+
+    class _Backend:
+        def __init__(self, *args, **kwargs):
+            pass
+
+        def chat(self, **kwargs):
+            raise AssertionError("covered target must not call Gemma")
+
+    monkeypatch.setattr(witness_cli, "LocalGemma31BBackend", _Backend)
+    monkeypatch.setattr(sys, "argv", [
+        "run_local_code_witness.py",
+        "--requests", str(request_path),
+        "--clang-bin", "/mock/clang++",
+        "--clang-c-bin", "/mock/clang",
+        "--diagtool-bin", "/mock/diagtool",
+        "--output-dir", str(tmp_path / "out"),
+        "--exclude-injectors", str(excluded),
+    ])
+
+    assert witness_cli.main() == 0
+    attempts = [
+        json.loads(line)
+        for line in (tmp_path / "out" / "attempts.jsonl").read_text().splitlines()
+    ]
+    assert attempts == [{
+        "diag_name": request.diag_name,
+        "request_index": 0,
+        "status": "target_already_covered",
+    }]
+
+
 def test_code_witness_cli_skips_targets_unreachable_in_ordinary_cpp_mode(
     tmp_path, monkeypatch,
 ):

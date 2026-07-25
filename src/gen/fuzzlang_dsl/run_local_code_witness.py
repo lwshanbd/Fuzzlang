@@ -167,7 +167,7 @@ def main() -> int:
     excluded_injector_target_names = load_excluded_injector_target_names(
         args.exclude_injectors,
     )
-    admitted_target_names = set(excluded_injector_target_names)
+    observed_admitted_target_names = set(excluded_injector_target_names)
     backend = LocalGemma31BBackend(DEFAULT_GEMMA_31B_SNAPSHOT, seed=args.seed)
     verifier = FuzzlangClangVerifier(args.clang_bin, args.diagtool_bin, args.timeout, clang_c_bin=args.clang_c_bin)
     attempts: list[dict] = []
@@ -184,6 +184,20 @@ def main() -> int:
         injectors=injectors,
     )
     for request_index, request in enumerate(requests):
+        if request.diag_name in excluded_injector_target_names:
+            attempts.append({
+                "request_index": request_index,
+                "diag_name": request.diag_name,
+                "status": "target_already_covered",
+            })
+            _write_checkpoint(
+                args.output_dir,
+                attempts=attempts,
+                records=records,
+                undistillable_records=undistillable_records,
+                injectors=injectors,
+            )
+            continue
         if not supports_ordinary_cpp_diagnostic_name(request.diag_name):
             attempts.append({
                 "request_index": request_index,
@@ -278,7 +292,7 @@ def main() -> int:
                         rejection_reasons.add(row["reason"])
                         continue
                     target_diag_name = verified.diag.diag_name
-                    if target_diag_name in admitted_target_names:
+                    if target_diag_name in observed_admitted_target_names:
                         row["status"] = "rejected"
                         row["reason"] = "observed_diagnostic_already_covered"
                         row["observed_diag"] = target_diag_name
@@ -373,7 +387,8 @@ def main() -> int:
                     row["observed_diag"] = target_diag_name
                 attempts.append(row)
                 records.append(replay_record.to_dict())
-                admitted_target_names.add(target_diag_name)
+                if opportunistic:
+                    observed_admitted_target_names.add(target_diag_name)
                 accepted = True
                 break
         _write_checkpoint(
