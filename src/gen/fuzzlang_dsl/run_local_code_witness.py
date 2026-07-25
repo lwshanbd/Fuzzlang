@@ -7,6 +7,7 @@ import hashlib
 import json
 from pathlib import Path
 
+from foundation.diagnostics.catalog import load_catalog
 from foundation.record import Origin, Provenance, Record, Split
 from foundation.verifier import FuzzlangClangVerifier
 from gen.fuzzlang_dsl.breadth_targets import (
@@ -97,6 +98,20 @@ def _known_covered_only_round_streak(
     return 0
 
 
+def is_catalog_error_diagnostic_name(
+    diagnostic_name: str, catalog_error_names: frozenset[str],
+) -> bool:
+    """Whether an opportunistically observed diagnostic can expand coverage.
+
+    The coverage denominator is the pinned TableGen error catalog.  Typed
+    compiler output also contains warnings, notes, and implementation-only
+    diagnostics; retaining those as observed outcomes creates seemingly valid
+    records that the strict audit must later discard.  Filter them at the
+    expensive model-generation stage instead.
+    """
+    return diagnostic_name in catalog_error_names
+
+
 def _select_exact_replay(
     *,
     corrected_src: str,
@@ -178,6 +193,7 @@ def main() -> int:
     if any(level < 0 for level in context_tokens):
         parser.error("recipe context levels must be non-negative")
     requests = _load(args.requests)
+    catalog_error_names = frozenset(entry.name for entry in load_catalog().errors())
     excluded_injector_ids = frozenset(load_excluded_injector_ids(args.exclude_injectors))
     excluded_injector_target_names = load_excluded_injector_target_names(
         args.exclude_injectors,
@@ -313,6 +329,16 @@ def main() -> int:
                         round_rejection_reasons.add(row["reason"])
                         continue
                     target_diag_name = verified.diag.diag_name
+                    if not is_catalog_error_diagnostic_name(
+                        target_diag_name, catalog_error_names,
+                    ):
+                        row["status"] = "rejected"
+                        row["reason"] = "observed_diagnostic_not_catalog_error"
+                        row["observed_diag"] = target_diag_name
+                        attempts.append(row)
+                        rejection_reasons.add(row["reason"])
+                        round_rejection_reasons.add(row["reason"])
+                        continue
                     if target_diag_name in observed_admitted_target_names:
                         row["status"] = "rejected"
                         row["reason"] = "observed_diagnostic_already_covered"

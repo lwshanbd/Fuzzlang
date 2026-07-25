@@ -19,6 +19,7 @@ from gen.fuzzlang_dsl.run_local_code_witness import (
     _candidate_round_counts,
     _known_covered_only_round_streak,
     _write_checkpoint,
+    is_catalog_error_diagnostic_name,
     load_excluded_injector_ids,
 )
 from gen.fuzzlang_dsl.run_build_code_witness_requests import (
@@ -128,6 +129,17 @@ def test_known_covered_only_round_streak_stops_repeated_unproductive_retries():
     assert _known_covered_only_round_streak(
         1, known_only | {"json_object_not_found"},
     ) == 0
+
+
+def test_observed_admission_requires_a_pinned_catalog_error():
+    catalog_error_names = frozenset({"err_expected_expression"})
+
+    assert is_catalog_error_diagnostic_name(
+        "err_expected_expression", catalog_error_names,
+    )
+    assert not is_catalog_error_diagnostic_name(
+        "warn_unused_variable", catalog_error_names,
+    )
 
 
 def test_code_witness_prompt_includes_optional_compiler_emission_evidence():
@@ -775,7 +787,7 @@ def test_code_witness_cli_can_admit_an_exactly_replayed_observed_error(
                 return VerifierResult(True, None, "")
             return VerifierResult(False, DiagInfo(
                 diag_id=99,
-                diag_name="err_use_of_undeclared_identifier",
+                diag_name="err_undeclared_var_use",
                 diag_msg="unknown identifier",
                 file=logical_path,
                 line=1,
@@ -808,9 +820,9 @@ def test_code_witness_cli_can_admit_an_exactly_replayed_observed_error(
         for line in (tmp_path / "out" / "records.jsonl").read_text().splitlines()
     ]
     assert attempts[0]["status"] == "exact_observed_diagnostic"
-    assert attempts[0]["observed_diag"] == "err_use_of_undeclared_identifier"
+    assert attempts[0]["observed_diag"] == "err_undeclared_var_use"
     assert records[0]["provenance"]["detail"]["target_diag"] == (
-        "err_use_of_undeclared_identifier"
+        "err_undeclared_var_use"
     )
     assert records[0]["provenance"]["detail"][
         "opportunistic_observed_diagnostic"
@@ -825,7 +837,7 @@ def test_code_witness_cli_skips_observed_types_with_an_existing_injector(
     request_path.write_text(json.dumps(request.to_dict()) + "\n")
     excluded = tmp_path / "injectors.jsonl"
     excluded.write_text(json.dumps(FuzzLangInjector(
-        target_diag="err_use_of_undeclared_identifier",
+        target_diag="err_undeclared_var_use",
         target_diag_id=99,
         language="c++",
         operation="replace",
@@ -855,7 +867,7 @@ def test_code_witness_cli_skips_observed_types_with_an_existing_injector(
                 return VerifierResult(True, None, "")
             return VerifierResult(False, DiagInfo(
                 diag_id=99,
-                diag_name="err_use_of_undeclared_identifier",
+                diag_name="err_undeclared_var_use",
                 diag_msg="unknown identifier",
                 file=logical_path,
                 line=1,
@@ -895,7 +907,7 @@ def test_code_witness_cli_stops_after_two_known_covered_feedback_rounds(
     request_path.write_text(json.dumps(request.to_dict()) + "\n")
     excluded = tmp_path / "injectors.jsonl"
     excluded.write_text(json.dumps(FuzzLangInjector(
-        target_diag="err_use_of_undeclared_identifier",
+        target_diag="err_undeclared_var_use",
         target_diag_id=99,
         language="c++",
         operation="replace",
@@ -927,7 +939,7 @@ def test_code_witness_cli_stops_after_two_known_covered_feedback_rounds(
                 return VerifierResult(True, None, "")
             return VerifierResult(False, DiagInfo(
                 diag_id=99,
-                diag_name="err_use_of_undeclared_identifier",
+                diag_name="err_undeclared_var_use",
                 diag_msg="unknown identifier",
                 file=logical_path,
                 line=1,
