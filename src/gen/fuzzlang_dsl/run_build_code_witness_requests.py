@@ -461,7 +461,8 @@ def main() -> int:
         help="C standard mode of the verified source pool (ignored for C++)",
     )
     parser.add_argument(
-        "--feature-mode", choices=("ordinary", "openmp"), default="ordinary",
+        "--feature-mode", choices=("ordinary", "openmp", "blocks"),
+        default="ordinary",
         help="compiler feature mode of the verified source pool",
     )
     parser.add_argument(
