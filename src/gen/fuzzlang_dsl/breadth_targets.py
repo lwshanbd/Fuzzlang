@@ -27,6 +27,8 @@ _SPECIAL_MODE_RE = re.compile(
     r"address_space|addrspace|aix|darwin|nvptx|sme|zt0|"
     r"avr|arm|aarch64|riscv|wasm|webassembly|"
     r"amdgpu|bpf|hexagon|mips|ppc|sve|rvv|neon"
+    r"|availability|expected_version|modifier_expected_colon|"
+    r"expected_sequence_or_directive|expected_semantic_identifier|method_proto"
     r")(?:_|$)",
 )
 
