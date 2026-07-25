@@ -9,6 +9,7 @@ from foundation.types import DiagInfo, VerifierResult
 from gen.fuzzlang_dsl.code_witness import (
     CodeWitnessRequest,
     apply_code_witness_patch,
+    build_direct_injector_requests,
     build_code_witness_messages,
     build_code_witness_retry_messages,
     parse_code_witness_patch,
@@ -67,6 +68,25 @@ def test_code_witness_prompt_and_single_occurrence_patch_round_trip():
     assert reason is None
     assert patch is not None
     assert apply_code_witness_patch(request, patch) == "int f() { return ; }\n"
+
+
+def test_direct_injector_requests_group_distinct_real_source_windows():
+    first = _request()
+    second = CodeWitnessRequest(**{
+        **first.to_dict(),
+        "source_id": "demo:lib/g.cc",
+        "source_path": "lib/g.cc",
+        "corrected_src": "int g() { return item; }\n",
+        "window_start": 0,
+        "window_end": len("int g() { return item; }\n"),
+    })
+
+    requests = build_direct_injector_requests((first, second))
+
+    assert len(requests) == 1
+    assert requests[0].diag_name == first.diag_name
+    assert requests[0].correct_snippets == (first.window, second.window)
+    assert requests[0].evidence.tablegen_definition == first.tablegen_definition
 
 
 def test_candidate_round_counts_spread_budget_across_feedback_rounds():

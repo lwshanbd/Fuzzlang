@@ -12,6 +12,7 @@ from dataclasses import dataclass
 from typing import Any, Mapping, Sequence
 
 from gen.fuzzlang_dsl.synthesis import extract_first_json_object
+from gen.fuzzlang_dsl.synthesis import DiagnosticEvidence, SynthesisRequest
 
 
 @dataclass(frozen=True)
@@ -100,6 +101,54 @@ class CodeWitnessPatch:
             raise ValueError("witness edits must be at most 256 characters")
         if self.old_text == self.new_text:
             raise ValueError("witness patch must change text")
+
+
+def build_direct_injector_requests(
+    witnesses: Sequence[CodeWitnessRequest],
+    *,
+    snippets_per_target: int = 2,
+) -> tuple[SynthesisRequest, ...]:
+    """Turn real clean windows into direct FuzzLang-Injector model requests.
+
+    This is deliberately separate from the patch-witness route: the model sees
+    only compiler evidence and two distinct correct production-code windows,
+    then emits a FuzzLang DSL artifact directly.  Compiler replay remains the
+    sole admission gate downstream.
+    """
+    if not 2 <= snippets_per_target <= 5:
+        raise ValueError("snippets_per_target must be between 2 and 5")
+    grouped: dict[str, list[CodeWitnessRequest]] = {}
+    for witness in witnesses:
+        grouped.setdefault(witness.diag_name, []).append(witness)
+    result: list[SynthesisRequest] = []
+    for diag_name in sorted(grouped):
+        selected: list[CodeWitnessRequest] = []
+        seen_sources: set[str] = set()
+        for witness in sorted(
+            grouped[diag_name], key=lambda item: item.source_id,
+        ):
+            if witness.source_id in seen_sources:
+                continue
+            seen_sources.add(witness.source_id)
+            selected.append(witness)
+            if len(selected) == snippets_per_target:
+                break
+        if len(selected) != snippets_per_target:
+            continue
+        first = selected[0]
+        result.append(SynthesisRequest(
+            diag_name=first.diag_name,
+            diag_id=first.diag_id,
+            diag_message=first.diag_message,
+            component="Unknown",
+            language=first.language,
+            correct_snippets=tuple(item.window for item in selected),
+            evidence=DiagnosticEvidence(
+                tablegen_definition=first.tablegen_definition,
+                emission_evidence=first.emission_evidence,
+            ),
+        ))
+    return tuple(result)
 
 
 def build_code_witness_messages(request: CodeWitnessRequest) -> list[dict[str, str]]:
