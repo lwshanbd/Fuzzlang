@@ -19,7 +19,7 @@ _SPECIAL_MODE_RE = re.compile(
     r"c23|c2y|c17|c11|c99|"
     r"coroutine|coawait|co_await|co_return|co_yield|export|three_way|spaceship|"
     r"exceptions_disabled|seh|"
-    r"implementation|ivar|property|superclass|atimport|atsign|synthesize|"
+    r"implementation|ivar|property|superclass|atimport|atsign|at_defs|at_in_class|synthesize|"
     r"selector|nullability|ownership|interface|category|protocol|"
     r"ns(?:attribute|consumed|errordomain|object|constant)|"
     r"ptrauth|kernel|spirv|receiver|message_expr|message_super|super_scope|"
