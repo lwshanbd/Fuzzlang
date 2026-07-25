@@ -51,20 +51,42 @@ def build_clang_argv(entry: dict, clang_bin: str, src: str) -> list[str]:
         entry["file"] if os.path.isabs(entry["file"])
         else os.path.join(entry.get("directory", ""), entry["file"])
     )
+    directory = entry.get("directory") or os.path.dirname(entry_file)
+
+    def portable_path(value: str) -> str:
+        if not value or os.path.isabs(value):
+            return value
+        return os.path.normpath(os.path.join(directory, value))
+
     out: list[str] = [clang_bin]
-    skip_next = False
-    for tok in argv[1:]:
-        if skip_next:
-            skip_next = False
+    path_options = frozenset({"-I", "-isystem", "-iquote", "-include", "-imacros"})
+    dependency_output_options = frozenset({"-MF", "-MT", "-MQ"})
+    index = 1
+    while index < len(argv):
+        tok = argv[index]
+        if tok == "-o" or tok in dependency_output_options:
+            index += 2
             continue
-        if tok == "-o":
-            skip_next = True
+        if tok in {"-MD", "-MMD"}:
+            index += 1
             continue
-        if tok.startswith("-o"):
+        if tok in path_options:
+            if index + 1 >= len(argv):
+                out.append(tok)
+                index += 1
+                continue
+            out.extend((tok, portable_path(argv[index + 1])))
+            index += 2
+            continue
+        if tok.startswith("-I") and tok != "-I":
+            out.append("-I" + portable_path(tok[2:]))
+            index += 1
             continue
         if os.path.realpath(tok) == entry_file:
+            index += 1
             continue
         out.append(tok)
+        index += 1
     if "-fsyntax-only" not in out:
         out.append("-fsyntax-only")
     if "-fno-color-diagnostics" not in out:
