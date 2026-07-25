@@ -324,6 +324,33 @@ def test_select_uncovered_diagnostics_for_c_excludes_cpp_only_targets():
     assert [entry.name for entry in selected] == ["err_expected_semi_after_stmt"]
 
 
+def test_select_uncovered_diagnostics_for_c_excludes_cpp_syntax_without_cxx_prefix():
+    """C campaigns must not spend scarce model turns on C++-only syntax.
+
+    Several TableGen names omit an explicit ``cxx`` prefix even though the
+    syntax is unambiguously C++ (for example parameter packs and nested-name
+    specifiers).  The C source pool cannot witness those diagnostics.
+    """
+    entries = [
+        _entry("err_expected_fold_operator", component="Parse"),
+        _entry("err_expected_member_or_base_name", component="Parse"),
+        _entry("err_expected_parameter_pack", component="Parse"),
+        _entry("err_unexpected_colon_in_nested_name_spec", component="Parse"),
+        _entry("err_right_angle_bracket_equal_needs_space", component="Parse"),
+        _entry("err_attribute_argument_parm_pack_not_supported", component="Sema"),
+        _entry("err_literal_operator_string_prefix", component="Sema"),
+        _entry("err_ctor_init_missing_comma", component="Parse"),
+        _entry("err_duplicate_class_virt_specifier", component="Sema"),
+        _entry("err_expected_semi_after_stmt", component="Parse"),
+    ]
+
+    selected = select_uncovered_diagnostics(
+        entries, covered=set(), attempted=set(), limit=10, language="c",
+    )
+
+    assert [entry.name for entry in selected] == ["err_expected_semi_after_stmt"]
+
+
 def test_select_uncovered_diagnostics_is_deterministic_and_honors_limit():
     entries = [
         _entry("err_expected_z", component="Parse"),

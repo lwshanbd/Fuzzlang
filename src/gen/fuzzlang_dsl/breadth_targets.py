@@ -77,6 +77,24 @@ _CPP_ONLY_RE = re.compile(
     r")(?:_|$)",
 )
 
+# A number of C++ parser diagnostics predate the naming convention above and
+# therefore do not contain ``cxx``/``template``/``namespace``.  They are still
+# impossible to induce from a C translation unit.  Keep this deliberately
+# high-precision: false positives here would discard a reachable C diagnostic,
+# while false negatives merely leave a later compiler-verified rejection.
+_CXX_SYNTAX_ONLY_RE = re.compile(
+    r"(?:^|_)(?:"
+    r"fold|parameter_pack|member_or_base|method_body|"
+    r"nested_name|unqualified_id|right_angle_bracket|"
+    r"placeholder_expected_auto|parentheses_around_typename|"
+    r"requires_expr|assumes|deducing_this|static_lambda|"
+    r"no_matching_param|nsnumber|"
+    r"alias_declaration|anon_bitfield_member_init|parm_pack|"
+    r"function_is_not_record|literal_operator|ctor_init|default_arg|"
+    r"virt_specifier|except_spec|semi_requirement|unexpected_at"
+    r")(?:_|$)",
+)
+
 _HIGH_VALUE_TERMS = (
     "expected", "typecheck", "invalid", "undeclared", "redefinition",
     "template", "argument", "operand", "pointer", "reference", "array",
@@ -120,7 +138,7 @@ def supports_default_diagnostic_name(
     ):
         return False
     if language == "c":
-        if _CPP_ONLY_RE.search(lowered):
+        if _CPP_ONLY_RE.search(lowered) or _CXX_SYNTAX_ONLY_RE.search(lowered):
             return False
         if c_standard == "c99":
             return not (_C11_MODE_RE.search(lowered) or _C23_MODE_RE.search(lowered))
