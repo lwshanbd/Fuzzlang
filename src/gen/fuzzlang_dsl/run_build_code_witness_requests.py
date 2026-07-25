@@ -407,6 +407,7 @@ def _resolve_target_entries(
     cpp_standard: str = "c++17",
     c_standard: str = "c17",
     feature_mode: str = "ordinary",
+    feature_specific_only: bool = False,
 ) -> tuple[DiagEntry, ...]:
     """Resolve either explicit targets or a coverage-first TableGen gap slice."""
     if explicit_names and auto_uncovered_limit is not None:
@@ -423,6 +424,7 @@ def _resolve_target_entries(
             cpp_standard=cpp_standard,
             c_standard=c_standard,
             feature_mode=feature_mode,
+            feature_specific_only=feature_specific_only,
         )
     entries: list[DiagEntry] = []
     for name in explicit_names:
@@ -461,9 +463,15 @@ def main() -> int:
         help="C standard mode of the verified source pool (ignored for C++)",
     )
     parser.add_argument(
-        "--feature-mode", choices=("ordinary", "openmp", "blocks", "openacc"),
+        "--feature-mode", choices=(
+            "ordinary", "openmp", "blocks", "openacc", "preprocessor",
+        ),
         default="ordinary",
         help="compiler feature mode of the verified source pool",
+    )
+    parser.add_argument(
+        "--feature-specific-only", action="store_true",
+        help="select only diagnostics specific to --feature-mode",
     )
     parser.add_argument(
         "--emission-index", type=Path,
@@ -654,6 +662,7 @@ def main() -> int:
                 cpp_standard=args.cpp_standard,
                 c_standard=args.c_standard,
                 feature_mode=args.feature_mode,
+                feature_specific_only=args.feature_specific_only,
             )
         except ValueError as error:
             parser.error(str(error))
@@ -753,6 +762,7 @@ def main() -> int:
                 "cpp_standard": args.cpp_standard if args.language == "c++" else None,
                 "c_standard": args.c_standard if args.language == "c" else None,
                 "feature_mode": args.feature_mode,
+                "feature_specific_only": args.feature_specific_only,
             },
             "counts": {
                 "requests": len(requests),

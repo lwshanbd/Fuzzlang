@@ -49,6 +49,11 @@ _C23_MODE_RE = re.compile(r"(?:^|_)(?:c23|c2y)(?:_|$)")
 _OPENMP_MODE_RE = re.compile(r"(?:^|_)(?:omp|openmp)(?:_|$)")
 _BLOCKS_MODE_RE = re.compile(r"(?:^|_)(?:blocks?)(?:_|$)")
 _OPENACC_MODE_RE = re.compile(r"(?:^|_)(?:acc|openacc)(?:_|$)")
+_PREPROCESSOR_MODE_RE = re.compile(
+    r"(?:^|_)(?:pp|pragma|directive|macro|include|"
+    r"expected_sequence_or_directive|expected_semantic_identifier|"
+    r"modifier_expected_colon)(?:_|$)",
+)
 
 # These spellings identify C++-only parser and semantic paths.  They are
 # filtered only for a C campaign; the default C++ campaign intentionally keeps
@@ -81,9 +86,12 @@ def supports_default_diagnostic_name(
         raise ValueError("cpp_standard must be one of c++17, c++20, or c++23")
     if c_standard not in {"c99", "c11", "c17", "c23"}:
         raise ValueError("c_standard must be one of c99, c11, c17, or c23")
-    if feature_mode not in {"ordinary", "openmp", "blocks", "openacc"}:
+    if feature_mode not in {
+        "ordinary", "openmp", "blocks", "openacc", "preprocessor",
+    }:
         raise ValueError(
-            "feature_mode must be 'ordinary', 'openmp', 'blocks', or 'openacc'"
+            "feature_mode must be 'ordinary', 'openmp', 'blocks', 'openacc', "
+            "or 'preprocessor'"
         )
     lowered = name.lower()
     if _SPECIAL_MODE_RE.search(lowered) and not (
@@ -92,6 +100,8 @@ def supports_default_diagnostic_name(
         feature_mode == "blocks" and _BLOCKS_MODE_RE.search(lowered)
     ) and not (
         feature_mode == "openacc" and _OPENACC_MODE_RE.search(lowered)
+    ) and not (
+        feature_mode == "preprocessor" and _PREPROCESSOR_MODE_RE.search(lowered)
     ):
         return False
     if language == "c":
@@ -119,6 +129,22 @@ def supports_ordinary_cpp_diagnostic_name(name: str) -> bool:
 def supports_ordinary_c_diagnostic_name(name: str) -> bool:
     """Whether a diagnostic is plausible in the ordinary C campaign."""
     return supports_default_diagnostic_name(name, language="c")
+
+
+def is_feature_specific_diagnostic_name(name: str, *, feature_mode: str) -> bool:
+    """Whether a diagnostic is genuinely in a selected non-default mode."""
+    lowered = name.lower()
+    if feature_mode == "ordinary":
+        return True
+    if feature_mode == "openmp":
+        return bool(_OPENMP_MODE_RE.search(lowered))
+    if feature_mode == "blocks":
+        return bool(_BLOCKS_MODE_RE.search(lowered))
+    if feature_mode == "openacc":
+        return bool(_OPENACC_MODE_RE.search(lowered))
+    if feature_mode == "preprocessor":
+        return bool(_PREPROCESSOR_MODE_RE.search(lowered))
+    raise ValueError(f"unsupported feature_mode: {feature_mode}")
 
 
 def diagnostic_priority(
@@ -160,10 +186,13 @@ def select_uncovered_diagnostics(
     cpp_standard: str = "c++17",
     c_standard: str = "c17",
     feature_mode: str = "ordinary",
+    feature_specific_only: bool = False,
 ) -> tuple[DiagEntry, ...]:
     """Choose distinct, deterministic coverage-first TableGen error targets."""
     if isinstance(limit, bool) or not isinstance(limit, int) or limit <= 0:
         raise ValueError("limit must be a positive integer")
+    if not isinstance(feature_specific_only, bool):
+        raise ValueError("feature_specific_only must be a bool")
     ranked: list[tuple[int, str, DiagEntry]] = []
     seen: set[str] = set()
     for entry in entries:
@@ -179,6 +208,10 @@ def select_uncovered_diagnostics(
             c_standard=c_standard, feature_mode=feature_mode,
         )
         if score is not None:
+            if feature_specific_only and not is_feature_specific_diagnostic_name(
+                entry.name, feature_mode=feature_mode,
+            ):
+                continue
             ranked.append((-score, entry.name, entry))
     ranked.sort(key=lambda item: (item[0], item[1]))
     return tuple(item[2] for item in ranked[:limit])

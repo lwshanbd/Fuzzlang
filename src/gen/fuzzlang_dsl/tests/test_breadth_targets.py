@@ -231,6 +231,38 @@ def test_select_uncovered_diagnostics_allows_openacc_targets_only_in_openacc_mod
     }
 
 
+def test_feature_specific_selection_avoids_ordinary_targets_in_feature_campaigns():
+    entries = [
+        _entry("err_omp_expected_clause", component="Parse"),
+        _entry("err_expected_semi_after_stmt", component="Parse"),
+    ]
+
+    selected = select_uncovered_diagnostics(
+        entries, covered=set(), attempted=set(), limit=10, feature_mode="openmp",
+        feature_specific_only=True,
+    )
+
+    assert [entry.name for entry in selected] == ["err_omp_expected_clause"]
+
+
+def test_select_uncovered_diagnostics_allows_preprocessor_targets_in_preprocessor_mode():
+    entries = [
+        _entry("err_pp_invalid_directive", component="Lex"),
+        _entry("err_expected_semi_after_stmt", component="Parse"),
+    ]
+
+    ordinary = select_uncovered_diagnostics(
+        entries, covered=set(), attempted=set(), limit=10,
+    )
+    preprocessor = select_uncovered_diagnostics(
+        entries, covered=set(), attempted=set(), limit=10,
+        feature_mode="preprocessor", feature_specific_only=True,
+    )
+
+    assert [entry.name for entry in ordinary] == ["err_expected_semi_after_stmt"]
+    assert [entry.name for entry in preprocessor] == ["err_pp_invalid_directive"]
+
+
 def test_select_uncovered_diagnostics_prioritizes_parse_then_common_cpp_sema():
     entries = [
         _entry("err_template_argument_mismatch", message="template argument mismatch"),
