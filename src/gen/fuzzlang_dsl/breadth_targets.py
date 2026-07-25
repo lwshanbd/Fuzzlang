@@ -28,7 +28,8 @@ _SPECIAL_MODE_RE = re.compile(
     r"avr|arm|aarch64|riscv|wasm|webassembly|"
     r"amdgpu|bpf|hexagon|mips|ppc|sve|rvv|neon"
     r"|availability|expected_version|modifier_expected_colon|"
-    r"expected_sequence_or_directive|expected_semantic_identifier|method_proto"
+    r"expected_sequence_or_directive|expected_semantic_identifier|method_proto|"
+    r"avail|declare_variant|declare_target|after_super"
     r")(?:_|$)",
 )
 
