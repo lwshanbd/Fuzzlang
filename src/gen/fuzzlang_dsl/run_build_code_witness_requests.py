@@ -405,6 +405,7 @@ def _resolve_target_entries(
     attempted: set[str],
     language: str = "c++",
     cpp_standard: str = "c++17",
+    c_standard: str = "c17",
 ) -> tuple[DiagEntry, ...]:
     """Resolve either explicit targets or a coverage-first TableGen gap slice."""
     if explicit_names and auto_uncovered_limit is not None:
@@ -419,6 +420,7 @@ def _resolve_target_entries(
             limit=auto_uncovered_limit,
             language=language,
             cpp_standard=cpp_standard,
+            c_standard=c_standard,
         )
     entries: list[DiagEntry] = []
     for name in explicit_names:
@@ -429,6 +431,7 @@ def _resolve_target_entries(
             not entry.message.strip()
             or not supports_default_diagnostic_name(
                 entry.name, language=language, cpp_standard=cpp_standard,
+                c_standard=c_standard,
             )
         ):
             continue
@@ -448,6 +451,11 @@ def main() -> int:
         "--cpp-standard", choices=("c++17", "c++20", "c++23"),
         default="c++17",
         help="C++ standard mode of the verified source pool (ignored for C)",
+    )
+    parser.add_argument(
+        "--c-standard", choices=("c99", "c11", "c17", "c23"),
+        default="c17",
+        help="C standard mode of the verified source pool (ignored for C++)",
     )
     parser.add_argument(
         "--emission-index", type=Path,
@@ -636,6 +644,7 @@ def main() -> int:
                 attempted=attempted,
                 language=args.language,
                 cpp_standard=args.cpp_standard,
+                c_standard=args.c_standard,
             )
         except ValueError as error:
             parser.error(str(error))
@@ -733,6 +742,7 @@ def main() -> int:
             "compile_mode": {
                 "language": args.language,
                 "cpp_standard": args.cpp_standard if args.language == "c++" else None,
+                "c_standard": args.c_standard if args.language == "c" else None,
             },
             "counts": {
                 "requests": len(requests),

@@ -135,6 +135,45 @@ def test_select_uncovered_diagnostics_allows_cpp20_targets_in_a_cpp20_campaign()
     ]
 
 
+def test_select_uncovered_diagnostics_allows_c11_but_not_c23_in_c11_campaign():
+    entries = [
+        _entry("err_c11_generic_selection", component="Sema"),
+        _entry("err_c23_constexpr_invalid_type", component="Sema"),
+    ]
+
+    selected = select_uncovered_diagnostics(
+        entries, covered=set(), attempted=set(), limit=10,
+        language="c", c_standard="c11",
+    )
+
+    assert [entry.name for entry in selected] == ["err_c11_generic_selection"]
+
+
+def test_select_uncovered_diagnostics_respects_c_standard_modes():
+    entries = [
+        _entry("err_c11_atomic_invalid", component="Sema"),
+        _entry("err_c23_constexpr_invalid_type", component="Sema"),
+        _entry("err_expected_semi_after_stmt", component="Parse"),
+    ]
+
+    c11 = select_uncovered_diagnostics(
+        entries, covered=set(), attempted=set(), limit=10,
+        language="c", c_standard="c11",
+    )
+    c23 = select_uncovered_diagnostics(
+        entries, covered=set(), attempted=set(), limit=10,
+        language="c", c_standard="c23",
+    )
+
+    assert {entry.name for entry in c11} == {
+        "err_c11_atomic_invalid", "err_expected_semi_after_stmt",
+    }
+    assert {entry.name for entry in c23} == {
+        "err_c11_atomic_invalid", "err_c23_constexpr_invalid_type",
+        "err_expected_semi_after_stmt",
+    }
+
+
 def test_select_uncovered_diagnostics_prioritizes_parse_then_common_cpp_sema():
     entries = [
         _entry("err_template_argument_mismatch", message="template argument mismatch"),
