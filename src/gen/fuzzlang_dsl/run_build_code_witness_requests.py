@@ -19,6 +19,7 @@ from gen.fuzzlang_dsl.emission_evidence import (
     emission_evidence_for,
     load_emission_index,
 )
+from gen.mutate._scan import code_mask
 from gen.realcorpus.clean_source_pool import load_clean_sources_jsonl
 
 
@@ -58,6 +59,7 @@ def _matching_source_candidates(
     sources: Sequence[_SourceT],
     pattern: re.Pattern[str],
     cache: dict[tuple[str, int], tuple[tuple[_SourceT, re.Match[str]], ...]],
+    code_masks: dict[str, list[bool]] | None = None,
 ) -> tuple[tuple[_SourceT, re.Match[str]], ...]:
     """Cache anchor matches for one ordered source pool.
 
@@ -68,10 +70,27 @@ def _matching_source_candidates(
     key = (pattern.pattern, pattern.flags)
     matched = cache.get(key)
     if matched is None:
+        masks = code_masks if code_masks is not None else {}
+
+        def first_code_match(source: _SourceT) -> re.Match[str] | None:
+            text = source.corrected_src
+            source_key = getattr(source, "source_id", text)
+            mask = masks.get(source_key)
+            if mask is None:
+                mask = code_mask(text)
+                masks[source_key] = mask
+            return next(
+                (
+                    candidate for candidate in pattern.finditer(text)
+                    if all(mask[candidate.start():candidate.end()])
+                ),
+                None,
+            )
+
         matched = tuple(
             (source, match)
             for source in sources
-            for match in (pattern.search(source.corrected_src),)
+            for match in (first_code_match(source),)
             if match is not None
         )
         cache[key] = matched
@@ -616,6 +635,7 @@ def main() -> int:
     requests: list[CodeWitnessRequest] = []
     used_global: set[str] = set()
     used_by_target: dict[str, set[str]] = {}
+    code_masks: dict[str, list[bool]] = {}
     for sources_for_variant in source_orders:
         anchor_cache: dict[
             tuple[str, int], tuple[tuple[object, re.Match[str]], ...],
@@ -632,7 +652,7 @@ def main() -> int:
                     (
                         (item, match)
                         for item, match in _matching_source_candidates(
-                            sources_for_variant, pattern, anchor_cache,
+                            sources_for_variant, pattern, anchor_cache, code_masks,
                         )
                         if item.source_id not in target_used
                         and (

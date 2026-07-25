@@ -473,6 +473,25 @@ def test_source_anchor_matches_are_cached_per_pattern_and_source_order():
     assert second is first
 
 
+def test_source_anchor_ignores_comment_and_literal_only_matches():
+    sources = (
+        SimpleNamespace(
+            source_id="comment-only",
+            corrected_src="// return value;\nint f(){ return 1; }",
+        ),
+        SimpleNamespace(
+            source_id="literal-only",
+            corrected_src='const char *s = "return value";\n',
+        ),
+    )
+    pattern = _anchor_pattern("err_expected_expression")
+
+    matched = _matching_source_candidates(sources, pattern, {})
+
+    assert [source.source_id for source, _ in matched] == ["comment-only"]
+    assert matched[0][1].start() == sources[0].corrected_src.rfind("return")
+
+
 def test_coverage_first_target_resolution_uses_uncovered_unattempted_errors():
     catalog = Catalog([
         DiagEntry("err_expected_expression", "Error", "expected expression", "Parse"),
