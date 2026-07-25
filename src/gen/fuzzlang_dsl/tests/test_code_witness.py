@@ -194,6 +194,28 @@ def test_direct_injector_requests_preserve_verified_modules_mode_as_evidence():
     )
 
 
+def test_direct_injector_requests_preserve_verified_language_override_as_evidence():
+    first = CodeWitnessRequest(**{
+        **_request().to_dict(),
+        "language": "c",
+        "compile_cmd": ["__CLANG__", "-std=c17", "-x", "objective-c", "__SRC__"],
+    })
+    second = CodeWitnessRequest(**{
+        **first.to_dict(),
+        "source_id": "demo:lib/g.c",
+        "source_path": "lib/g.c",
+        "corrected_src": "int g(void) { return 0; }\n",
+        "window_start": 0,
+        "window_end": len("int g(void) { return 0; }\n"),
+    })
+
+    request = build_direct_injector_requests((first, second))[0]
+
+    assert request.evidence.emission_evidence == (
+        "Verified compilation mode: -std=c17 -x objective-c"
+    )
+
+
 def test_direct_request_loader_pools_files_and_filters_targets(tmp_path):
     first = _request()
     second = CodeWitnessRequest(**{

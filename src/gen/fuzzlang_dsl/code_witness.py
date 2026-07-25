@@ -125,14 +125,14 @@ class CodeAppendFragment:
 
 def _compile_mode_evidence(command: Sequence[str]) -> str | None:
     """Expose only language/feature flags relevant to Injector synthesis."""
-    mode_args = tuple(
-        argument
-        for argument in command
-        if argument.startswith("-std=")
-        or argument in {
+    mode_args: list[str] = []
+    for index, argument in enumerate(command):
+        if argument.startswith("-std=") or argument in {
             "-fopenmp", "-fopenacc", "-fblocks", "-fmodules", "-fcxx-modules",
-        }
-    )
+        }:
+            mode_args.append(argument)
+        elif argument == "-x" and index + 1 < len(command):
+            mode_args.extend((argument, command[index + 1]))
     if not mode_args:
         return None
     return "Verified compilation mode: " + " ".join(mode_args)

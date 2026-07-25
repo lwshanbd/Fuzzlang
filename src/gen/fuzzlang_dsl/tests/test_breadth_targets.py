@@ -277,6 +277,20 @@ def test_select_uncovered_diagnostics_allows_module_targets_in_modules_mode():
     assert [entry.name for entry in selected] == ["err_module_not_found"]
 
 
+def test_select_uncovered_diagnostics_allows_objc_targets_in_objc_mode():
+    entries = [
+        _entry("err_objc_invalid_receiver", component="Sema"),
+        _entry("err_expected_semi_after_stmt", component="Parse"),
+    ]
+
+    selected = select_uncovered_diagnostics(
+        entries, covered=set(), attempted=set(), limit=10, language="c",
+        feature_mode="objc", feature_specific_only=True,
+    )
+
+    assert [entry.name for entry in selected] == ["err_objc_invalid_receiver"]
+
+
 def test_select_uncovered_diagnostics_prioritizes_parse_then_common_cpp_sema():
     entries = [
         _entry("err_template_argument_mismatch", message="template argument mismatch"),

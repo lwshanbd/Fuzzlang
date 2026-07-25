@@ -49,6 +49,13 @@ _C23_MODE_RE = re.compile(r"(?:^|_)(?:c23|c2y)(?:_|$)")
 _OPENMP_MODE_RE = re.compile(r"(?:^|_)(?:omp|openmp)(?:_|$)")
 _BLOCKS_MODE_RE = re.compile(r"(?:^|_)(?:blocks?)(?:_|$)")
 _OPENACC_MODE_RE = re.compile(r"(?:^|_)(?:acc|openacc)(?:_|$)")
+_OBJC_MODE_RE = re.compile(
+    r"(?:^|_)(?:objc\w*|arc|implementation|ivar|property|superclass|"
+    r"atimport|atsign|at_defs|at_in_class|synthesize|selector|nullability|"
+    r"ownership|interface|category|protocol|ns(?:attribute|consumed|errordomain|"
+    r"object|constant)|ptrauth|receiver|message_expr|message_super|super_scope|"
+    r"program_scope|after_super|illegal_super|super_in_using|method_proto)(?:_|$)",
+)
 _MODULES_MODE_RE = re.compile(
     r"(?:^|_)(?:module|modules|modulemap|header_unit|pch|import)(?:_|$)",
 )
@@ -90,11 +97,12 @@ def supports_default_diagnostic_name(
     if c_standard not in {"c99", "c11", "c17", "c23"}:
         raise ValueError("c_standard must be one of c99, c11, c17, or c23")
     if feature_mode not in {
-        "ordinary", "openmp", "blocks", "openacc", "modules", "preprocessor",
+        "ordinary", "openmp", "blocks", "openacc", "objc", "modules",
+        "preprocessor",
     }:
         raise ValueError(
             "feature_mode must be 'ordinary', 'openmp', 'blocks', 'openacc', "
-            "'modules', or 'preprocessor'"
+            "'objc', 'modules', or 'preprocessor'"
         )
     lowered = name.lower()
     if _SPECIAL_MODE_RE.search(lowered) and not (
@@ -103,6 +111,8 @@ def supports_default_diagnostic_name(
         feature_mode == "blocks" and _BLOCKS_MODE_RE.search(lowered)
     ) and not (
         feature_mode == "openacc" and _OPENACC_MODE_RE.search(lowered)
+    ) and not (
+        feature_mode == "objc" and _OBJC_MODE_RE.search(lowered)
     ) and not (
         feature_mode == "modules" and _MODULES_MODE_RE.search(lowered)
     ) and not (
@@ -147,6 +157,8 @@ def is_feature_specific_diagnostic_name(name: str, *, feature_mode: str) -> bool
         return bool(_BLOCKS_MODE_RE.search(lowered))
     if feature_mode == "openacc":
         return bool(_OPENACC_MODE_RE.search(lowered))
+    if feature_mode == "objc":
+        return bool(_OBJC_MODE_RE.search(lowered))
     if feature_mode == "modules":
         return bool(_MODULES_MODE_RE.search(lowered))
     if feature_mode == "preprocessor":
