@@ -6,6 +6,7 @@ from collections import Counter
 from pathlib import Path
 from typing import Iterable
 
+from foundation.diagnostics.catalog import Catalog
 from foundation.record import Record
 from gen.fuzzlang_dsl.campaign import load_records_jsonl
 from gen.fuzzlang_dsl.injector import FuzzLangInjector
@@ -33,6 +34,7 @@ def _record_rejection(
         tuple[str, str], tuple[FuzzLangInjector, ...]
     ],
     injectors_by_id: dict[str, FuzzLangInjector],
+    catalog_error_names: frozenset[str] | None,
 ) -> str | None:
     detail = record.provenance.detail
     source_path = detail.get("source_path")
@@ -58,6 +60,8 @@ def _record_rejection(
         or detail.get("primary_matches_target") is not True
     ):
         return "primary_target_mismatch"
+    if catalog_error_names is not None and target not in catalog_error_names:
+        return "target_not_catalog_error_diagnostic"
     # New witness generation writes the concrete replayed Injector ID into
     # provenance.  Its audit must not be satisfied by an unrelated Injector
     # which happens to share the same diagnostic name.
@@ -94,6 +98,8 @@ def _record_rejection(
 def audit_verified_injector_coverage(
     injector_paths: Iterable[Path],
     record_paths: Iterable[Path],
+    *,
+    catalog: Catalog | None = None,
 ) -> dict:
     """Audit exact typed-diagnostic breadth with all core data gates applied."""
     injector_paths = tuple(Path(path) for path in injector_paths)
@@ -115,6 +121,10 @@ def audit_verified_injector_coverage(
     injectors_by_target = {
         key: tuple(values) for key, values in grouped.items()
     }
+    catalog_error_names = (
+        frozenset(entry.name for entry in catalog.entries if entry.is_error)
+        if catalog is not None else None
+    )
 
     records = [
         record
@@ -127,7 +137,7 @@ def audit_verified_injector_coverage(
     replay_names: set[str] = set()
     for record in records:
         reason = _record_rejection(
-            record, injectors_by_target, injectors_by_id,
+            record, injectors_by_target, injectors_by_id, catalog_error_names,
         )
         if reason is not None:
             rejections[reason] += 1
@@ -161,6 +171,10 @@ def audit_verified_injector_coverage(
             "strict_verified_records": len(strict_records),
             "verified_diagnostic_types": len(verified_names),
             "cross_source_replay_diagnostic_types": len(replay_names),
+            **(
+                {"catalog_error_diagnostic_total": len(catalog_error_names)}
+                if catalog_error_names is not None else {}
+            ),
         },
         "verified_diagnostic_names": sorted(verified_names),
         "cross_source_replay_diagnostic_names": sorted(replay_names),

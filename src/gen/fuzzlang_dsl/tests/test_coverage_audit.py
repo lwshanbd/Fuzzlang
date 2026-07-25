@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 
+from foundation.diagnostics.catalog import Catalog, DiagEntry
 from foundation.record import Origin, Provenance, Record, Split
 from foundation.types import DiagInfo
 from gen.fuzzlang_dsl.coverage_audit import audit_verified_injector_coverage
@@ -132,3 +133,24 @@ def test_coverage_audit_requires_the_recorded_injector_for_new_witness_rows(tmp_
 
     assert report["counts"]["verified_diagnostic_types"] == 0
     assert report["rejections"] == {"recorded_injector_missing_or_mismatched": 1}
+
+
+def test_coverage_audit_can_require_a_pinned_catalog_error_name(tmp_path):
+    injectors = tmp_path / "injectors.jsonl"
+    records = tmp_path / "records.jsonl"
+    _write_jsonl(injectors, [_injector("err_not_in_catalog")])
+    _write_jsonl(records, [_record(
+        target="err_not_in_catalog", primary="err_not_in_catalog",
+    )])
+    catalog = Catalog((DiagEntry(
+        name="err_other", component="Sema", severity="Error",
+        message="other", default_error=True,
+    ),))
+
+    report = audit_verified_injector_coverage(
+        [injectors], [records], catalog=catalog,
+    )
+
+    assert report["counts"]["strict_verified_records"] == 0
+    assert report["counts"]["catalog_error_diagnostic_total"] == 1
+    assert report["rejections"] == {"target_not_catalog_error_diagnostic": 1}
