@@ -33,13 +33,17 @@ def _matching_paths(root: Path, fragment: str) -> tuple[Path, ...]:
     """Locate candidate test files using ripgrep without invoking a shell."""
     if shutil.which("rg") is None:
         return ()
-    result = subprocess.run(
-        ["rg", "-l", "-F", fragment, str(root)],
-        check=False,
-        capture_output=True,
-        text=True,
-        timeout=30,
-    )
+    try:
+        result = subprocess.run(
+            ["rg", "-l", "-F", fragment, str(root)],
+            check=False,
+            capture_output=True,
+            text=True,
+            timeout=30,
+        )
+    except subprocess.TimeoutExpired:
+        # Prompt-only test evidence must never abort a generation campaign.
+        return ()
     if result.returncode not in {0, 1}:
         return ()
     return tuple(Path(line) for line in result.stdout.splitlines() if line)

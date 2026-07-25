@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from gen.fuzzlang_dsl.regression_evidence import regression_evidence_for
+from gen.fuzzlang_dsl import regression_evidence
 
 
 def test_regression_evidence_uses_a_test_only_as_compiler_trigger_context(
@@ -34,3 +35,19 @@ def test_regression_evidence_returns_none_when_no_literal_trigger_hint_exists(
     (tests / "unrelated.cpp").write_text("int main() {}\n")
 
     assert regression_evidence_for("%0 %1", tests) is None
+
+
+def test_regression_evidence_treats_a_search_timeout_as_optional_missing_context(
+    tmp_path, monkeypatch,
+):
+    tests = tmp_path / "clang-test"
+    tests.mkdir()
+
+    def _timeout(*args, **kwargs):
+        raise regression_evidence.subprocess.TimeoutExpired(["rg"], 30)
+
+    monkeypatch.setattr(regression_evidence.subprocess, "run", _timeout)
+
+    assert regression_evidence_for(
+        "this diagnostic message is long enough", tests,
+    ) is None
