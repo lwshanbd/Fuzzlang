@@ -12,7 +12,7 @@ from foundation.diagnostics.catalog import load_catalog
 from foundation.record import Origin, Provenance, Record, Split
 from foundation.verifier import FuzzlangClangVerifier
 from gen.fuzzlang_dsl.breadth_targets import (
-    supports_ordinary_cpp_diagnostic_name,
+    supports_default_diagnostic_name,
 )
 from gen.fuzzlang_dsl.code_witness import (
     CodeWitnessRequest, apply_code_witness_patch, build_code_witness_messages,
@@ -38,6 +38,32 @@ DEFAULT_REGRESSION_TEST_ROOT = Path("external/llvm-project/clang/test")
 
 def _load(path: Path) -> list[CodeWitnessRequest]:
     return [CodeWitnessRequest.from_dict(json.loads(line)) for line in path.read_text().splitlines() if line.strip()]
+
+
+def _supports_request_compile_mode(request: CodeWitnessRequest) -> bool:
+    """Apply the breadth filter using the request's verified language mode.
+
+    ``CodeWitnessRequest`` deliberately stores the complete verified compiler
+    command rather than a duplicate mode schema.  Recover just ``-std=`` here
+    so C11/C23 and C++20/C++23 witnesses are not incorrectly screened as the
+    default C++17 campaign before compiler verification.
+    """
+    cpp_standard = "c++17"
+    c_standard = "c17"
+    for argument in request.compile_cmd:
+        if not argument.startswith("-std="):
+            continue
+        standard = argument.removeprefix("-std=")
+        if standard in {"c++17", "c++20", "c++23"}:
+            cpp_standard = standard
+        elif standard in {"c99", "c11", "c17", "c23"}:
+            c_standard = standard
+    return supports_default_diagnostic_name(
+        request.diag_name,
+        language=request.language,
+        cpp_standard=cpp_standard,
+        c_standard=c_standard,
+    )
 
 
 def load_excluded_injector_target_names(paths: list[Path]) -> frozenset[str]:
@@ -327,15 +353,11 @@ def main() -> int:
                 injectors=injectors,
             )
             continue
-        # The ordinary-C++ filter is a useful early guard for the broad C++17
-        # campaign, but it is not a language-neutral reachability test.  C
-        # requests already come from a C-standard-aware builder and must reach
-        # the compiler verifier; otherwise every C11/C23-only diagnostic is
-        # rejected before Gemma can propose an Injector witness.
-        if (
-            request.language == "c++"
-            and not supports_ordinary_cpp_diagnostic_name(request.diag_name)
-        ):
+        # Use the actual verified language standard of this source instead of
+        # treating every request as ordinary C++17.  That keeps special C/C++
+        # dialect targets reachable while preserving an inexpensive guard for
+        # clearly incompatible default-mode diagnostics.
+        if not _supports_request_compile_mode(request):
             attempts.append({
                 "request_index": request_index,
                 "diag_name": request.diag_name,
