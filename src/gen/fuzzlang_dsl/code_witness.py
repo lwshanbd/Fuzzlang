@@ -30,11 +30,12 @@ class CodeWitnessRequest:
     window_start: int
     window_end: int
     emission_evidence: str | None = None
+    component: str = "Unknown"
 
     def __post_init__(self) -> None:
         for name in (
             "diag_name", "diag_message", "language", "tablegen_definition",
-            "source_id", "source_path", "project", "corrected_src",
+            "source_id", "source_path", "project", "corrected_src", "component",
         ):
             if not isinstance(getattr(self, name), str) or not getattr(self, name):
                 raise ValueError(f"{name} must be non-empty")
@@ -80,6 +81,7 @@ class CodeWitnessRequest:
             "window_start": self.window_start,
             "window_end": self.window_end,
             "emission_evidence": self.emission_evidence,
+            "component": self.component,
         }
 
     @classmethod
@@ -158,7 +160,7 @@ def build_direct_injector_requests(
             diag_name=first.diag_name,
             diag_id=first.diag_id,
             diag_message=first.diag_message,
-            component="Unknown",
+            component=first.component,
             language=first.language,
             correct_snippets=tuple(item.window for item in selected),
             evidence=DiagnosticEvidence(

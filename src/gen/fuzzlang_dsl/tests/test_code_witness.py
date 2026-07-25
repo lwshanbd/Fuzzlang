@@ -59,6 +59,7 @@ def _request() -> CodeWitnessRequest:
         diag_name="err_expected_expression",
         diag_id=17,
         diag_message="expected expression",
+        component="Parse",
         language="c++",
         tablegen_definition='def err_expected_expression : Error<"expected expression">;',
         source_id="demo:lib/f.cc",
@@ -144,6 +145,7 @@ def test_direct_injector_requests_group_distinct_real_source_windows():
 
     assert len(requests) == 1
     assert requests[0].diag_name == first.diag_name
+    assert requests[0].component == "Parse"
     assert requests[0].correct_snippets == (first.window, second.window)
     assert requests[0].evidence.tablegen_definition == first.tablegen_definition
 

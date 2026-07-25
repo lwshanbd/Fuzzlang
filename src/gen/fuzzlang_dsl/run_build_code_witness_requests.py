@@ -708,6 +708,7 @@ def main() -> int:
                 emission_evidence=emission_evidence_for(
                     emission_index, entry.name,
                 ),
+                component=entry.component,
             ))
     args.out.parent.mkdir(parents=True, exist_ok=True)
     args.out.write_text("".join(
