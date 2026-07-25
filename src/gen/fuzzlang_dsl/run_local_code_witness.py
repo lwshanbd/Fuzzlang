@@ -327,7 +327,15 @@ def main() -> int:
                 injectors=injectors,
             )
             continue
-        if not supports_ordinary_cpp_diagnostic_name(request.diag_name):
+        # The ordinary-C++ filter is a useful early guard for the broad C++17
+        # campaign, but it is not a language-neutral reachability test.  C
+        # requests already come from a C-standard-aware builder and must reach
+        # the compiler verifier; otherwise every C11/C23-only diagnostic is
+        # rejected before Gemma can propose an Injector witness.
+        if (
+            request.language == "c++"
+            and not supports_ordinary_cpp_diagnostic_name(request.diag_name)
+        ):
             attempts.append({
                 "request_index": request_index,
                 "diag_name": request.diag_name,
