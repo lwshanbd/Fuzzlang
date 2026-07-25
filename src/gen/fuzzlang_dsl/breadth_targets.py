@@ -29,7 +29,8 @@ _SPECIAL_MODE_RE = re.compile(
     r"amdgpu|bpf|hexagon|mips|ppc|sve|rvv|neon"
     r"|availability|expected_version|modifier_expected_colon|"
     r"expected_sequence_or_directive|expected_semantic_identifier|method_proto|"
-    r"avail|declare_variant|declare_target|after_super"
+    r"avail|declare_variant|declare_target|after_super|illegal_super|"
+    r"function_parameter_limit|function_scope_depth"
     r")(?:_|$)",
 )
 
