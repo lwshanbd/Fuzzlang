@@ -86,6 +86,21 @@ def test_prompt_contains_diagnostic_evidence_real_snippets_and_v1_contract():
     assert '"source_recipe_id": null' in user
 
 
+def test_prompt_uses_requested_c_language_in_its_schema_example():
+    request = SynthesisRequest(
+        diag_name="err_expected_expression",
+        diag_id=1,
+        diag_message="expected expression",
+        component="Parse",
+        language="c",
+        correct_snippets=("int f(void) { return 0; }", "int g(void) { return 1; }"),
+    )
+
+    system = build_synthesis_messages(request)[0]["content"]
+
+    assert '"language":"c"' in system
+
+
 def test_prompt_treats_near_miss_pair_as_revision_evidence_not_a_target_witness():
     request = SynthesisRequest(
         diag_name="err_target",

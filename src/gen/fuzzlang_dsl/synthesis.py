@@ -207,7 +207,7 @@ def build_synthesis_messages(request: SynthesisRequest) -> list[dict[str, str]]:
         "old_patterns. Here is a schema-only INSERT example (replace every "
         "placeholder with task-specific values; do not include injector_id): "
         '{"schema":"fuzzlang.injector","schema_version":1,"target":'
-        '{"diag_name":"TARGET","diag_id":null},"language":"c++",'
+        f'{{"diag_name":"TARGET","diag_id":null}},"language":"{request.language}",'
         '"match":{"left_context":["return"],"old_patterns":[],"right_context"'
         ':["<ID0>",";"]},"edit":{"operation":"insert",'
         '"replacement_parts":[{"kind":"literal","value":"&"}],'
