@@ -40,10 +40,12 @@ def test_select_uncovered_diagnostics_excludes_covered_attempted_and_non_errors(
 def test_select_uncovered_diagnostics_rejects_special_language_and_build_modes():
     entries = [
         _entry("err_objc_invalid_receiver"),
+        _entry("err_objcbridge_related_expected_related_class"),
         _entry("err_mmap_expected_header", component="Lex"),
         _entry("err_dup_implementation_class"),
         _entry("err_duplicate_ivar_use"),
         _entry("err_property_accessor_type"),
+        _entry("err_unexpected_protocol_qualifier"),
         _entry("err_forward_superclass"),
         _entry("err_atimport", component="Parse"),
         _entry("err_synthesize_category_decl"),

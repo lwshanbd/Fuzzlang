@@ -14,13 +14,13 @@ _SUPPORTED_COMPONENTS = frozenset({"Lex", "Parse", "Sema"})
 # denominator, but are poor first-wave targets for ordinary real C++ TUs.
 _SPECIAL_MODE_RE = re.compile(
     r"(?:^|_)("
-    r"objc|arc|blocks|openmp|omp|openacc|acc|cuda|hip|hlsl|opencl|sycl|"
+    r"objc\w*|arc|blocks|openmp|omp|openacc|acc|cuda|hip|hlsl|opencl|sycl|"
     r"module|modules|mmap|modulemap|pch|header_unit|pragma|pp|"
     r"c23|c2y|c17|c11|c99|"
     r"coroutine|coawait|co_await|co_return|co_yield|export|three_way|spaceship|"
     r"exceptions_disabled|seh|"
     r"implementation|ivar|property|superclass|atimport|atsign|synthesize|"
-    r"selector|nullability|ownership|interface|category|"
+    r"selector|nullability|ownership|interface|category|protocol|"
     r"ns(?:attribute|consumed|errordomain|object|constant)|"
     r"ptrauth|kernel|spirv|receiver|message_expr|message_super|super_scope|"
     r"program_scope|"
