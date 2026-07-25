@@ -29,6 +29,7 @@ from gen.fuzzlang_dsl.run_local_code_witness import (
 )
 from gen.fuzzlang_dsl.run_build_code_witness_requests import (
     _attempted_diagnostic_names_from_attempts,
+    _failed_diagnostic_names_from_attempts,
     _anchor_pattern,
     _anchor_patterns,
     _matching_source_candidates,
@@ -505,6 +506,21 @@ def test_successful_attempt_loader_keeps_only_previously_exact_targets(tmp_path)
 
     assert _successful_diagnostic_names_from_attempts([attempts]) == (
         "err_second", "err_third",
+    )
+
+
+def test_failed_attempt_loader_excludes_any_target_with_an_exact_witness(tmp_path):
+    attempts = tmp_path / "attempts.jsonl"
+    attempts.write_text(
+        '{"diag_name":"err_retry","status":"rejected"}\n'
+        '{"diag_name":"err_supported","status":"rejected"}\n'
+        '{"diag_name":"err_supported","status":"exact_target"}\n'
+        '{"diag_name":"err_unsupported","status":"unsupported_ordinary_cpp_mode"}\n'
+        '{"diag_name":"err_retry","status":"baseline_not_clean"}\n'
+    )
+
+    assert _failed_diagnostic_names_from_attempts([attempts]) == (
+        "err_retry",
     )
 
 

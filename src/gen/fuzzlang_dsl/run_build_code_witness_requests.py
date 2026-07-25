@@ -286,6 +286,39 @@ def _attempted_diagnostic_names_from_attempts(
     return tuple(names)
 
 
+def _failed_diagnostic_names_from_attempts(
+    paths: Sequence[Path],
+) -> tuple[str, ...]:
+    """Return ordinary targets that have never reached an exact witness.
+
+    New source variants are most valuable for genuine misses, rather than
+    targets already shown reachable by an exact compiler witness.  First-seen
+    order preserves the upstream diagnostic-priority ordering.
+    """
+    attempted: list[str] = []
+    seen: set[str] = set()
+    exact: set[str] = set()
+    for path in paths:
+        for line in path.read_text().splitlines():
+            if not line.strip():
+                continue
+            value = json.loads(line)
+            name = value.get("diag_name")
+            status = value.get("status")
+            if (
+                not isinstance(name, str)
+                or not name
+                or status == "unsupported_ordinary_cpp_mode"
+            ):
+                continue
+            if name not in seen:
+                seen.add(name)
+                attempted.append(name)
+            if status in {"exact_target", "exact_target_not_distillable"}:
+                exact.add(name)
+    return tuple(name for name in attempted if name not in exact)
+
+
 def _observed_diagnostic_names_from_attempts(
     paths: Sequence[Path], *, min_count: int,
 ) -> tuple[str, ...]:
@@ -388,6 +421,14 @@ def main() -> int:
         help="retry any prior ordinary-mode target from compact attempt logs",
     )
     parser.add_argument(
+        "--failed-attempts", type=Path, action="append", default=[],
+        help="retry only prior targets with no exact witness on a new source",
+    )
+    parser.add_argument(
+        "--failed-limit", type=int,
+        help="cap the selected failed-target retry slice",
+    )
+    parser.add_argument(
         "--observed-attempts", type=Path, action="append", default=[],
         help="prior attempts whose compiler-emitted wrong-target diagnostics are ranked",
     )
@@ -446,6 +487,8 @@ def main() -> int:
         parser.error("--observed-min-count must be positive")
     if args.observed_limit is not None and args.observed_limit <= 0:
         parser.error("--observed-limit must be positive")
+    if args.failed_limit is not None and args.failed_limit <= 0:
+        parser.error("--failed-limit must be positive")
     catalog = load_catalog(args.catalog_dir)
     emission_index = (
         load_emission_index(args.emission_index)
@@ -467,13 +510,15 @@ def main() -> int:
         bool(args.retry_requests),
         bool(args.successful_attempts),
         bool(args.attempted_targets),
+        bool(args.failed_attempts),
         bool(args.observed_attempts),
     ))
     if modes != 1:
         parser.error(
             "choose exactly one target mode: --diag-name, "
             "--auto-uncovered-limit, --retry-requests, or "
-            "--successful-attempts, --attempted-targets, or --observed-attempts"
+            "--successful-attempts, --attempted-targets, --failed-attempts, "
+            "or --observed-attempts"
         )
     explicit_names = tuple(args.diag_name)
     if args.retry_requests:
@@ -498,6 +543,16 @@ def main() -> int:
             )
             if name not in covered
         )
+    if args.failed_attempts:
+        explicit_names = tuple(
+            name
+            for name in _failed_diagnostic_names_from_attempts(
+                args.failed_attempts,
+            )
+            if name not in covered
+        )
+        if args.failed_limit is not None:
+            explicit_names = explicit_names[:args.failed_limit]
     if args.observed_attempts:
         explicit_names = tuple(
             name for name in _observed_diagnostic_names_from_attempts(
@@ -512,6 +567,7 @@ def main() -> int:
         args.retry_requests
         or args.successful_attempts
         or args.attempted_targets
+        or args.failed_attempts
         or args.observed_attempts
     ) and not explicit_names:
         targets = ()
