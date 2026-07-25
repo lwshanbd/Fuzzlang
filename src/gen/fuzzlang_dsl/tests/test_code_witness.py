@@ -14,6 +14,7 @@ from gen.fuzzlang_dsl.code_witness import (
 )
 from gen.fuzzlang_dsl.injector import FuzzLangInjector
 from gen.fuzzlang_dsl.run_local_code_witness import (
+    _candidate_round_counts,
     _write_checkpoint,
     load_excluded_injector_ids,
 )
@@ -63,6 +64,12 @@ def test_code_witness_prompt_and_single_occurrence_patch_round_trip():
     assert reason is None
     assert patch is not None
     assert apply_code_witness_patch(request, patch) == "int f() { return ; }\n"
+
+
+def test_candidate_round_counts_spread_budget_across_feedback_rounds():
+    assert _candidate_round_counts(8, 4) == (2, 2, 2, 2)
+    assert _candidate_round_counts(7, 3) == (3, 2, 2)
+    assert _candidate_round_counts(2, 4) == (1, 1)
 
 
 def test_code_witness_prompt_includes_optional_compiler_emission_evidence():

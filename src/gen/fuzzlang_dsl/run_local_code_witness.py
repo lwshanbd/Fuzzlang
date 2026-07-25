@@ -55,6 +55,17 @@ def _write_checkpoint(
     _write(output_dir / "injectors.jsonl", list(injectors.values()))
 
 
+def _candidate_round_counts(
+    candidates: int, feedback_rounds: int,
+) -> tuple[int, ...]:
+    """Evenly partition a fixed model budget into adaptive rounds."""
+    if candidates <= 0 or feedback_rounds <= 0:
+        raise ValueError("candidate and feedback-round bounds must be positive")
+    rounds = min(candidates, feedback_rounds)
+    base, remainder = divmod(candidates, rounds)
+    return tuple(base + (index < remainder) for index in range(rounds))
+
+
 def _select_exact_replay(
     *,
     corrected_src: str,
@@ -100,6 +111,10 @@ def main() -> int:
         help="canonical Injector JSONL whose identities must not be re-emitted",
     )
     parser.add_argument("--candidates", type=int, default=4)
+    parser.add_argument(
+        "--feedback-rounds", type=int, default=2,
+        help="adaptive model rounds sharing the fixed candidate budget",
+    )
     parser.add_argument("--temperature", type=float, default=0.5)
     parser.add_argument("--max-tokens", type=int, default=400)
     parser.add_argument("--timeout", type=float, default=5.0)
@@ -109,7 +124,12 @@ def main() -> int:
         help="repeatable lexical-context level; defaults to 1, 2, and 3",
     )
     args = parser.parse_args()
-    if args.candidates <= 0 or args.max_tokens <= 0 or args.timeout <= 0:
+    if (
+        args.candidates <= 0
+        or args.feedback_rounds <= 0
+        or args.max_tokens <= 0
+        or args.timeout <= 0
+    ):
         parser.error("candidate, token, and timeout bounds must be positive")
     context_tokens = tuple(
         args.recipe_context_tokens
@@ -161,23 +181,17 @@ def main() -> int:
                 injectors=injectors,
             )
             continue
-        first_round_candidates = (
-            args.candidates
-            if args.candidates == 1
-            else (args.candidates + 1) // 2
-        )
-        remaining_candidates = args.candidates - first_round_candidates
         messages = build_code_witness_messages(request)
         rejection_reasons: set[str] = set()
         observed_diagnostics: set[str] = set()
         accepted = False
         candidate_index = 0
         for round_index, candidate_count in enumerate(
-            (first_round_candidates, remaining_candidates)
+            _candidate_round_counts(args.candidates, args.feedback_rounds)
         ):
-            if candidate_count == 0 or accepted:
+            if accepted:
                 continue
-            if round_index == 1:
+            if round_index > 0:
                 feedback_round_requests += 1
                 messages = build_code_witness_retry_messages(
                     request,
