@@ -74,6 +74,7 @@ def test_prompt_contains_diagnostic_evidence_real_snippets_and_v1_contract():
     assert '"value":"ID0"' in messages[0]["content"]
     assert "Set provenance.source_recipe_id to null" in messages[0]["content"]
     assert "FRESH0, FRESH1" in messages[0]["content"]
+    assert '"replacement_parts":[{"kind":"literal","value":"&"}]' in messages[0]["content"]
     assert "general AST" not in messages[0]["content"]
     assert "No compiler-validated mutated witness has been supplied" in messages[0]["content"]
     user = messages[1]["content"]
