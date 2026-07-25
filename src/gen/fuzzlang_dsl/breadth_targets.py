@@ -14,7 +14,7 @@ _SUPPORTED_COMPONENTS = frozenset({"Lex", "Parse", "Sema"})
 # denominator, but are poor first-wave targets for ordinary real C++ TUs.
 _SPECIAL_MODE_RE = re.compile(
     r"(?:^|_)("
-    r"objc\w*|arc|blocks|openmp|omp|openacc|acc|cuda|hip|hlsl|opencl|sycl|"
+    r"objc\w*|arc|blocks|openmp|omp|openacc|acc|cuda|hip|hlsl|opencl\w*|sycl|"
     r"module|modules|mmap|modulemap|pch|header_unit|pragma|pp|"
     r"c23|c2y|c17|c11|c99|"
     r"coroutine|coawait|co_await|co_return|co_yield|export|three_way|spaceship|"
@@ -30,7 +30,7 @@ _SPECIAL_MODE_RE = re.compile(
     r"|availability|expected_version|modifier_expected_colon|"
     r"expected_sequence_or_directive|expected_semantic_identifier|method_proto|"
     r"avail|declare_variant|declare_target|after_super|illegal_super|"
-    r"function_parameter_limit|function_scope_depth"
+    r"super_in_using|function_parameter_limit|function_scope_depth"
     r")(?:_|$)",
 )
 

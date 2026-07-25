@@ -67,6 +67,8 @@ def test_select_uncovered_diagnostics_rejects_special_language_and_build_modes()
         _entry("err_expected_end_declare_target_or_variant"),
         _entry("err_expected_coloncolon_after_super"),
         _entry("err_illegal_super_cast"),
+        _entry("err_super_in_using_declaration"),
+        _entry("err_openclcxx_virtual_function"),
         _entry("err_function_parameter_limit_exceeded"),
         _entry("err_function_scope_depth_exceeded"),
         _entry("err_cuda_bad_call"),
