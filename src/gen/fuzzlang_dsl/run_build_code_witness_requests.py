@@ -12,7 +12,7 @@ from typing import Sequence, TypeVar
 from foundation.diagnostics.catalog import Catalog, DiagEntry, load_catalog
 from gen.fuzzlang_dsl.breadth_targets import (
     select_uncovered_diagnostics,
-    supports_ordinary_cpp_diagnostic_name,
+    supports_default_diagnostic_name,
 )
 from gen.fuzzlang_dsl.code_witness import CodeWitnessRequest
 from gen.fuzzlang_dsl.emission_evidence import (
@@ -403,6 +403,7 @@ def _resolve_target_entries(
     auto_uncovered_limit: int | None,
     covered: set[str],
     attempted: set[str],
+    language: str = "c++",
 ) -> tuple[DiagEntry, ...]:
     """Resolve either explicit targets or a coverage-first TableGen gap slice."""
     if explicit_names and auto_uncovered_limit is not None:
@@ -415,6 +416,7 @@ def _resolve_target_entries(
             covered=covered,
             attempted=attempted,
             limit=auto_uncovered_limit,
+            language=language,
         )
     entries: list[DiagEntry] = []
     for name in explicit_names:
@@ -423,7 +425,7 @@ def _resolve_target_entries(
             raise ValueError(f"target is not a catalog error: {name}")
         if (
             not entry.message.strip()
-            or not supports_ordinary_cpp_diagnostic_name(entry.name)
+            or not supports_default_diagnostic_name(entry.name, language=language)
         ):
             continue
         entries.append(entry)
@@ -434,6 +436,10 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--clean-sources", type=Path, required=True)
     parser.add_argument("--catalog-dir", required=True)
+    parser.add_argument(
+        "--language", choices=("c", "c++"), default="c++",
+        help="language of the verified real-source pool and target campaign",
+    )
     parser.add_argument(
         "--emission-index", type=Path,
         help="optional cached Clang diagnostic emission-site index",
@@ -619,12 +625,13 @@ def main() -> int:
                 auto_uncovered_limit=args.auto_uncovered_limit,
                 covered=covered,
                 attempted=attempted,
+                language=args.language,
             )
         except ValueError as error:
             parser.error(str(error))
     sources = [
         source for source in load_clean_sources_jsonl(args.clean_sources)
-        if source.language == "c++"
+        if source.language == args.language
     ]
     source_orders = _source_variant_orders(
         sources,
@@ -672,7 +679,7 @@ def main() -> int:
                     break
             if selected is None:
                 raise ValueError(
-                    "not enough distinct real C++ sources contain any anchor for "
+                    f"not enough distinct real {args.language} sources contain any anchor for "
                     f"{entry.name}"
                 )
             source, match = selected

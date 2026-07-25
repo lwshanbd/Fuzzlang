@@ -33,6 +33,18 @@ _SPECIAL_MODE_RE = re.compile(
     r")(?:_|$)",
 )
 
+# These spellings identify C++-only parser and semantic paths.  They are
+# filtered only for a C campaign; the default C++ campaign intentionally keeps
+# them because they are high-value coverage targets there.
+_CPP_ONLY_RE = re.compile(
+    r"(?:^|_)(?:"
+    r"cxx|cpp|template|typename|namespace|lambda|decltype|concept|requires|"
+    r"coroutine|coawait|co_await|co_return|co_yield|explicit|friend|"
+    r"constructor|destructor|static_cast|dynamic_cast|const_cast|"
+    r"reinterpret_cast|operator_new|operator_delete"
+    r")(?:_|$)",
+)
+
 _HIGH_VALUE_TERMS = (
     "expected", "typecheck", "invalid", "undeclared", "redefinition",
     "template", "argument", "operand", "pointer", "reference", "array",
@@ -41,12 +53,27 @@ _HIGH_VALUE_TERMS = (
 )
 
 
+def supports_default_diagnostic_name(name: str, *, language: str) -> bool:
+    """Whether a diagnostic is plausible in a default C or C++ TU campaign."""
+    if language not in {"c", "c++"}:
+        raise ValueError("language must be 'c' or 'c++'")
+    lowered = name.lower()
+    if _SPECIAL_MODE_RE.search(lowered):
+        return False
+    return language != "c" or not _CPP_ONLY_RE.search(lowered)
+
+
 def supports_ordinary_cpp_diagnostic_name(name: str) -> bool:
-    """Whether a diagnostic is plausible in the campaign's C++ compile mode."""
-    return not _SPECIAL_MODE_RE.search(name.lower())
+    """Compatibility wrapper for the ordinary C++ campaign filter."""
+    return supports_default_diagnostic_name(name, language="c++")
 
 
-def diagnostic_priority(entry: DiagEntry) -> int | None:
+def supports_ordinary_c_diagnostic_name(name: str) -> bool:
+    """Whether a diagnostic is plausible in the ordinary C campaign."""
+    return supports_default_diagnostic_name(name, language="c")
+
+
+def diagnostic_priority(entry: DiagEntry, *, language: str = "c++") -> int | None:
     """Return an ordinary-C++ injectability score, or ``None`` if ineligible."""
     if (
         not entry.is_error
@@ -55,7 +82,7 @@ def diagnostic_priority(entry: DiagEntry) -> int | None:
     ):
         return None
     lowered = entry.name.lower()
-    if not supports_ordinary_cpp_diagnostic_name(lowered):
+    if not supports_default_diagnostic_name(lowered, language=language):
         return None
     component_score = {"Parse": 300, "Sema": 200, "Lex": 100}[entry.component]
     term_score = sum(12 for term in _HIGH_VALUE_TERMS if term in lowered)
@@ -75,6 +102,7 @@ def select_uncovered_diagnostics(
     covered: set[str] | frozenset[str],
     attempted: set[str] | frozenset[str],
     limit: int,
+    language: str = "c++",
 ) -> tuple[DiagEntry, ...]:
     """Choose distinct, deterministic coverage-first TableGen error targets."""
     if isinstance(limit, bool) or not isinstance(limit, int) or limit <= 0:
@@ -89,7 +117,7 @@ def select_uncovered_diagnostics(
         ):
             continue
         seen.add(entry.name)
-        score = diagnostic_priority(entry)
+        score = diagnostic_priority(entry, language=language)
         if score is not None:
             ranked.append((-score, entry.name, entry))
     ranked.sort(key=lambda item: (item[0], item[1]))

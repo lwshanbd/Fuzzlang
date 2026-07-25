@@ -110,6 +110,20 @@ def test_select_uncovered_diagnostics_prioritizes_parse_then_common_cpp_sema():
     ]
 
 
+def test_select_uncovered_diagnostics_for_c_excludes_cpp_only_targets():
+    entries = [
+        _entry("err_expected_template_parameter", component="Parse"),
+        _entry("err_cxx_nested_name_specifier", component="Parse"),
+        _entry("err_expected_semi_after_stmt", component="Parse"),
+    ]
+
+    selected = select_uncovered_diagnostics(
+        entries, covered=set(), attempted=set(), limit=10, language="c",
+    )
+
+    assert [entry.name for entry in selected] == ["err_expected_semi_after_stmt"]
+
+
 def test_select_uncovered_diagnostics_is_deterministic_and_honors_limit():
     entries = [
         _entry("err_expected_z", component="Parse"),
