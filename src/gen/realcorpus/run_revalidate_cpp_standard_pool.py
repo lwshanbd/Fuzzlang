@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Re-clean-gate real C++ source under a designated standard mode."""
+"""Re-clean-gate real C/C++ source under a designated standard mode."""
 from __future__ import annotations
 
 import argparse
@@ -11,7 +11,7 @@ from typing import Any, Iterable, Sequence
 from foundation.verifier import FuzzlangClangVerifier
 from gen.realcorpus.clean_source_pool import (
     load_clean_sources_jsonl,
-    revalidate_cpp_standard_pool,
+    revalidate_standard_pool,
 )
 
 
@@ -46,7 +46,8 @@ def _file_info(path: Path, *, rows: int) -> dict[str, Any]:
 def _parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--clean-sources", type=Path, required=True)
-    parser.add_argument("--standard", required=True, help="e.g. c++20")
+    parser.add_argument("--language", choices=("c", "c++"), default="c++")
+    parser.add_argument("--standard", required=True, help="e.g. c++20 or c11")
     parser.add_argument("--clang-bin", required=True)
     parser.add_argument("--clang-c-bin", required=True)
     parser.add_argument("--diagtool-bin", required=True)
@@ -71,8 +72,9 @@ def main(argv: Sequence[str] | None = None) -> int:
         args.clang_bin, args.diagtool_bin, timeout_s=args.timeout,
         clang_c_bin=args.clang_c_bin,
     )
-    result = revalidate_cpp_standard_pool(
-        sources, verifier, standard=args.standard, workers=args.workers,
+    result = revalidate_standard_pool(
+        sources, verifier, language=args.language, standard=args.standard,
+        workers=args.workers,
     )
     accepted = _write_jsonl(args.out, (item.to_dict() for item in result.sources))
     rejected = _write_jsonl(
@@ -89,7 +91,7 @@ def main(argv: Sequence[str] | None = None) -> int:
             "original_source_text_preserved": True,
             "clean_compiler_gate": True,
         },
-        "compile_mode": {"language": "c++", "standard": args.standard},
+        "compile_mode": {"language": args.language, "standard": args.standard},
         "compiler": {
             "clang_cxx_bin": args.clang_bin,
             "clang_c_bin": args.clang_c_bin,

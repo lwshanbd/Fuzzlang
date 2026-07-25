@@ -15,6 +15,7 @@ from gen.realcorpus.clean_source_pool import (
     build_clean_source_pool,
     build_clean_source_pool_from_records,
     load_clean_sources_jsonl,
+    revalidate_standard_pool,
     revalidate_cpp_standard_pool,
 )
 from gen.realcorpus import run_clean_source_pool as cli
@@ -76,6 +77,19 @@ def test_clean_source_tu_rejects_test_paths_bad_hash_and_invalid_command():
             source_sha256="0" * 64,
             baseline_compiler="llvmorg-22.1.8",
         )
+    with pytest.raises(ValueError, match="compile_cmd"):
+        CleanSourceTU(
+            source_id="llvm:llvm/lib/IR/Bad.cpp",
+            project="llvm",
+            source_path="llvm/lib/IR/Bad.cpp",
+            language="c++",
+            corrected_src="int f() { return 0; }\n",
+            compile_cmd=("clang++", "-fsyntax-only"),
+            source_sha256=hashlib.sha256(
+                b"int f() { return 0; }\n"
+            ).hexdigest(),
+            baseline_compiler="llvmorg-22.1.8",
+        )
 
 
 def test_revalidate_cpp_standard_pool_rewrites_flags_and_keeps_only_clean_sources():
@@ -104,19 +118,29 @@ def test_revalidate_cpp_standard_pool_rewrites_flags_and_keeps_only_clean_source
         "attempted_clean_gates": 2,
         "accepted_clean_sources": 1,
     }
-    with pytest.raises(ValueError, match="compile_cmd"):
-        CleanSourceTU(
-            source_id="llvm:llvm/lib/IR/Bad.cpp",
-            project="llvm",
-            source_path="llvm/lib/IR/Bad.cpp",
-            language="c++",
-            corrected_src="int f() { return 0; }\n",
-            compile_cmd=("clang++", "-fsyntax-only"),
-            source_sha256=hashlib.sha256(
-                b"int f() { return 0; }\n"
-            ).hexdigest(),
-            baseline_compiler="llvmorg-22.1.8",
-        )
+
+
+def test_revalidate_standard_pool_supports_real_c_sources_under_c11():
+    source = CleanSourceTU(
+        source_id="ffmpeg:libavutil/good.c",
+        project="ffmpeg",
+        source_path="libavutil/good.c",
+        language="c",
+        corrected_src="int good(void) { return 0; }\n",
+        compile_cmd=("__CLANG__", "-std=c17", "-fsyntax-only", "__SRC__"),
+        source_sha256=hashlib.sha256(b"int good(void) { return 0; }\n").hexdigest(),
+        baseline_compiler="llvmorg-22.1.8",
+    )
+
+    result = revalidate_standard_pool(
+        [source], MockVerifier(lambda _src, cmd, _path: (
+            ok_result() if "-std=c11" in cmd else VerifierResult(False, None, "error")
+        )), language="c", standard="c11",
+    )
+
+    assert result.sources[0].compile_cmd == (
+        "__CLANG__", "-std=c11", "-fsyntax-only", "__SRC__",
+    )
 
 
 def test_build_clean_source_pool_keeps_only_unseen_non_test_clean_tus(tmp_path):

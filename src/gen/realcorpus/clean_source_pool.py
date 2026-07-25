@@ -162,19 +162,24 @@ def load_clean_sources_jsonl(path: str | Path) -> list[CleanSourceTU]:
     return result
 
 
-_CPP_STANDARD_FLAG_RE = re.compile(r"^(?P<prefix>--?std=)(?:gnu\+\+|c\+\+).+$")
+_STANDARD_FLAG_RE = re.compile(r"^(?P<prefix>--?std=)(?P<standard>(?:gnu\+\+|c\+\+|gnu|c).+)$")
 _CPP_STANDARD_RE = re.compile(r"^(?:gnu\+\+|c\+\+)\d[a-z0-9]*$")
+_C_STANDARD_RE = re.compile(r"^(?:gnu|c)(?:89|90|99|11|17|23|2x|2y)$")
 
 
-def _with_cpp_standard(command: Sequence[str], *, standard: str) -> tuple[str, ...]:
-    """Replace (or add) the C++ standard flag in a clean-pool command."""
-    if not _CPP_STANDARD_RE.fullmatch(standard):
-        raise ValueError("standard must be a concrete C++ standard, e.g. 'c++20'")
+def _with_standard(
+    command: Sequence[str], *, language: str, standard: str,
+) -> tuple[str, ...]:
+    """Replace (or add) one language-standard flag in a clean-pool command."""
+    matcher = _CPP_STANDARD_RE if language == "c++" else _C_STANDARD_RE
+    if language not in {"c", "c++"} or not matcher.fullmatch(standard):
+        raise ValueError(f"standard {standard!r} is invalid for language {language!r}")
     result: list[str] = []
     replaced = False
     for argument in command:
-        match = _CPP_STANDARD_FLAG_RE.fullmatch(argument)
-        if match is None:
+        match = _STANDARD_FLAG_RE.fullmatch(argument)
+        is_cpp_flag = match is not None and "++" in match.group("standard")
+        if match is None or (language == "c++") != is_cpp_flag:
             result.append(argument)
             continue
         if not replaced:
@@ -189,14 +194,15 @@ def _with_cpp_standard(command: Sequence[str], *, standard: str) -> tuple[str, .
     return tuple(result)
 
 
-def revalidate_cpp_standard_pool(
+def revalidate_standard_pool(
     sources: Iterable[CleanSourceTU],
     verifier: BaseVerifier,
     *,
+    language: str,
     standard: str,
     workers: int = 8,
 ) -> CleanSourcePoolResult:
-    """Create a clean real-source pool under a distinct C++ standard mode.
+    """Create a clean real-source pool under a distinct language standard.
 
     This does not modify source text or its production provenance.  It only
     substitutes the language-standard compiler flag, then clean-gates every
@@ -205,14 +211,15 @@ def revalidate_cpp_standard_pool(
     if workers <= 0:
         raise ValueError("workers must be positive")
     # Validate before scheduling work, including when the input is empty.
-    if not _CPP_STANDARD_RE.fullmatch(standard):
-        raise ValueError("standard must be a concrete C++ standard, e.g. 'c++20'")
+    matcher = _CPP_STANDARD_RE if language == "c++" else _C_STANDARD_RE
+    if language not in {"c", "c++"} or not matcher.fullmatch(standard):
+        raise ValueError(f"standard {standard!r} is invalid for language {language!r}")
     values = tuple(sources)
-    candidates = [source for source in values if source.language == "c++"]
-    non_cpp_sources = sum(1 for source in values if source.language != "c++")
+    candidates = [source for source in values if source.language == language]
+    other_language_sources = sum(1 for source in values if source.language != language)
 
     def process(source: CleanSourceTU):
-        command = _with_cpp_standard(source.compile_cmd, standard=standard)
+        command = _with_standard(source.compile_cmd, language=language, standard=standard)
         try:
             result = verifier.verify(
                 source.corrected_src, list(command), logical_path=source.source_path,
@@ -241,11 +248,29 @@ def revalidate_cpp_standard_pool(
         sources=tuple(accepted),
         rejections=tuple(rejections),
         counts={
-            "input_clean_sources": len(candidates) + non_cpp_sources,
-            "non_cpp_sources": non_cpp_sources,
+            "input_clean_sources": len(candidates) + other_language_sources,
+            "non_target_language_sources": other_language_sources,
             "attempted_clean_gates": len(candidates),
             "accepted_clean_sources": len(accepted),
         },
+    )
+
+
+def revalidate_cpp_standard_pool(
+    sources: Iterable[CleanSourceTU],
+    verifier: BaseVerifier,
+    *,
+    standard: str,
+    workers: int = 8,
+) -> CleanSourcePoolResult:
+    """Backward-compatible C++ wrapper for :func:`revalidate_standard_pool`."""
+    result = revalidate_standard_pool(
+        sources, verifier, language="c++", standard=standard, workers=workers,
+    )
+    counts = dict(result.counts)
+    counts["non_cpp_sources"] = counts.pop("non_target_language_sources")
+    return CleanSourcePoolResult(
+        sources=result.sources, rejections=result.rejections, counts=counts,
     )
 
 
