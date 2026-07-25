@@ -45,6 +45,9 @@ from gen.fuzzlang_dsl.run_build_code_witness_requests import (
     _source_variant_orders,
 )
 from gen.fuzzlang_dsl import run_local_code_witness as witness_cli
+from gen.fuzzlang_dsl.run_build_direct_injector_requests import (
+    load_selected_witnesses,
+)
 from repair.agent.chat_backend import ChatResponse
 
 
@@ -141,6 +144,26 @@ def test_direct_injector_requests_group_distinct_real_source_windows():
     assert requests[0].diag_name == first.diag_name
     assert requests[0].correct_snippets == (first.window, second.window)
     assert requests[0].evidence.tablegen_definition == first.tablegen_definition
+
+
+def test_direct_request_loader_pools_files_and_filters_targets(tmp_path):
+    first = _request()
+    second = CodeWitnessRequest(**{
+        **first.to_dict(),
+        "diag_name": "err_other",
+        "source_id": "demo:lib/g.cc",
+        "source_path": "lib/g.cc",
+    })
+    request_file = tmp_path / "requests.jsonl"
+    request_file.write_text(
+        json.dumps(first.to_dict()) + "\n" + json.dumps(second.to_dict()) + "\n"
+    )
+
+    selected = load_selected_witnesses(
+        [request_file], diagnostic_names={first.diag_name},
+    )
+
+    assert selected == (first,)
 
 
 def test_candidate_round_counts_spread_budget_across_feedback_rounds():
