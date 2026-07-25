@@ -52,3 +52,5 @@ def test_build_clang_argv_resolves_compile_directory_relative_paths():
     assert argv[argv.index("-include") + 1] == "/project/build/config.h"
     assert "-MMD" not in argv and "-MF" not in argv and "a.d" not in argv
     assert "-MT" not in argv and "a.o" not in argv
+    assert "../src/a.c" not in argv
+    assert argv[argv.index("-iquote") + 1] == "/project/src"

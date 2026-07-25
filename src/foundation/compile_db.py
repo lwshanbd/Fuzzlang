@@ -82,11 +82,19 @@ def build_clang_argv(entry: dict, clang_bin: str, src: str) -> list[str]:
             out.append("-I" + portable_path(tok[2:]))
             index += 1
             continue
-        if os.path.realpath(tok) == entry_file:
+        source_candidate = (
+            tok if os.path.isabs(tok) else os.path.join(directory, tok)
+        )
+        if os.path.realpath(source_candidate) == entry_file:
             index += 1
             continue
         out.append(tok)
         index += 1
+    # The verifier compiles a temporary replacement file.  Preserve the
+    # compiler's implicit quote-include search beside the original source.
+    # This is essential for projects such as FFmpeg that use "header.h" files
+    # colocated with each translation unit.
+    out.extend(("-iquote", os.path.dirname(entry_file)))
     if "-fsyntax-only" not in out:
         out.append("-fsyntax-only")
     if "-fno-color-diagnostics" not in out:
