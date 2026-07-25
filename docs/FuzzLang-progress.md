@@ -1,9 +1,31 @@
 # FuzzLang: Progress
 
 Status against `FuzzLang-Proposal.md` and the executable plan in `plan.md`.
-LLVM is pinned to `llvmorg-22.1.8`; the current test suite has 416 passing and
+LLVM is pinned to `llvmorg-22.1.8`; the current test suite has 479 passing and
 5 environment-dependent skips. Detailed generation history is in
 `data/gen/README.md`.
+
+## Live Strict Injector Campaign (2026-07-24)
+
+The active coverage objective is **at least 1,000 distinct Clang TableGen
+error diagnostics**, measured only by the current strict FuzzLang Injector
+audit.  The latest independent live audit reports **461 / 3,891** catalog
+error types, backed by 5,085 paired records and 7,354 unique portable
+Injectors.  It rejects records that lack the concrete Injector required by
+their replay provenance and excludes test/test-support sources.
+
+This is the authoritative live metric for the expansion campaign.  It must
+not be compared directly with the historical 1,935-diagnostic denominator
+below: that older denominator is a scoped paper-analysis subset.  The live
+campaign uses the full pinned TableGen error catalog, source-clean-gates every
+parent TU, requires an exact typed compiler diagnostic after Injector replay,
+and records the resulting paired source.
+
+The queue contains (1) compiler-observed uncovered gaps, (2) the complete
+ordinary-C++ LLVM gap pool, and (3) an archived cross-project Abseil gap pool
+that is submitted incrementally as scheduler slots become available.  The
+only completion criterion is a fresh full-catalog strict-audit artifact at or
+above 1,000 types.
 
 ## Current Research Position
 
