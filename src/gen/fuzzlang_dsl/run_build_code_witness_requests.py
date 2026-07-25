@@ -373,6 +373,10 @@ def main() -> int:
         help="prior request JSONL whose diagnostics should not be selected again",
     )
     parser.add_argument(
+        "--exclude-attempted-targets", type=Path, action="append", default=[],
+        help="compact attempt logs whose diagnostic targets should not be selected again",
+    )
+    parser.add_argument(
         "--source-start", type=int, default=0,
         help="rotation offset into the verified source pool for this batch",
     )
@@ -407,6 +411,9 @@ def main() -> int:
     except ValueError as error:
         parser.error(str(error))
     attempted = _diagnostic_names_from_jsonl(args.attempted_requests)
+    attempted.update(_attempted_diagnostic_names_from_attempts(
+        args.exclude_attempted_targets,
+    ))
     modes = sum((
         bool(args.diag_name),
         args.auto_uncovered_limit is not None,
