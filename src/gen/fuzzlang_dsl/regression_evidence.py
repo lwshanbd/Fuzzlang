@@ -17,6 +17,7 @@ _PLACEHOLDER_RE = re.compile(
     r"%(?:[A-Za-z_]+(?:<[^>]*>)?\{.*?\}\d+(?:,\d+)*|[A-Za-z_]*\d+(?:,\d+)*)"
 )
 _MIN_FRAGMENT_CHARS = 12
+_SEARCH_TIMEOUT_SECONDS = 5
 
 
 def _literal_fragments(message: str) -> tuple[str, ...]:
@@ -39,7 +40,7 @@ def _matching_paths(root: Path, fragment: str) -> tuple[Path, ...]:
             check=False,
             capture_output=True,
             text=True,
-            timeout=30,
+            timeout=_SEARCH_TIMEOUT_SECONDS,
         )
     except subprocess.TimeoutExpired:
         # Prompt-only test evidence must never abort a generation campaign.

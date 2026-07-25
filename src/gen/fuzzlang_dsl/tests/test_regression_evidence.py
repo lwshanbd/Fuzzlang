@@ -51,3 +51,20 @@ def test_regression_evidence_treats_a_search_timeout_as_optional_missing_context
     assert regression_evidence_for(
         "this diagnostic message is long enough", tests,
     ) is None
+
+
+def test_regression_evidence_bounds_optional_search_latency(tmp_path, monkeypatch):
+    tests = tmp_path / "clang-test"
+    tests.mkdir()
+    captured = []
+
+    def _search(*args, **kwargs):
+        captured.append(kwargs["timeout"])
+        return regression_evidence.subprocess.CompletedProcess(args[0], 1, "")
+
+    monkeypatch.setattr(regression_evidence.subprocess, "run", _search)
+
+    assert regression_evidence_for(
+        "this diagnostic message is long enough", tests,
+    ) is None
+    assert captured == [5]
