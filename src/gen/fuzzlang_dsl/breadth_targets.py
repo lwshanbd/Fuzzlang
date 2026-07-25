@@ -21,8 +21,7 @@ _SPECIAL_MODE_RE = re.compile(
     # C++ language modes and TS-only features as special-mode targets; they
     # belong in a future source-pool campaign with matching compile flags.
     r"coroutine|coawait|co_await|co_return|co_yield|export|three_way|spaceship|"
-    r"concept|requires|consteval|constinit|char8|deducing_this|explicit_object|"
-    r"static_lambda|if_consteval|defer_ts|"
+    r"defer_ts|"
     r"import|ms_asm|gnu_inline_asm_disabled|"
     r"exceptions_disabled|seh|"
     r"implementation|ivar|property|superclass|atimport|atsign|at_defs|at_in_class|synthesize|"
@@ -38,6 +37,13 @@ _SPECIAL_MODE_RE = re.compile(
     r"avail|declare_variant|declare_target|after_super|illegal_super|"
     r"super_in_using|function_parameter_limit|function_scope_depth"
     r")(?:_|$)",
+)
+
+_CPP20_MODE_RE = re.compile(
+    r"(?:^|_)(?:concept|requires|consteval|constinit|char8)(?:_|$)",
+)
+_CPP23_MODE_RE = re.compile(
+    r"(?:^|_)(?:deducing_this|explicit_object|static_lambda|if_consteval)(?:_|$)",
 )
 
 # These spellings identify C++-only parser and semantic paths.  They are
@@ -60,14 +66,24 @@ _HIGH_VALUE_TERMS = (
 )
 
 
-def supports_default_diagnostic_name(name: str, *, language: str) -> bool:
-    """Whether a diagnostic is plausible in a default C or C++ TU campaign."""
+def supports_default_diagnostic_name(
+    name: str, *, language: str, cpp_standard: str = "c++17",
+) -> bool:
+    """Whether a diagnostic is plausible in a selected C/C++ TU campaign."""
     if language not in {"c", "c++"}:
         raise ValueError("language must be 'c' or 'c++'")
+    if cpp_standard not in {"c++17", "c++20", "c++23"}:
+        raise ValueError("cpp_standard must be one of c++17, c++20, or c++23")
     lowered = name.lower()
     if _SPECIAL_MODE_RE.search(lowered):
         return False
-    return language != "c" or not _CPP_ONLY_RE.search(lowered)
+    if language == "c":
+        return not _CPP_ONLY_RE.search(lowered)
+    if cpp_standard == "c++17":
+        return not (_CPP20_MODE_RE.search(lowered) or _CPP23_MODE_RE.search(lowered))
+    if cpp_standard == "c++20":
+        return not _CPP23_MODE_RE.search(lowered)
+    return True
 
 
 def supports_ordinary_cpp_diagnostic_name(name: str) -> bool:
@@ -80,7 +96,9 @@ def supports_ordinary_c_diagnostic_name(name: str) -> bool:
     return supports_default_diagnostic_name(name, language="c")
 
 
-def diagnostic_priority(entry: DiagEntry, *, language: str = "c++") -> int | None:
+def diagnostic_priority(
+    entry: DiagEntry, *, language: str = "c++", cpp_standard: str = "c++17",
+) -> int | None:
     """Return an ordinary-C++ injectability score, or ``None`` if ineligible."""
     if (
         not entry.is_error
@@ -89,7 +107,9 @@ def diagnostic_priority(entry: DiagEntry, *, language: str = "c++") -> int | Non
     ):
         return None
     lowered = entry.name.lower()
-    if not supports_default_diagnostic_name(lowered, language=language):
+    if not supports_default_diagnostic_name(
+        lowered, language=language, cpp_standard=cpp_standard,
+    ):
         return None
     component_score = {"Parse": 300, "Sema": 200, "Lex": 100}[entry.component]
     term_score = sum(12 for term in _HIGH_VALUE_TERMS if term in lowered)
@@ -110,6 +130,7 @@ def select_uncovered_diagnostics(
     attempted: set[str] | frozenset[str],
     limit: int,
     language: str = "c++",
+    cpp_standard: str = "c++17",
 ) -> tuple[DiagEntry, ...]:
     """Choose distinct, deterministic coverage-first TableGen error targets."""
     if isinstance(limit, bool) or not isinstance(limit, int) or limit <= 0:
@@ -124,7 +145,9 @@ def select_uncovered_diagnostics(
         ):
             continue
         seen.add(entry.name)
-        score = diagnostic_priority(entry, language=language)
+        score = diagnostic_priority(
+            entry, language=language, cpp_standard=cpp_standard,
+        )
         if score is not None:
             ranked.append((-score, entry.name, entry))
     ranked.sort(key=lambda item: (item[0], item[1]))

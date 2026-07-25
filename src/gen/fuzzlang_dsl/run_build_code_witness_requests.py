@@ -404,6 +404,7 @@ def _resolve_target_entries(
     covered: set[str],
     attempted: set[str],
     language: str = "c++",
+    cpp_standard: str = "c++17",
 ) -> tuple[DiagEntry, ...]:
     """Resolve either explicit targets or a coverage-first TableGen gap slice."""
     if explicit_names and auto_uncovered_limit is not None:
@@ -417,6 +418,7 @@ def _resolve_target_entries(
             attempted=attempted,
             limit=auto_uncovered_limit,
             language=language,
+            cpp_standard=cpp_standard,
         )
     entries: list[DiagEntry] = []
     for name in explicit_names:
@@ -425,7 +427,9 @@ def _resolve_target_entries(
             raise ValueError(f"target is not a catalog error: {name}")
         if (
             not entry.message.strip()
-            or not supports_default_diagnostic_name(entry.name, language=language)
+            or not supports_default_diagnostic_name(
+                entry.name, language=language, cpp_standard=cpp_standard,
+            )
         ):
             continue
         entries.append(entry)
@@ -439,6 +443,11 @@ def main() -> int:
     parser.add_argument(
         "--language", choices=("c", "c++"), default="c++",
         help="language of the verified real-source pool and target campaign",
+    )
+    parser.add_argument(
+        "--cpp-standard", choices=("c++17", "c++20", "c++23"),
+        default="c++17",
+        help="C++ standard mode of the verified source pool (ignored for C)",
     )
     parser.add_argument(
         "--emission-index", type=Path,
@@ -626,6 +635,7 @@ def main() -> int:
                 covered=covered,
                 attempted=attempted,
                 language=args.language,
+                cpp_standard=args.cpp_standard,
             )
         except ValueError as error:
             parser.error(str(error))
@@ -720,6 +730,10 @@ def main() -> int:
         args.manifest_out.write_text(json.dumps({
             "schema": "fuzzlang.coverage_first_code_witness_requests",
             "llvm_version": "llvmorg-22.1.8",
+            "compile_mode": {
+                "language": args.language,
+                "cpp_standard": args.cpp_standard if args.language == "c++" else None,
+            },
             "counts": {
                 "requests": len(requests),
                 "covered_diagnostics_excluded": len(covered),
