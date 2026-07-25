@@ -82,6 +82,21 @@ def _candidate_round_counts(
     return tuple(base + (index < remainder) for index in range(rounds))
 
 
+def _known_covered_only_round_streak(
+    previous_streak: int, rejection_reasons: set[str],
+) -> int:
+    """Count consecutive rounds that can only reproduce covered diagnostics.
+
+    An opportunistic error is valuable only the first time it expands coverage.
+    If all candidates in a round merely reproduce an already-covered observed
+    type, model feedback can help once; repeating that exact dead end again is
+    a poor use of the fixed local-model budget.
+    """
+    if rejection_reasons == {"observed_diagnostic_already_covered"}:
+        return previous_streak + 1
+    return 0
+
+
 def _select_exact_replay(
     *,
     corrected_src: str,
@@ -176,6 +191,7 @@ def main() -> int:
     injectors: dict[str, dict] = {}
     duplicate_existing_injector_candidates = 0
     feedback_round_requests = 0
+    known_covered_observed_short_circuits = 0
     _write_checkpoint(
         args.output_dir,
         attempts=attempts,
@@ -228,6 +244,7 @@ def main() -> int:
         observed_diagnostics: set[str] = set()
         accepted = False
         candidate_index = 0
+        known_covered_only_streak = 0
         for round_index, candidate_count in enumerate(
             _candidate_round_counts(args.candidates, args.feedback_rounds)
         ):
@@ -246,6 +263,7 @@ def main() -> int:
                 max_tokens=args.max_tokens,
                 n=candidate_count,
             )
+            round_rejection_reasons: set[str] = set()
             for response in responses:
                 patch, reason = parse_code_witness_patch(response.text, request)
                 row = {
@@ -262,6 +280,7 @@ def main() -> int:
                     attempts.append(row)
                     if reason:
                         rejection_reasons.add(reason)
+                        round_rejection_reasons.add(reason)
                     continue
                 erroneous = apply_code_witness_patch(request, patch)
                 verified = verifier.verify(
@@ -277,6 +296,7 @@ def main() -> int:
                     )
                     attempts.append(row)
                     rejection_reasons.add(row["reason"])
+                    round_rejection_reasons.add(row["reason"])
                     if verified.diag is not None:
                         observed_diagnostics.add(verified.diag.diag_name)
                     continue
@@ -290,6 +310,7 @@ def main() -> int:
                         row["observed_diag"] = verified.diag.diag_name
                         attempts.append(row)
                         rejection_reasons.add(row["reason"])
+                        round_rejection_reasons.add(row["reason"])
                         continue
                     target_diag_name = verified.diag.diag_name
                     if target_diag_name in observed_admitted_target_names:
@@ -298,6 +319,7 @@ def main() -> int:
                         row["observed_diag"] = target_diag_name
                         attempts.append(row)
                         rejection_reasons.add(row["reason"])
+                        round_rejection_reasons.add(row["reason"])
                         continue
                     opportunistic = True
                 record_id = "code-witness-" + hashlib.sha256(
@@ -349,6 +371,7 @@ def main() -> int:
                     attempts.append(row)
                     undistillable_records.append(record.to_dict())
                     rejection_reasons.add(row["reason"])
+                    round_rejection_reasons.add(row["reason"])
                     continue
                 injector, replayed_src, replayed_diag = selected
                 replay_record_id = "code-witness-injector-" + hashlib.sha256(
@@ -391,6 +414,12 @@ def main() -> int:
                     observed_admitted_target_names.add(target_diag_name)
                 accepted = True
                 break
+            known_covered_only_streak = _known_covered_only_round_streak(
+                known_covered_only_streak, round_rejection_reasons,
+            )
+            if known_covered_only_streak >= 2:
+                known_covered_observed_short_circuits += 1
+                break
         _write_checkpoint(
             args.output_dir,
             attempts=attempts,
@@ -405,7 +434,7 @@ def main() -> int:
         undistillable_records=undistillable_records,
         injectors=injectors,
     )
-    manifest = {"schema": "fuzzlang.code_witness_bootstrap", "model": {"name": DEFAULT_GEMMA_31B_MODEL, "revision": DEFAULT_GEMMA_31B_REVISION, "parameters": "31B"}, "paid_api_calls": False, "recipe_context_tokens": list(context_tokens), "counts": {"requests": len(requests), "attempts": len(attempts), "records": len(records), "undistillable_records": len(undistillable_records), "portable_injectors": len(injectors), "excluded_injector_identities": len(excluded_injector_ids), "duplicate_existing_injector_candidates": duplicate_existing_injector_candidates, "feedback_round_requests": feedback_round_requests}}
+    manifest = {"schema": "fuzzlang.code_witness_bootstrap", "model": {"name": DEFAULT_GEMMA_31B_MODEL, "revision": DEFAULT_GEMMA_31B_REVISION, "parameters": "31B"}, "paid_api_calls": False, "recipe_context_tokens": list(context_tokens), "counts": {"requests": len(requests), "attempts": len(attempts), "records": len(records), "undistillable_records": len(undistillable_records), "portable_injectors": len(injectors), "excluded_injector_identities": len(excluded_injector_ids), "duplicate_existing_injector_candidates": duplicate_existing_injector_candidates, "feedback_round_requests": feedback_round_requests, "known_covered_observed_short_circuits": known_covered_observed_short_circuits}}
     (args.output_dir / "manifest.json").write_text(json.dumps(manifest, sort_keys=True) + "\n")
     print(json.dumps(manifest["counts"], sort_keys=True))
     return 0

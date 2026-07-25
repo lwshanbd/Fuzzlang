@@ -17,6 +17,7 @@ from gen.fuzzlang_dsl.code_witness import (
 from gen.fuzzlang_dsl.injector import FuzzLangInjector
 from gen.fuzzlang_dsl.run_local_code_witness import (
     _candidate_round_counts,
+    _known_covered_only_round_streak,
     _write_checkpoint,
     load_excluded_injector_ids,
 )
@@ -94,6 +95,18 @@ def test_candidate_round_counts_spread_budget_across_feedback_rounds():
     assert _candidate_round_counts(8, 4) == (2, 2, 2, 2)
     assert _candidate_round_counts(7, 3) == (3, 2, 2)
     assert _candidate_round_counts(2, 4) == (1, 1)
+
+
+def test_known_covered_only_round_streak_stops_repeated_unproductive_retries():
+    """Do not repeatedly ask the model for the same already-covered error."""
+    known_only = {"observed_diagnostic_already_covered"}
+
+    assert _known_covered_only_round_streak(0, known_only) == 1
+    assert _known_covered_only_round_streak(1, known_only) == 2
+    assert _known_covered_only_round_streak(1, {"json_object_not_found"}) == 0
+    assert _known_covered_only_round_streak(
+        1, known_only | {"json_object_not_found"},
+    ) == 0
 
 
 def test_code_witness_prompt_includes_optional_compiler_emission_evidence():
@@ -848,6 +861,77 @@ def test_code_witness_cli_skips_observed_types_with_an_existing_injector(
     ]
     assert attempts[0]["reason"] == "observed_diagnostic_already_covered"
     assert (tmp_path / "out" / "records.jsonl").read_text() == ""
+
+
+def test_code_witness_cli_stops_after_two_known_covered_feedback_rounds(
+    tmp_path, monkeypatch,
+):
+    request = _request()
+    request_path = tmp_path / "requests.jsonl"
+    request_path.write_text(json.dumps(request.to_dict()) + "\n")
+    excluded = tmp_path / "injectors.jsonl"
+    excluded.write_text(json.dumps(FuzzLangInjector(
+        target_diag="err_use_of_undeclared_identifier",
+        target_diag_id=99,
+        language="c++",
+        operation="replace",
+        old_patterns=("value",),
+        new_text="wrong",
+        left_context=("return",),
+        right_context=(";",),
+        replacement_parts=(("literal", "wrong"),),
+        portable=True,
+    ).to_dict()) + "\n")
+    calls: list[int] = []
+
+    class _Backend:
+        def __init__(self, *args, **kwargs):
+            pass
+
+        def chat(self, *, n, **kwargs):
+            calls.append(n)
+            return [ChatResponse(
+                '{"old_text":"value","new_text":"wrong"}', 4,
+            ) for _ in range(n)]
+
+    class _Verifier:
+        def __init__(self, *args, **kwargs):
+            pass
+
+        def verify(self, candidate, compile_cmd, *, logical_path):
+            if candidate == request.corrected_src:
+                return VerifierResult(True, None, "")
+            return VerifierResult(False, DiagInfo(
+                diag_id=99,
+                diag_name="err_use_of_undeclared_identifier",
+                diag_msg="unknown identifier",
+                file=logical_path,
+                line=1,
+                col=1,
+                start_byte=0,
+                end_byte=1,
+                span_snippet="wrong",
+            ), "")
+
+    monkeypatch.setattr(witness_cli, "LocalGemma31BBackend", _Backend)
+    monkeypatch.setattr(witness_cli, "FuzzlangClangVerifier", _Verifier)
+    monkeypatch.setattr(sys, "argv", [
+        "run_local_code_witness.py",
+        "--requests", str(request_path),
+        "--clang-bin", "/mock/clang++",
+        "--clang-c-bin", "/mock/clang",
+        "--diagtool-bin", "/mock/diagtool",
+        "--output-dir", str(tmp_path / "out"),
+        "--exclude-injectors", str(excluded),
+        "--candidates", "4",
+        "--feedback-rounds", "4",
+    ])
+
+    assert witness_cli.main() == 0
+    manifest = json.loads((tmp_path / "out" / "manifest.json").read_text())
+    assert calls == [1, 1]
+    assert manifest["counts"]["attempts"] == 2
+    assert manifest["counts"]["known_covered_observed_short_circuits"] == 1
 
 
 def test_code_witness_cli_skips_a_requested_type_with_an_existing_injector(
