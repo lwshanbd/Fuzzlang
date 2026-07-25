@@ -32,6 +32,22 @@ def _load(path: Path) -> list[CodeWitnessRequest]:
     return [CodeWitnessRequest.from_dict(json.loads(line)) for line in path.read_text().splitlines() if line.strip()]
 
 
+def load_excluded_injector_target_names(paths: list[Path]) -> frozenset[str]:
+    """Load previously emitted Injector targets to preserve breadth budget.
+
+    The model often produces a valid but high-frequency diagnostic while aiming
+    for a harder uncovered target.  Those candidates are useful only when the
+    observed type is new; otherwise they consume a request that could continue
+    toward the requested gap.
+    """
+    names: set[str] = set()
+    for path in paths:
+        for line in path.read_text().splitlines():
+            if line.strip():
+                names.add(FuzzLangInjector.from_dict(json.loads(line)).target_diag)
+    return frozenset(names)
+
+
 def _write(path: Path, rows: list[dict]) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text("".join(json.dumps(row, ensure_ascii=False, sort_keys=True) + "\n" for row in rows))
@@ -148,6 +164,10 @@ def main() -> int:
         parser.error("recipe context levels must be non-negative")
     requests = _load(args.requests)
     excluded_injector_ids = frozenset(load_excluded_injector_ids(args.exclude_injectors))
+    excluded_injector_target_names = load_excluded_injector_target_names(
+        args.exclude_injectors,
+    )
+    admitted_target_names = set(excluded_injector_target_names)
     backend = LocalGemma31BBackend(DEFAULT_GEMMA_31B_SNAPSHOT, seed=args.seed)
     verifier = FuzzlangClangVerifier(args.clang_bin, args.diagtool_bin, args.timeout, clang_c_bin=args.clang_c_bin)
     attempts: list[dict] = []
@@ -258,6 +278,13 @@ def main() -> int:
                         rejection_reasons.add(row["reason"])
                         continue
                     target_diag_name = verified.diag.diag_name
+                    if target_diag_name in admitted_target_names:
+                        row["status"] = "rejected"
+                        row["reason"] = "observed_diagnostic_already_covered"
+                        row["observed_diag"] = target_diag_name
+                        attempts.append(row)
+                        rejection_reasons.add(row["reason"])
+                        continue
                     opportunistic = True
                 record_id = "code-witness-" + hashlib.sha256(
                     (request.source_id + "\0" + erroneous).encode()
@@ -346,6 +373,7 @@ def main() -> int:
                     row["observed_diag"] = target_diag_name
                 attempts.append(row)
                 records.append(replay_record.to_dict())
+                admitted_target_names.add(target_diag_name)
                 accepted = True
                 break
         _write_checkpoint(

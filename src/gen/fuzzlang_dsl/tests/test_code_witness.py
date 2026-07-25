@@ -744,6 +744,76 @@ def test_code_witness_cli_can_admit_an_exactly_replayed_observed_error(
     ] is True
 
 
+def test_code_witness_cli_skips_observed_types_with_an_existing_injector(
+    tmp_path, monkeypatch,
+):
+    request = _request()
+    request_path = tmp_path / "requests.jsonl"
+    request_path.write_text(json.dumps(request.to_dict()) + "\n")
+    excluded = tmp_path / "injectors.jsonl"
+    excluded.write_text(json.dumps(FuzzLangInjector(
+        target_diag="err_use_of_undeclared_identifier",
+        target_diag_id=99,
+        language="c++",
+        operation="replace",
+        old_patterns=("value",),
+        new_text="wrong",
+        left_context=("return",),
+        right_context=(";",),
+        replacement_parts=(("literal", "wrong"),),
+        portable=True,
+    ).to_dict()) + "\n")
+
+    class _Backend:
+        def __init__(self, *args, **kwargs):
+            pass
+
+        def chat(self, **kwargs):
+            return [ChatResponse(
+                '{"old_text":"value","new_text":"wrong"}', 4,
+            )]
+
+    class _Verifier:
+        def __init__(self, *args, **kwargs):
+            pass
+
+        def verify(self, candidate, compile_cmd, *, logical_path):
+            if candidate == request.corrected_src:
+                return VerifierResult(True, None, "")
+            return VerifierResult(False, DiagInfo(
+                diag_id=99,
+                diag_name="err_use_of_undeclared_identifier",
+                diag_msg="unknown identifier",
+                file=logical_path,
+                line=1,
+                col=1,
+                start_byte=0,
+                end_byte=1,
+                span_snippet="wrong",
+            ), "")
+
+    monkeypatch.setattr(witness_cli, "LocalGemma31BBackend", _Backend)
+    monkeypatch.setattr(witness_cli, "FuzzlangClangVerifier", _Verifier)
+    monkeypatch.setattr(sys, "argv", [
+        "run_local_code_witness.py",
+        "--requests", str(request_path),
+        "--clang-bin", "/mock/clang++",
+        "--clang-c-bin", "/mock/clang",
+        "--diagtool-bin", "/mock/diagtool",
+        "--output-dir", str(tmp_path / "out"),
+        "--exclude-injectors", str(excluded),
+        "--candidates", "1",
+    ])
+
+    assert witness_cli.main() == 0
+    attempts = [
+        json.loads(line)
+        for line in (tmp_path / "out" / "attempts.jsonl").read_text().splitlines()
+    ]
+    assert attempts[0]["reason"] == "observed_diagnostic_already_covered"
+    assert (tmp_path / "out" / "records.jsonl").read_text() == ""
+
+
 def test_code_witness_cli_skips_targets_unreachable_in_ordinary_cpp_mode(
     tmp_path, monkeypatch,
 ):
