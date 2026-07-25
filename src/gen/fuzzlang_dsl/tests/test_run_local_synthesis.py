@@ -10,6 +10,7 @@ import pytest
 from gen.fuzzlang_dsl.run_local_synthesis import (
     run_synthesis_campaign,
     select_request_range,
+    with_validation_feedback,
 )
 from gen.fuzzlang_dsl.synthesis import SynthesisRequest
 from repair.agent.chat_backend import ChatResponse, MockChatBackend
@@ -71,6 +72,7 @@ def test_run_archives_raw_attempt_injector_and_no_api_manifest(tmp_path: Path):
             "unique_injectors": 1,
             "rejected_candidates": 1,
             "excluded_injector_identities": 0,
+            "feedback_round_requests": 0,
     }
     rows = [json.loads(line) for line in
             (tmp_path / "attempts.jsonl").read_text().splitlines()]
@@ -130,3 +132,53 @@ def test_run_rejects_candidates_with_an_excluded_injector_identity(tmp_path: Pat
     attempt = json.loads((tmp_path / "attempts.jsonl").read_text())
     assert attempt["status"] == "rejected"
     assert attempt["reason"] == "duplicate_excluded_injector"
+
+
+def test_campaign_retries_rejected_target_with_dsl_validation_feedback(tmp_path: Path):
+    request = SynthesisRequest(
+        diag_name="err_example",
+        diag_id=17,
+        diag_message="example error",
+        component="Sema",
+        language="c++",
+        correct_snippets=(
+            "int f(){int x=0; return x;}",
+            "int g(){int y=1; return y;}",
+        ),
+    )
+    backend = MockChatBackend([
+        [ChatResponse("not JSON", 4)],
+        [ChatResponse(json.dumps(_payload()), 23)],
+    ])
+
+    manifest = run_synthesis_campaign(
+        (request,), backend, output_dir=tmp_path,
+        model_name="google/gemma-4-31B-it",
+        model_revision=DEFAULT_GEMMA_31B_REVISION,
+        n_candidates=1, feedback_rounds=2,
+    )
+
+    attempts = [json.loads(line) for line in
+                (tmp_path / "attempts.jsonl").read_text().splitlines()]
+    assert [row["feedback_round"] for row in attempts] == [0, 1]
+    assert manifest["counts"]["accepted_candidates"] == 1
+    assert manifest["counts"]["feedback_round_requests"] == 1
+    assert "DSL validation feedback" in backend.call_log[1]["messages"][1]["content"]
+
+
+def test_validation_feedback_preserves_the_real_source_snippets():
+    request = SynthesisRequest(
+        diag_name="err_example",
+        diag_id=17,
+        diag_message="example error",
+        component="Sema",
+        language="c++",
+        correct_snippets=("int f(){return 0;}", "int g(){return 1;}"),
+    )
+
+    revised = with_validation_feedback(
+        request, rejection_reasons=("no_exemplar_match",),
+    )
+
+    assert revised.correct_snippets == request.correct_snippets
+    assert "no_exemplar_match" in revised.evidence.emission_evidence

@@ -6,6 +6,7 @@ import argparse
 import hashlib
 import json
 from collections import Counter
+from dataclasses import replace
 from pathlib import Path
 from typing import Any, Iterable, Sequence, TypeVar
 
@@ -19,7 +20,7 @@ from gen.fuzzlang_dsl.local_gemma import (
     require_gemma_31b,
 )
 from gen.fuzzlang_dsl.synthesis import (
-    SynthesisRequest,
+    DiagnosticEvidence, SynthesisRequest,
     synthesize_injectors,
 )
 from repair.agent.chat_backend import ChatBackend
@@ -74,6 +75,32 @@ def select_request_range(
     return tuple(requests[start:resolved_stop])
 
 
+def with_validation_feedback(
+    request: SynthesisRequest, *, rejection_reasons: Sequence[str],
+) -> SynthesisRequest:
+    """Ask a later synthesis round to repair locally observed DSL failures."""
+    reasons = sorted({reason for reason in rejection_reasons if reason})
+    if not reasons:
+        return request
+    feedback = (
+        "FuzzLang DSL validation feedback from prior candidates: "
+        + "; ".join(reasons)
+        + ". Revise the Injector instead of repeating those forms. In particular, "
+        "copy one contiguous token shape exactly from a supplied correct snippet "
+        "so the matcher has at least one concrete exemplar application."
+    )
+    existing = request.evidence.emission_evidence
+    return replace(
+        request,
+        evidence=DiagnosticEvidence(
+            tablegen_definition=request.evidence.tablegen_definition,
+            emission_evidence=(
+                feedback if existing is None else existing + "\n\n" + feedback
+            ),
+        ),
+    )
+
+
 def run_synthesis_campaign(
     requests: tuple[SynthesisRequest, ...],
     backend: ChatBackend,
@@ -84,6 +111,7 @@ def run_synthesis_campaign(
     n_candidates: int = 1,
     temperature: float = 0.2,
     max_tokens: int = 1200,
+    feedback_rounds: int = 1,
     excluded_injector_ids: Iterable[str] = (),
 ) -> dict[str, Any]:
     """Run bounded synthesis and preserve every raw/validated outcome."""
@@ -101,6 +129,12 @@ def run_synthesis_campaign(
     excluded_ids = frozenset(excluded_injector_ids)
     if any(not isinstance(injector_id, str) or not injector_id for injector_id in excluded_ids):
         raise ValueError("excluded Injector IDs must be non-empty strings")
+    if (
+        isinstance(feedback_rounds, bool)
+        or not isinstance(feedback_rounds, int)
+        or feedback_rounds <= 0
+    ):
+        raise ValueError("feedback_rounds must be a positive integer")
     rejection_counts: Counter[str] = Counter()
     accepted_candidates = 0
     output_tokens = 0
@@ -108,47 +142,62 @@ def run_synthesis_campaign(
     prompt_tokens_known = True
     token_counter = getattr(backend, "count_prompt_tokens", None)
 
+    feedback_round_requests = 0
     for request_index, request in enumerate(requests):
-        result = synthesize_injectors(
-            request,
-            backend,
-            n_candidates=n_candidates,
-            temperature=temperature,
-            max_tokens=max_tokens,
-            prompt_token_counter=token_counter,
-        )
-        output_tokens += result.usage.output_tokens
-        if result.usage.prompt_tokens is None:
-            prompt_tokens_known = False
-        else:
-            prompt_tokens += result.usage.prompt_tokens
-        for attempt in result.attempts:
-            injector_id = None
-            status = attempt.status
-            reason = attempt.reason
-            if attempt.injector is not None:
-                candidate_id = attempt.injector.injector_id
-                if candidate_id in excluded_ids:
-                    status = "rejected"
-                    reason = "duplicate_excluded_injector"
-                    rejection_counts[reason] += 1
-                else:
-                    accepted_candidates += 1
-                    injector_id = candidate_id
-                    injectors.setdefault(injector_id, attempt.injector.to_dict())
-            elif attempt.reason is not None:
-                rejection_counts[attempt.reason] += 1
-            attempts.append({
-                "request_index": request_index,
-                "diag_name": request.diag_name,
-                "diag_id": request.diag_id,
-                "candidate_index": attempt.candidate_index,
-                "status": status,
-                "reason": reason,
-                "injector_id": injector_id,
-                "output_tokens": attempt.output_tokens,
-                "raw_text": attempt.raw_text,
-            })
+        current_request = request
+        for feedback_round in range(feedback_rounds):
+            result = synthesize_injectors(
+                current_request,
+                backend,
+                n_candidates=n_candidates,
+                temperature=temperature,
+                max_tokens=max_tokens,
+                prompt_token_counter=token_counter,
+            )
+            output_tokens += result.usage.output_tokens
+            if result.usage.prompt_tokens is None:
+                prompt_tokens_known = False
+            else:
+                prompt_tokens += result.usage.prompt_tokens
+            round_rejections: list[str] = []
+            round_has_accepted = False
+            for attempt in result.attempts:
+                injector_id = None
+                status = attempt.status
+                reason = attempt.reason
+                if attempt.injector is not None:
+                    candidate_id = attempt.injector.injector_id
+                    if candidate_id in excluded_ids:
+                        status = "rejected"
+                        reason = "duplicate_excluded_injector"
+                        rejection_counts[reason] += 1
+                    else:
+                        accepted_candidates += 1
+                        injector_id = candidate_id
+                        injectors.setdefault(injector_id, attempt.injector.to_dict())
+                        round_has_accepted = True
+                elif attempt.reason is not None:
+                    rejection_counts[attempt.reason] += 1
+                if status == "rejected" and reason is not None:
+                    round_rejections.append(reason)
+                attempts.append({
+                    "request_index": request_index,
+                    "diag_name": request.diag_name,
+                    "diag_id": request.diag_id,
+                    "feedback_round": feedback_round,
+                    "candidate_index": attempt.candidate_index,
+                    "status": status,
+                    "reason": reason,
+                    "injector_id": injector_id,
+                    "output_tokens": attempt.output_tokens,
+                    "raw_text": attempt.raw_text,
+                })
+            if round_has_accepted or feedback_round + 1 == feedback_rounds:
+                break
+            feedback_round_requests += 1
+            current_request = with_validation_feedback(
+                current_request, rejection_reasons=round_rejections,
+            )
         # Preserve completed requests even if a later model call fails.  A
         # missing manifest then unambiguously denotes an interrupted campaign.
         _write_jsonl(attempts_path, attempts)
@@ -174,6 +223,7 @@ def run_synthesis_campaign(
         },
         "generation": {
             "candidates_per_request": n_candidates,
+            "feedback_rounds": feedback_rounds,
             "temperature": temperature,
             "max_output_tokens": max_tokens,
         },
@@ -184,6 +234,7 @@ def run_synthesis_campaign(
             "unique_injectors": len(injectors),
             "rejected_candidates": candidates - accepted_candidates,
             "excluded_injector_identities": len(excluded_ids),
+            "feedback_round_requests": feedback_round_requests,
         },
         "tokens": {
             "prompt": prompt_tokens if prompt_tokens_known else None,
@@ -217,6 +268,10 @@ def _parser() -> argparse.ArgumentParser:
     parser.add_argument("--temperature", type=float, default=0.2)
     parser.add_argument("--max-tokens", type=int, default=1200)
     parser.add_argument("--seed", type=int, default=0)
+    parser.add_argument(
+        "--feedback-rounds", type=int, default=2,
+        help="retry a target with DSL-validation feedback when its first round has no accepted Injector",
+    )
     parser.add_argument(
         "--request-start", type=int, default=0,
         help="zero-based inclusive request index for a bounded retry shard",
@@ -278,6 +333,7 @@ def main() -> None:
         n_candidates=args.candidates,
         temperature=args.temperature,
         max_tokens=args.max_tokens,
+        feedback_rounds=args.feedback_rounds,
         excluded_injector_ids=excluded_ids,
     )
     print(json.dumps(manifest["counts"], sort_keys=True))
