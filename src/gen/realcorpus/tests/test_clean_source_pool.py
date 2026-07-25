@@ -143,6 +143,20 @@ def test_revalidate_standard_pool_supports_real_c_sources_under_c11():
     )
 
 
+def test_revalidate_standard_pool_appends_feature_flags_before_source():
+    source = _source()
+
+    result = revalidate_standard_pool(
+        [source], MockVerifier(lambda _src, command, _path: (
+            ok_result() if "-fopenmp" in command else VerifierResult(False, None, "error")
+        )), language="c++", standard="c++20", extra_args=("-fopenmp",),
+    )
+
+    assert result.sources[0].compile_cmd == (
+        "__CLANG__", "-std=c++20", "-fsyntax-only", "-fopenmp", "__SRC__",
+    )
+
+
 def test_build_clean_source_pool_keeps_only_unseen_non_test_clean_tus(tmp_path):
     root = tmp_path / "llvm"
     good = root / "llvm/lib/IR/Good.cpp"

@@ -194,12 +194,27 @@ def _with_standard(
     return tuple(result)
 
 
+def _with_extra_args(command: Sequence[str], extra_args: Sequence[str]) -> tuple[str, ...]:
+    """Insert validated compile-mode flags immediately before the source slot."""
+    values = tuple(extra_args)
+    if any(not isinstance(value, str) or not value or value == "__SRC__" for value in values):
+        raise ValueError("extra_args must be non-empty strings and cannot contain __SRC__")
+    if not values:
+        return tuple(command)
+    try:
+        source_index = tuple(command).index("__SRC__")
+    except ValueError as error:  # CleanSourceTU already protects this invariant.
+        raise ValueError("compile command lacks __SRC__") from error
+    return tuple(command[:source_index]) + values + tuple(command[source_index:])
+
+
 def revalidate_standard_pool(
     sources: Iterable[CleanSourceTU],
     verifier: BaseVerifier,
     *,
     language: str,
     standard: str,
+    extra_args: Sequence[str] = (),
     workers: int = 8,
 ) -> CleanSourcePoolResult:
     """Create a clean real-source pool under a distinct language standard.
@@ -219,7 +234,10 @@ def revalidate_standard_pool(
     other_language_sources = sum(1 for source in values if source.language != language)
 
     def process(source: CleanSourceTU):
-        command = _with_standard(source.compile_cmd, language=language, standard=standard)
+        command = _with_extra_args(
+            _with_standard(source.compile_cmd, language=language, standard=standard),
+            extra_args,
+        )
         try:
             result = verifier.verify(
                 source.corrected_src, list(command), logical_path=source.source_path,
@@ -261,11 +279,13 @@ def revalidate_cpp_standard_pool(
     verifier: BaseVerifier,
     *,
     standard: str,
+    extra_args: Sequence[str] = (),
     workers: int = 8,
 ) -> CleanSourcePoolResult:
     """Backward-compatible C++ wrapper for :func:`revalidate_standard_pool`."""
     result = revalidate_standard_pool(
-        sources, verifier, language="c++", standard=standard, workers=workers,
+        sources, verifier, language="c++", standard=standard,
+        extra_args=extra_args, workers=workers,
     )
     counts = dict(result.counts)
     counts["non_cpp_sources"] = counts.pop("non_target_language_sources")

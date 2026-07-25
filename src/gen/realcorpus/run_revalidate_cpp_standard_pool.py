@@ -48,6 +48,10 @@ def _parser() -> argparse.ArgumentParser:
     parser.add_argument("--clean-sources", type=Path, required=True)
     parser.add_argument("--language", choices=("c", "c++"), default="c++")
     parser.add_argument("--standard", required=True, help="e.g. c++20 or c11")
+    parser.add_argument(
+        "--append-arg", action="append", default=[],
+        help="repeatable compiler-mode argument inserted before the source slot",
+    )
     parser.add_argument("--clang-bin", required=True)
     parser.add_argument("--clang-c-bin", required=True)
     parser.add_argument("--diagtool-bin", required=True)
@@ -74,7 +78,7 @@ def main(argv: Sequence[str] | None = None) -> int:
     )
     result = revalidate_standard_pool(
         sources, verifier, language=args.language, standard=args.standard,
-        workers=args.workers,
+        extra_args=tuple(args.append_arg), workers=args.workers,
     )
     accepted = _write_jsonl(args.out, (item.to_dict() for item in result.sources))
     rejected = _write_jsonl(
@@ -91,7 +95,11 @@ def main(argv: Sequence[str] | None = None) -> int:
             "original_source_text_preserved": True,
             "clean_compiler_gate": True,
         },
-        "compile_mode": {"language": args.language, "standard": args.standard},
+        "compile_mode": {
+            "language": args.language,
+            "standard": args.standard,
+            "extra_args": args.append_arg,
+        },
         "compiler": {
             "clang_cxx_bin": args.clang_bin,
             "clang_c_bin": args.clang_c_bin,
