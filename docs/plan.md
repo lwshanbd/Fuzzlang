@@ -4,6 +4,13 @@
 **Compiler version:** `llvmorg-22.1.8` everywhere
 **Status date:** 2026-07-22
 
+> **Live campaign note (2026-07-24).** The active expansion criterion is a
+> fresh strict FuzzLang Injector audit against the full **3,891** pinned
+> TableGen error catalog, with a goal of at least **1,000** verified diagnostic
+> types.  The current live audit is 461/3,891.  Historical 1,935-diagnostic
+> figures in this plan are a separately scoped paper-analysis denominator and
+> must not be used to report live campaign progress.
+
 ## 1. Research Positioning
 
 FuzzLang treats the compiler as more than a verifier. The compiler is the most
