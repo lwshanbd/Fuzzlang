@@ -353,6 +353,23 @@ def test_explicit_retry_targets_drop_unreachable_cpp_modes():
     assert [entry.name for entry in selected] == ["err_expected_expression"]
 
 
+def test_explicit_targets_drop_catalog_errors_without_a_message_template():
+    catalog = Catalog([
+        DiagEntry("err_empty", "Error", "", "Sema"),
+        DiagEntry("err_expected_expression", "Error", "expected", "Parse"),
+    ])
+
+    selected = _resolve_target_entries(
+        catalog,
+        explicit_names=("err_empty", "err_expected_expression"),
+        auto_uncovered_limit=None,
+        covered=set(),
+        attempted=set(),
+    )
+
+    assert [entry.name for entry in selected] == ["err_expected_expression"]
+
+
 def test_diagnostic_name_loader_accepts_records_and_request_rows(tmp_path):
     path = tmp_path / "mixed.jsonl"
     path.write_text(

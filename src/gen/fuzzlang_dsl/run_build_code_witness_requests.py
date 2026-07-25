@@ -357,7 +357,10 @@ def _resolve_target_entries(
         entry = catalog.by_name.get(name)
         if entry is None or not entry.is_error:
             raise ValueError(f"target is not a catalog error: {name}")
-        if not supports_ordinary_cpp_diagnostic_name(entry.name):
+        if (
+            not entry.message.strip()
+            or not supports_ordinary_cpp_diagnostic_name(entry.name)
+        ):
             continue
         entries.append(entry)
     return tuple(entries)
