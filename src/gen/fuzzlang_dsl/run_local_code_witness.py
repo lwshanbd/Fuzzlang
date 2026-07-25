@@ -120,7 +120,8 @@ def main() -> int:
     parser.add_argument("--timeout", type=float, default=5.0)
     parser.add_argument("--seed", type=int, default=0)
     parser.add_argument(
-        "--admit-observed-errors", action="store_true",
+        "--admit-observed-errors", action=argparse.BooleanOptionalAction,
+        default=True,
         help=(
             "when a candidate misses its requested target, retain its actual "
             "primary error only if it can itself be distilled and exactly replayed"

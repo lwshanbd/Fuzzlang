@@ -663,6 +663,7 @@ def test_code_witness_cli_uses_compiler_feedback_for_second_candidate_round(
         "--diagtool-bin", "/mock/diagtool",
         "--output-dir", str(tmp_path / "out"),
         "--candidates", "2",
+        "--no-admit-observed-errors",
     ])
 
     assert witness_cli.main() == 0
