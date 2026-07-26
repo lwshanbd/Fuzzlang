@@ -920,8 +920,14 @@ def test_code_witness_cli_append_mode_extracts_a_replayable_injector(
         json.loads(line)
         for line in (tmp_path / "out" / "records.jsonl").read_text().splitlines()
     ]
+    injectors = [
+        json.loads(line)
+        for line in (tmp_path / "out" / "injectors.jsonl").read_text().splitlines()
+    ]
     assert manifest["witness_mode"] == "append"
     assert manifest["counts"]["records"] == 1
+    assert injectors[0]["schema_version"] == 2
+    assert injectors[0]["edit"]["operation"] == "append"
     assert records[0]["provenance"]["detail"]["strategy"] == (
         "gemma_append_witness_injector_replay"
     )

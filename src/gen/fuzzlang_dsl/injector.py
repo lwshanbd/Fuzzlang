@@ -22,14 +22,15 @@ from gen.realcorpus.recipes import (
 
 
 FUZZLANG_DSL_SCHEMA = "fuzzlang.injector"
-FUZZLANG_DSL_VERSION = 1
-_SUPPORTED_VERSIONS = frozenset({0, 1})
+FUZZLANG_DSL_VERSION = 2
+_SUPPORTED_VERSIONS = frozenset({0, 1, 2})
 
-_OPERATIONS = frozenset({"insert", "delete", "replace"})
+_OPERATIONS = frozenset({"append", "insert", "delete", "replace"})
 _LANGUAGES = frozenset({"c", "c++"})
 _PART_KINDS_BY_VERSION = {
     0: frozenset({"literal", "binding"}),
     1: frozenset({"literal", "binding", "fresh"}),
+    2: frozenset({"literal", "binding", "fresh"}),
 }
 _BINDING_RE = re.compile(r"ID\d+")
 _FRESH_RE = re.compile(r"FRESH\d+")
@@ -165,10 +166,16 @@ class FuzzLangInjector:
             raise ValueError("source_recipe_id must be a non-empty string or null")
         if not isinstance(self.limits, ReplayLimits):
             raise ValueError("limits must be ReplayLimits")
-        if self.operation == "insert" and self.old_patterns:
+        if self.operation in {"insert", "append"} and self.old_patterns:
             raise ValueError("insert operations cannot carry old_patterns")
-        if self.operation != "insert" and not self.old_patterns:
+        if self.operation not in {"insert", "append"} and not self.old_patterns:
             raise ValueError(f"{self.operation} operations require old_patterns")
+        if self.operation == "append" and (
+            self.left_context or self.right_context
+        ):
+            raise ValueError("append operations cannot carry lexical context")
+        if self.operation == "append" and not self.new_text:
+            raise ValueError("append operations require a non-empty payload")
         if self.operation == "delete" and self.new_text:
             raise ValueError("delete operations require an empty new_text")
         if self.portable and len(self.new_text) > self.limits.max_edit_chars:
@@ -352,6 +359,34 @@ class FuzzLangInjector:
             limits=limits,
         )
 
+    @classmethod
+    def append_fragment(
+        cls,
+        *,
+        target_diag: str,
+        language: str,
+        fragment: str,
+        diag_id: Optional[int] = None,
+        limits: Optional[ReplayLimits] = None,
+        exemplar_id: Optional[str] = None,
+    ) -> "FuzzLangInjector":
+        """Create a bounded, replayable end-of-translation-unit Injector."""
+        return cls(
+            target_diag=target_diag,
+            target_diag_id=diag_id,
+            language=language,
+            operation="append",
+            old_patterns=(),
+            new_text=fragment,
+            left_context=(),
+            right_context=(),
+            portable=True,
+            replacement_parts=(("literal", fragment),),
+            limits=limits or ReplayLimits(),
+            exemplar_ids=(exemplar_id,) if exemplar_id else (),
+            schema_version=2,
+        )
+
     def to_recipe(self, *, use_injector_id: bool = False) -> LearnedRecipe:
         """Convert to the existing replay type.
 
@@ -394,6 +429,18 @@ def apply_injector(
         if max_candidates <= 0:
             return []
         requested = min(requested, max_candidates)
+    if injector.operation == "append":
+        if requested <= 0:
+            return []
+        separator = "" if source.endswith("\n") else "\n"
+        appended = source + separator + injector.new_text
+        return [RecipeApplication(
+            src=appended,
+            start=len(source),
+            end=len(source),
+            replacement=injector.new_text,
+            recipe_id=injector.injector_id,
+        )]
     recipe = injector.to_recipe(use_injector_id=True)
     applications = apply_recipe(
         source,

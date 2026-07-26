@@ -64,8 +64,8 @@ def test_recipe_conversion_is_lossless_and_versioned():
     )
 
     assert injector.schema == FUZZLANG_DSL_SCHEMA
-    assert injector.schema_version == FUZZLANG_DSL_VERSION == 1
-    assert injector.injector_id.startswith("fuzzlang-v1-")
+    assert injector.schema_version == FUZZLANG_DSL_VERSION == 2
+    assert injector.injector_id.startswith("fuzzlang-v2-")
     assert injector.target_diag == recipe.diag_name
     assert injector.target_diag_id == 17
     assert injector.to_recipe() == recipe
@@ -192,10 +192,33 @@ def test_v1_fresh_identifier_round_trip_and_replay():
         "int g(){ return item; }", restored,
     )
 
-    assert restored.schema_version == 1
-    assert restored.injector_id.startswith("fuzzlang-v1-")
+    assert restored.schema_version == 2
+    assert restored.injector_id.startswith("fuzzlang-v2-")
     assert [application.src for application in applications] == [
         "int g(){ int fuzzlang_tmp = 0; return fuzzlang_tmp + item; }"
+    ]
+
+
+def test_v2_append_injector_replays_at_end_of_real_source():
+    injector = FuzzLangInjector(
+        target_diag="err_example",
+        target_diag_id=17,
+        language="c++",
+        operation="append",
+        old_patterns=(),
+        new_text="static_assert(false, \"fuzzlang\");",
+        left_context=(),
+        right_context=(),
+        portable=True,
+        replacement_parts=(("literal", "static_assert(false, \"fuzzlang\");"),),
+        schema_version=2,
+    )
+
+    applications = apply_injector("int f() { return 0; }\n", injector)
+
+    assert injector.injector_id.startswith("fuzzlang-v2-")
+    assert [application.src for application in applications] == [
+        'int f() { return 0; }\nstatic_assert(false, "fuzzlang");'
     ]
 
 
@@ -264,7 +287,7 @@ def test_replay_enforces_injector_candidate_and_edit_limits():
 @pytest.mark.parametrize(
     ("field", "value"),
     [
-        ("schema_version", 2),
+        ("schema_version", 3),
         ("schema_version", True),
         ("language", "python"),
         ("operation", "rename"),

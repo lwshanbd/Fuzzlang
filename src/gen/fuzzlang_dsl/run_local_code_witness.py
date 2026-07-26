@@ -576,14 +576,24 @@ def main() -> int:
                     ),
                 )
                 candidate_injectors: dict[str, FuzzLangInjector] = {}
-                for preserve_spelling in (False, True):
-                    for injector in extract_contextual_injectors(
-                        record,
+                if args.witness_mode == "append":
+                    injector = FuzzLangInjector.append_fragment(
+                        target_diag=target_diag_name,
                         diag_id=verified.diag.diag_id,
-                        context_tokens=context_tokens,
-                        preserve_inserted_identifier_spellings=preserve_spelling,
-                    ):
-                        candidate_injectors[injector.injector_id] = injector
+                        language=request.language,
+                        fragment=patch.fragment,
+                        exemplar_id=record.record_id,
+                    )
+                    candidate_injectors[injector.injector_id] = injector
+                else:
+                    for preserve_spelling in (False, True):
+                        for injector in extract_contextual_injectors(
+                            record,
+                            diag_id=verified.diag.diag_id,
+                            context_tokens=context_tokens,
+                            preserve_inserted_identifier_spellings=preserve_spelling,
+                        ):
+                            candidate_injectors[injector.injector_id] = injector
                 selected = _select_exact_replay(
                     corrected_src=request.corrected_src,
                     candidates=tuple(candidate_injectors.values()),
