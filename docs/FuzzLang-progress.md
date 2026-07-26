@@ -5,15 +5,15 @@ LLVM is pinned to `llvmorg-22.1.8`; the current test suite has 503 passing and
 5 environment-dependent skips. Detailed generation history is in
 `data/gen/README.md`.
 
-## Live Strict Injector Campaign (2026-07-25)
+## Live Strict Injector Campaign (2026-07-26)
 
 The active coverage objective is **at least 1,000 distinct Clang TableGen
 error diagnostics**, measured only by the current strict FuzzLang Injector
-audit.  The latest independent live audit reports **960 / 3,891** catalog
-error types, backed by 6,633 paired records and 8,253 unique portable
+audit.  The latest independent live audit reports **1,000 / 3,891** catalog
+error types, backed by 6,689 paired records and 8,507 unique portable
 Injectors.  It counts a compiler-verified first application of a portable
 Injector to its real source witness, while reporting cross-source replay
-separately (626 types).  It rejects records that lack the concrete Injector
+separately (649 types).  It rejects records that lack the concrete Injector
 required by their replay provenance and excludes test/test-support sources.
 
 This audit update also corrects an input-discovery omission: it includes the
@@ -30,11 +30,9 @@ campaign uses the full pinned TableGen error catalog, source-clean-gates every
 parent TU, requires an exact typed compiler diagnostic after Injector replay,
 and records the resulting paired source.
 
-The queue contains (1) compiler-observed uncovered gaps, (2) the complete
-ordinary-C++ LLVM gap pool, and (3) an archived cross-project Abseil gap pool
-that is submitted incrementally as scheduler slots become available.  The
-only completion criterion is a fresh full-catalog strict-audit artifact at or
-above 1,000 types.
+The target is now attained by the fresh full-catalog strict-audit artifact.
+Queued campaigns remain useful for multiplicity and later data-scale work, but
+they are not required to establish this coverage milestone.
 
 ## Current Research Position
 
