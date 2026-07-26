@@ -56,6 +56,54 @@ def test_expand_context_variants_omits_existing_canonical_injector(
     assert len(out.read_text().splitlines()) == 2
     assert json.loads(manifest.read_text())["counts"] == {
         "input_records": 1,
+        "selected_records": 1,
         "excluded_injectors": 1,
         "emitted_injectors": 2,
     }
+
+
+def test_expand_context_variants_can_defer_diag_id_to_current_replay(
+    tmp_path, monkeypatch,
+):
+    record = _record()
+    records = tmp_path / "records.jsonl"
+    records.write_text(json.dumps(record.to_dict()) + "\n")
+    out = tmp_path / "variants.jsonl"
+    manifest = tmp_path / "manifest.json"
+
+    monkeypatch.setattr(sys, "argv", [
+        "run_expand_context_variants.py",
+        "--records", str(records),
+        "--out", str(out),
+        "--manifest-out", str(manifest),
+        "--omit-recorded-diag-id",
+    ])
+
+    assert variants_cli.main() == 0
+    assert {
+        row["target"]["diag_id"]
+        for row in map(json.loads, out.read_text().splitlines())
+    } == {None}
+    assert json.loads(manifest.read_text())["omit_recorded_diag_id"] is True
+
+
+def test_expand_context_variants_filters_to_requested_diagnostics(
+    tmp_path, monkeypatch,
+):
+    record = _record()
+    records = tmp_path / "records.jsonl"
+    records.write_text(json.dumps(record.to_dict()) + "\n")
+    out = tmp_path / "variants.jsonl"
+    manifest = tmp_path / "manifest.json"
+
+    monkeypatch.setattr(sys, "argv", [
+        "run_expand_context_variants.py",
+        "--records", str(records),
+        "--out", str(out),
+        "--manifest-out", str(manifest),
+        "--diagnostic-name", "err_unrelated",
+    ])
+
+    assert variants_cli.main() == 0
+    assert out.read_text() == ""
+    assert json.loads(manifest.read_text())["counts"]["selected_records"] == 0

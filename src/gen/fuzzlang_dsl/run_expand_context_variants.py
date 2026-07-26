@@ -26,12 +26,26 @@ def main() -> int:
     parser.add_argument("--records", type=Path, required=True)
     parser.add_argument("--out", type=Path, required=True)
     parser.add_argument("--manifest-out", type=Path, required=True)
+    parser.add_argument(
+        "--diagnostic-name",
+        action="append",
+        default=[],
+        help="retain only records whose primary diagnostic has this name",
+    )
     parser.add_argument("--exclude-injectors", type=Path, action="append", default=[])
     parser.add_argument("--recipe-context-tokens", type=int, action="append", default=None)
     parser.add_argument(
         "--preserve-inserted-identifier-spellings",
         action="store_true",
         help="emit literal-name variants for identifiers introduced by the edit",
+    )
+    parser.add_argument(
+        "--omit-recorded-diag-id",
+        action="store_true",
+        help=(
+            "leave target DiagID unset so replay binds the Injector solely by "
+            "diagnostic name under the current compiler build"
+        ),
     )
     args = parser.parse_args()
     context_tokens = tuple(
@@ -46,6 +60,15 @@ def main() -> int:
         Record.from_dict(json.loads(line))
         for line in args.records.read_text().splitlines() if line.strip()
     ]
+    selected_diagnostics = frozenset(args.diagnostic_name)
+    if selected_diagnostics:
+        records = [
+            record for record in records
+            if (
+                record.primary_diagnostic is not None
+                and record.primary_diagnostic.diag_name in selected_diagnostics
+            )
+        ]
     injectors: dict[str, dict] = {}
     for record in records:
         diagnostic = record.primary_diagnostic
@@ -53,7 +76,7 @@ def main() -> int:
             continue
         for injector in extract_contextual_injectors(
             record,
-            diag_id=diagnostic.diag_id,
+            diag_id=None if args.omit_recorded_diag_id else diagnostic.diag_id,
             context_tokens=context_tokens,
             preserve_inserted_identifier_spellings=(
                 args.preserve_inserted_identifier_spellings
@@ -69,11 +92,16 @@ def main() -> int:
         "preserve_inserted_identifier_spellings": (
             args.preserve_inserted_identifier_spellings
         ),
+        "omit_recorded_diag_id": args.omit_recorded_diag_id,
         "counts": {
-            "input_records": len(records),
+            "input_records": sum(
+                1 for line in args.records.read_text().splitlines() if line.strip()
+            ),
+            "selected_records": len(records),
             "excluded_injectors": len(excluded),
             "emitted_injectors": len(injectors),
         },
+        "selected_diagnostics": sorted(selected_diagnostics),
     }
     args.manifest_out.parent.mkdir(parents=True, exist_ok=True)
     args.manifest_out.write_text(json.dumps(manifest, sort_keys=True) + "\n")
