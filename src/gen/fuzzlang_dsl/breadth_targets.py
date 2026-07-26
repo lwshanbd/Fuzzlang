@@ -30,7 +30,7 @@ _SPECIAL_MODE_RE = re.compile(
     r"program_scope|"
     r"address_space|addrspace|aix|darwin|nvptx|sme|zt0|"
     r"avr|arm|aarch64|riscv|wasm|webassembly|"
-    r"amdgpu|bpf|hexagon|mips|ppc|sve|rvv|neon"
+    r"amdgpu|amdgcn|anyx86|x86\w*|bpf|hexagon|mips|ppc|sve|rvv|neon|interrupt"
     r"|availability|expected_version|modifier_expected_colon|"
     r"expected_sequence_or_directive|expected_semantic_identifier|method_proto|"
     r"avail|declare_variant|declare_target|after_super|illegal_super|"
@@ -73,7 +73,7 @@ _CPP_ONLY_RE = re.compile(
     r"cxx|cpp|template|typename|namespace|lambda|decltype|concept|requires|"
     r"coroutine|coawait|co_await|co_return|co_yield|explicit|friend|"
     r"constructor|destructor|static_cast|dynamic_cast|const_cast|"
-    r"reinterpret_cast|operator_new|operator_delete"
+    r"reinterpret_cast|operator_new|operator_delete|array_new"
     r")(?:_|$)",
 )
 

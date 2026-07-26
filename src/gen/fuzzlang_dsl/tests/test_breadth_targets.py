@@ -149,6 +149,22 @@ def test_select_uncovered_diagnostics_allows_c11_but_not_c23_in_c11_campaign():
     assert [entry.name for entry in selected] == ["err_c11_generic_selection"]
 
 
+def test_select_uncovered_diagnostics_excludes_target_and_cpp_only_c_names():
+    entries = [
+        _entry("err_amdgcn_coop_atomic_invalid_as"),
+        _entry("err_anyx86_interrupt_called"),
+        _entry("err_array_new_needs_size"),
+        _entry("err_array_size_not_integral"),
+    ]
+
+    selected = select_uncovered_diagnostics(
+        entries, covered=set(), attempted=set(), limit=10,
+        language="c", c_standard="c11",
+    )
+
+    assert [entry.name for entry in selected] == ["err_array_size_not_integral"]
+
+
 def test_select_uncovered_diagnostics_respects_c_standard_modes():
     entries = [
         _entry("err_c11_atomic_invalid", component="Sema"),
