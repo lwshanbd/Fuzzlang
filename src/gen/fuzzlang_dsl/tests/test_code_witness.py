@@ -104,6 +104,16 @@ def test_append_witness_prompt_and_fragment_round_trip():
     )
 
 
+def test_append_witness_rejects_unpaired_unicode_surrogates():
+    fragment, reason = parse_code_append_fragment(
+        r'{"fragment":"int value = \"\ud800\";"}', _request(),
+    )
+
+    assert fragment is None
+    assert reason is not None
+    assert "surrogate" in reason
+
+
 def test_semantic_target_prompt_protects_parse_structure():
     request = CodeWitnessRequest(**{
         **_request().to_dict(),

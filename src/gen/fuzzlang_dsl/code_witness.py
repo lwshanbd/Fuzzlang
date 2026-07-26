@@ -15,6 +15,17 @@ from gen.fuzzlang_dsl.synthesis import extract_first_json_object
 from gen.fuzzlang_dsl.synthesis import DiagnosticEvidence, SynthesisRequest
 
 
+def _contains_unicode_surrogate(value: str) -> bool:
+    """Whether text cannot be encoded as a valid UTF-8 compiler input.
+
+    JSON permits escaped surrogate code units, while Python's decoder retains
+    an unpaired one in ``str``.  Such a model response must be rejected before
+    the verifier writes a temporary source file; otherwise one malformed
+    candidate aborts an entire resumable generation shard.
+    """
+    return any(0xD800 <= ord(character) <= 0xDFFF for character in value)
+
+
 @dataclass(frozen=True)
 class CodeWitnessRequest:
     diag_name: str
@@ -101,6 +112,11 @@ class CodeWitnessPatch:
             raise ValueError("new_text must be a string")
         if len(self.old_text) > 256 or len(self.new_text) > 256:
             raise ValueError("witness edits must be at most 256 characters")
+        if (
+            _contains_unicode_surrogate(self.old_text)
+            or _contains_unicode_surrogate(self.new_text)
+        ):
+            raise ValueError("witness edits must not contain Unicode surrogates")
         if self.old_text == self.new_text:
             raise ValueError("witness patch must change text")
 
@@ -121,6 +137,8 @@ class CodeAppendFragment:
             raise ValueError("append fragment must be non-empty")
         if len(self.fragment) > 256:
             raise ValueError("append fragment must be at most 256 characters")
+        if _contains_unicode_surrogate(self.fragment):
+            raise ValueError("append fragment must not contain Unicode surrogates")
 
 
 def _compile_mode_evidence(command: Sequence[str]) -> str | None:
