@@ -866,6 +866,97 @@ def test_code_witness_cli_processes_every_request_and_writes_manifest(
     )
 
 
+def test_code_witness_cli_wide_mode_checkpoints_between_model_microbatches(
+    tmp_path, monkeypatch,
+):
+    """A timed wide campaign must retain one microbatch before generating next.
+
+    This is what makes a large target shard resumable under the scheduler's
+    wall-time limit: a later Gemma call must never be required before the
+    earlier targets have passed compiler gating and been checkpointed.
+    """
+    source = "int f() { return value; }\n"
+    requests = [
+        CodeWitnessRequest(
+            diag_name="err_typecheck_invalid_lvalue_addrof",
+            diag_id=101,
+            diag_message="cannot take the address of an rvalue",
+            language="c++",
+            tablegen_definition="def err_target : Error<\"target\">;",
+            source_id=f"llvm:llvm/lib/M{index}.cpp",
+            source_path=f"llvm/lib/M{index}.cpp",
+            project="llvm",
+            compile_cmd=("__CLANG__", "-fsyntax-only", "__SRC__"),
+            corrected_src=source,
+            window_start=0,
+            window_end=len(source),
+        )
+        for index in range(4)
+    ]
+    request_path = tmp_path / "requests.jsonl"
+    request_path.write_text("".join(
+        json.dumps(request.to_dict()) + "\n" for request in requests
+    ))
+    output_dir = tmp_path / "out"
+    calls = 0
+
+    class _Backend:
+        def __init__(self, *args, **kwargs):
+            pass
+
+        def chat(self, **kwargs):
+            raise AssertionError("wide mode must batch distinct prompts")
+
+        def chat_batch(self, *, messages_batch, n, **kwargs):
+            nonlocal calls
+            calls += 1
+            assert len(messages_batch) == 2
+            if calls == 2:
+                attempts = output_dir / "attempts.jsonl"
+                assert attempts.exists()
+                assert len(attempts.read_text().splitlines()) == 2
+            return [[
+                ChatResponse('{"old_text":"value","new_text":"&value"}', 4)
+                for _ in range(n)
+            ] for _ in messages_batch]
+
+    class _Verifier:
+        def __init__(self, *args, **kwargs):
+            pass
+
+        def verify(self, candidate, compile_cmd, *, logical_path):
+            if "&value" not in candidate:
+                return VerifierResult(True, None, "")
+            return VerifierResult(False, DiagInfo(
+                diag_id=101,
+                diag_name="err_typecheck_invalid_lvalue_addrof",
+                diag_msg="target",
+                file=logical_path,
+                line=1,
+                col=1,
+                start_byte=0,
+                end_byte=1,
+                span_snippet="value",
+            ), "")
+
+    monkeypatch.setattr(witness_cli, "LocalGemma31BBackend", _Backend)
+    monkeypatch.setattr(witness_cli, "FuzzlangClangVerifier", _Verifier)
+    monkeypatch.setattr(sys, "argv", [
+        "run_local_code_witness.py",
+        "--requests", str(request_path),
+        "--clang-bin", "/mock/clang++",
+        "--clang-c-bin", "/mock/clang",
+        "--diagtool-bin", "/mock/diagtool",
+        "--output-dir", str(output_dir),
+        "--candidates", "1",
+        "--feedback-rounds", "1",
+        "--request-batch-size", "2",
+    ])
+
+    assert witness_cli.main() == 0
+    assert calls == 2
+
+
 def test_code_witness_cli_append_mode_extracts_a_replayable_injector(
     tmp_path, monkeypatch,
 ):

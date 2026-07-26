@@ -348,37 +348,45 @@ def main() -> int:
         undistillable_records=undistillable_records,
         injectors=injectors,
     )
-    if args.request_batch_size > 1:
-        # Wide discovery mode batches *different* diagnostic prompts in one
-        # Gemma generate call.  Compiler validation below remains unchanged.
-        # It intentionally uses one feedback round: adaptive retries depend on
-        # per-request compiler output and therefore cannot be precomputed.
-        prompt_rows: list[tuple[int, list[dict[str, str]]]] = []
-        for request_index, request in enumerate(requests):
-            model_request = (
-                with_regression_trigger_evidence(
-                    request, args.regression_test_root,
-                )
-                if args.regression_evidence else request
-            )
-            messages = (
-                build_code_append_messages(model_request)
-                if args.witness_mode == "append"
-                else build_code_witness_messages(model_request)
-            )
-            prompt_rows.append((request_index, messages))
-        for offset in range(0, len(prompt_rows), args.request_batch_size):
-            batch = prompt_rows[offset:offset + args.request_batch_size]
-            generated = backend.chat_batch(
-                messages_batch=[messages for _, messages in batch],
-                temperature=args.temperature,
-                max_tokens=args.max_tokens,
-                n=args.candidates,
-            )
-            for (request_index, _), responses in zip(batch, generated, strict=True):
-                prefetched_responses[request_index] = responses
-            prefetched_prompt_count += len(batch)
     for request_index, request in enumerate(requests):
+        if (
+            args.request_batch_size > 1
+            and request_index % args.request_batch_size == 0
+        ):
+            # Generate one microbatch, then immediately compiler-gate and
+            # checkpoint it below before starting another.  A whole target
+            # shard may be much larger than a scheduler time slice, but this
+            # boundary makes the completed portion safely resumable.
+            batch: list[tuple[int, list[dict[str, str]]]] = []
+            stop = min(request_index + args.request_batch_size, len(requests))
+            for batch_index in range(request_index, stop):
+                if batch_index in completed_request_indices:
+                    continue
+                batch_request = requests[batch_index]
+                model_request = (
+                    with_regression_trigger_evidence(
+                        batch_request, args.regression_test_root,
+                    )
+                    if args.regression_evidence else batch_request
+                )
+                messages = (
+                    build_code_append_messages(model_request)
+                    if args.witness_mode == "append"
+                    else build_code_witness_messages(model_request)
+                )
+                batch.append((batch_index, messages))
+            if batch:
+                generated = backend.chat_batch(
+                    messages_batch=[messages for _, messages in batch],
+                    temperature=args.temperature,
+                    max_tokens=args.max_tokens,
+                    n=args.candidates,
+                )
+                for (batch_index, _), responses in zip(
+                    batch, generated, strict=True,
+                ):
+                    prefetched_responses[batch_index] = responses
+                prefetched_prompt_count += len(batch)
         if request_index in completed_request_indices:
             continue
         if request.diag_name in excluded_injector_target_names:
