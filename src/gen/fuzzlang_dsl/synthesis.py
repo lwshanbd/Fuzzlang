@@ -12,7 +12,11 @@ from collections import Counter
 from dataclasses import dataclass, field
 from typing import Callable, Optional
 
-from gen.fuzzlang_dsl.injector import FuzzLangInjector, apply_injector
+from gen.fuzzlang_dsl.injector import (
+    FUZZLANG_DSL_VERSION,
+    FuzzLangInjector,
+    apply_injector,
+)
 from gen.realcorpus.recipes import lex_tokens
 from repair.agent.chat_backend import ChatBackend, ChatResponse
 
@@ -550,7 +554,12 @@ def _validate_candidate(
             candidate_index, "rejected", _schema_reason(error),
             response.output_tokens, response.text,
         )
-    if injector.schema_version != _SYNTHESIS_SCHEMA_VERSION:
+    # The direct-model prompt remains v1 for compatibility with archived
+    # model outputs.  v2 is also valid now that the DSL adds bounded append
+    # Injectors; both retain the same ordinary lexical semantics here.
+    if injector.schema_version not in {
+        _SYNTHESIS_SCHEMA_VERSION, FUZZLANG_DSL_VERSION,
+    }:
         reason = "schema_version_mismatch"
     elif injector.target_diag != request.diag_name:
         reason = "target_name_mismatch"
