@@ -9,10 +9,16 @@ LLVM is pinned to `llvmorg-22.1.8`; the current test suite has 503 passing and
 
 The active coverage objective is **at least 1,000 distinct Clang TableGen
 error diagnostics**, measured only by the current strict FuzzLang Injector
-audit.  The latest independent live audit reports **718 / 3,891** catalog
-error types, backed by 5,732 paired records and 7,855 unique portable
+audit.  The latest independent live audit reports **763 / 3,891** catalog
+error types, backed by 5,800 paired records and 7,917 unique portable
 Injectors.  It rejects records that lack the concrete Injector required by
 their replay provenance and excludes test/test-support sources.
+
+The latest 45-type increment came from a genuine wide batch: 64 distinct
+uncovered C++17 diagnostic requests were generated in eight local-Gemma prompt
+batches, then replayed with enlarged compiler-validation budgets.  This
+replaces the former near-serial per-diagnostic generation schedule; all gains
+remain subject to the same strict replay audit.
 
 This is the authoritative live metric for the expansion campaign.  It must
 not be compared directly with the historical 1,935-diagnostic denominator
