@@ -144,6 +144,10 @@ def _anchor_pattern(diag_name: str) -> re.Pattern[str]:
         return re.compile(r"::")
     if "redefinition" in diag_name:
         return re.compile(r"\b(?:class|struct|enum|using|typedef)\b")
+    if "bitfield" in diag_name:
+        return re.compile(r"\b(?:class|struct|union)\b[^;{\n]*\{")
+    if "tag" in diag_name:
+        return re.compile(r"\b(?:class|struct|union|enum)\b")
     if "delete" in diag_name:
         return re.compile(r"\bdelete\b")
     if re.search(r"(?:^|_)new(?:_|$)", diag_name):
@@ -154,6 +158,8 @@ def _anchor_pattern(diag_name: str) -> re.Pattern[str]:
         return re.compile(r"(?<![=!<>])=(?!=)")
     if "decltype" in diag_name:
         return re.compile(r"\bdecltype\s*\(")
+    if re.search(r"(?:^|_)auto(?:_|$)", diag_name):
+        return re.compile(r"\bauto\b")
     if "decomp_decl" in diag_name:
         return re.compile(r"\bauto\s*\[")
     if "deduction_guide" in diag_name:

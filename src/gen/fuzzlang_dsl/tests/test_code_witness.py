@@ -497,6 +497,18 @@ def test_target_anchor_selection_covers_common_long_tail_cpp_contexts():
         assert _anchor_pattern(diagnostic).search(source), diagnostic
 
 
+def test_target_anchor_selection_uses_declaration_context_for_tag_bitfield_auto():
+    assert _anchor_pattern("err_ambiguous_tag_hiding").search(
+        "struct Node { int value; };"
+    )
+    assert _anchor_pattern("err_anon_bitfield_has_negative_width").search(
+        "struct Flags { int : 1; };"
+    )
+    assert _anchor_pattern("err_auto_bitfield").search(
+        "struct Flags { auto value : 1; };"
+    )
+
+
 def test_target_anchor_selection_has_real_source_fallback():
     patterns = _anchor_patterns("err_new_abi_tag_on_redeclaration")
 
