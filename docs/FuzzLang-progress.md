@@ -68,7 +68,7 @@ tail reached local-Gemma health but exited in the GPU-service wrapper before
 the Injector runner began. They produced no candidates, Injectors, or records
 and are therefore excluded from every count above. The wrapper has been fixed
 and both unchanged, clean-source request sets are queued for a strict retry
-with fresh output directories and a wider candidate budget.
+with fresh output directories.
 
 The current expansion queue is broader than that replacement alone. It
 considers 410 distinct Clang-test-reachable strict gaps across ordinary C++23,
