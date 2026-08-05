@@ -64,10 +64,10 @@ queued behind a refreshed pool of 400 clean, non-test LLVM C++23 translation
 units; it will be audited and appended only after the same release gates pass.
 
 The current expansion queue is broader than that replacement alone. It
-considers 397 distinct Clang-test-reachable strict gaps across ordinary C++23,
+considers 410 distinct Clang-test-reachable strict gaps across ordinary C++23,
 C++11/C++2c/C23/C11/C++98, MS extensions/compatibility, OpenMP, OpenACC,
 Blocks, a separately constrained preprocessor route, and ordinary C99. Of
-these, **370** names have a real, clean, non-test source witness and therefore
+these, **382** names have a real, clean, non-test source witness and therefore
 become local Gemma Injector-synthesis requests. The C99 route uses 2,128
 independently clean-gated FFmpeg production files; the others use the
 corresponding LLVM production source pools. Candidates without a safe source
