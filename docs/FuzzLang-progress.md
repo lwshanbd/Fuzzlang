@@ -9,19 +9,19 @@ LLVM is pinned to `llvmorg-22.1.8`; the current test suite has 580 passing,
 
 The active coverage objective is **at least 1,000 distinct Clang TableGen
 error diagnostics**, measured only by the current strict FuzzLang Injector
-audit.  The latest independent live audit reports **1,044 / 3,891** catalog
-error types, backed by 6,786 paired records and 8,546 unique portable
+audit.  The latest independent live audit reports **1,106 / 3,891** catalog
+error types, backed by 6,848 paired records and 8,608 unique portable
 Injectors.  It counts a compiler-verified first application of a portable
 Injector to its real source witness, while reporting cross-source replay
 separately (693 types).  It rejects records that lack the concrete Injector
 required by their replay provenance and excludes test/test-support sources.
 
 The machine-readable snapshot is in
-`data/reports/strict-injector-coverage-20260804/`: its Injector inventory
-maps all **8,546** portable Injector IDs to their target diagnostic (1,074
+`data/reports/strict-injector-coverage-20260804-batch0001/`: its Injector inventory
+maps all **8,608** portable Injector IDs to their target diagnostic (1,136
 distinct target names), while the strict paired-record audit establishes that
-**1,044** of those target names are actually covered.  Its TableGen gap CSV
-lists all **2,847** uncovered error diagnostics with component, message,
+**1,106** of those target names are actually covered.  Its TableGen gap CSV
+lists all **2,785** uncovered error diagnostics with component, message,
 Clang-test reachability, and non-test emission-context availability.  The
 distinction is intentional: an Injector artifact alone is not coverage until
 compiler replay produces an exact-target paired record.
@@ -76,15 +76,17 @@ minimal Clang-only build lacks unrelated optional tools/features; compiler
 stderr was retained and only typed `err_*` diagnostics were counted.
 
 The finalized union over every completed scan mode is **1,444** distinct Clang
-test-reachable diagnostics.  Recomputing it against the current strict 1,044
-FuzzLang types gives an overlap of **645**; there are therefore **799
+test-reachable diagnostics.  Recomputing it against the current strict 1,106
+FuzzLang types gives an overlap of **707**; there are therefore **737
 Clang-test-only** types and **399 FuzzLang-only** types.  These three exact
 name lists and their checksummed summary are stored
 in `data/gen/experiments/clang-test-reachability-audit-20260726/`.
 
-The next expansion campaign uses the 799 Clang-test-only names as its gap list.
-It supplies Gemma-4-31B with TableGen definitions, Clang-test trigger evidence
-(as prompts only), and clean real-source snippets.  Generated Injectors are
+The first expansion campaign began from the 799 Clang-test-only names.  Its
+completed standard/mode-routed batch adds 62 new strict types, leaving 737
+such names for subsequent routing.  It supplies Gemma-4-31B with TableGen
+definitions, Clang-test trigger evidence (as prompts only), and clean
+real-source snippets.  Generated Injectors are
 then applied only to those non-test sources and compiler-verified in bulk; no
 Clang regression-test source is eligible to become a FuzzLang record.
 
@@ -413,6 +415,29 @@ compiled and recorded.
 **Completed append-fragment strict replay (2026-07-28).** Three completed one-node CPU-only replays (16 local compiler processes, zero GPUs) tested the append-fragment candidates against clean, non-test LLVM C++23 translation units. Across the three rounds, the exact-target union is **184 distinct diagnostics** and 313 paired records: round 1 retained 260 records / 153 types; compiler-feedback round 2 retained 41 / 23 new types; an eight-candidate round 3 retained 12 / 8 new types. These are the only numbers counted as strict coverage from this expansion. Candidate counts are deliberately reported separately: the first append round safely normalized 880 Injectors spanning 451 targets; feedback rounds safely normalized 386 and 440 Injectors. The third round has sharply diminishing yield, so the next expansion work is to recover Clang-test run modes and target/feature parameters for the remaining test-only diagnostics, not to repeat the same default-C++23 prompt. Test excerpts remain prompt-only evidence, and every retained record has a verified clean production parent.
 
 **Mode-routed adaptive replay (2026-07-28).** Gemma-4-31B-it generated 664 distinct append-fragment Injectors from 253 standard requests, each carrying two distinct clean production-code windows and bounded Clang-test evidence. A one-node, TP=8 generation run produced 2,056 candidates; GPUs were released before validation. The mode audit selected 522 host-replayable Injector/mode pairs (C++98/11/14/17/20/2c, Blocks, and MS extensions); a one-node CPU-only replay admitted 29 paired records representing **17 diagnostic types not present in the immediately preceding mode-replay set**. The useful yield came primarily from C++98/11/14. These numbers are deliberately local to this adaptive mode-routed experiment and must not be added to any earlier global total without a full union/dedup audit.
+
+**Test-gap batch 1 (2026-08-04).** A new Gemma-4-31B campaign began with
+the Clang-test-only strict gap list, but used test material only as prompt
+evidence.  Each request was bound to a clean, non-test LLVM or FFmpeg source
+file in a compatible compiler mode; every admitted result has a paired
+`corrected_src`, a portable Injector, and an exact primary typed diagnostic.
+
+| mode | target requests | strict records / types |
+|---|---:|---:|
+| C++17 | 11 | 3 / 3 |
+| C++23 | 63 | 34 / 34 |
+| C11 | 7 | 5 / 5 |
+| C23 | 25 | 16 / 16 |
+| OpenMP | 42 | 2 / 2 |
+| MS extensions | 14 | 2 / 2 |
+| Blocks | 3 | 0 / 0 |
+
+The 62 accepted target types are mutually distinct and absent from the prior
+strict audit.  The new full-union audit reports **1,106/3,891** covered TableGen
+error diagnostics, **6,848** strict records, and **8,608** portable Injectors.
+OpenMP and Blocks are retained as useful low-yield mode evidence rather than
+being silently dropped; their remaining targets need directive-/structure-aware
+Injector synthesis.
 
 ## Existing Repair Results: Useful but No Longer the Main Claim
 
