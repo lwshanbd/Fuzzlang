@@ -1,7 +1,7 @@
 # FuzzLang: Progress
 
 Status against `FuzzLang-Proposal.md` and the executable plan in `plan.md`.
-LLVM is pinned to `llvmorg-22.1.8`; the current test suite has 598 passing
+LLVM is pinned to `llvmorg-22.1.8`; the current test suite has 603 passing
 and 5 environment-dependent skips. Detailed generation history is in
 `data/gen/README.md`.
 
@@ -131,6 +131,22 @@ production TUs per type) for those eight current strict gaps. This selection
 change does not alter the strict snapshot: a type enters only after Gemma
 produces a portable Injector and exact compiler replay creates a paired
 non-test record.
+
+**Objective-C real-source route (2026-08-04).** The generator now preserves
+`objective-c` and `objective-c++` as truthful source-language labels, including
+the temporary-file suffix and C/C++ driver selected by the verifier. A fresh
+`libobjc2` production checkout was configured with the pinned patched Clang:
+all **30 / 30** non-test translation units clean-gated, including five
+Objective-C and three Objective-C++ sources. Clang-test trigger metadata was
+then used as prompt-only evidence to identify **87** current strict gaps that
+need only an Objective-C-family language mode (77 Objective-C++, 10
+Objective-C), with no target, ARC, Blocks, runtime, or other feature flag.
+The first two Objective-C++ batches contain 16 target types, each bound to
+three independently clean-gated `libobjc2` production sources. Their local
+Gemma-4-31B Injector-synthesis/replay jobs are serialized behind the existing
+one-node queue. They remain excluded from strict coverage until the same
+paired-source, no-test-source, portable-Injector, and exact-primary-diagnostic
+gates accept an actual replay result.
 
 The audit also corrects an input-discovery omission: it includes the
 compiler-verified first witness produced when a portable Injector is applied
