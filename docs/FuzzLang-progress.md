@@ -1,7 +1,7 @@
 # FuzzLang: Progress
 
 Status against `FuzzLang-Proposal.md` and the executable plan in `plan.md`.
-LLVM is pinned to `llvmorg-22.1.8`; the current test suite has 603 passing
+LLVM is pinned to `llvmorg-22.1.8`; the current test suite has 606 passing
 and 5 environment-dependent skips. Detailed generation history is in
 `data/gen/README.md`.
 
@@ -151,6 +151,10 @@ portable-Injector, and exact-primary-diagnostic gates accept an actual replay
 result. Of the ten bare Objective-C candidates, eight share their diagnostic
 name with the Objective-C++ route; the two remaining distinct names are bound
 to three clean Objective-C production TUs each and queued after that route.
+Four more test-only names use a separately re-clean-gated Objective-C++ mode:
+three require MS extensions and one requires both Blocks and MS extensions.
+The verified mode flags are included in the model's Injector request and all
+four jobs are serialized after the bare-language route.
 
 The audit also corrects an input-discovery omission: it includes the
 compiler-verified first witness produced when a portable Injector is applied
