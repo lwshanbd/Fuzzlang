@@ -23,6 +23,7 @@ err_at_in_class,Parse,true,true,false,1,3,objective-c++,objcxx-bare-foundation-b
 err_atimport,Parse,true,true,false,2,6,objective-c|objective-c++,objc-bare-sema-batch-0004|objcxx-bare-foundation-batch-0004,staged_request_not_an_injector_or_record
 err_atomic_property_nontrivial_assign_op,Sema,true,true,false,1,3,objective-c++,objcxx-bare-foundation-batch-0004,staged_request_not_an_injector_or_record
 err_atprotocol_protocol,Sema,true,true,false,2,6,objective-c|objective-c++,objc-bare-sema-batch-0003|objcxx-bare-foundation-batch-0004,staged_request_not_an_injector_or_record
+err_attribute_riscv_rvv_bits_unsupported,Sema,true,true,false,1,3,c,c17-riscv64-rvv-direct-batch-0022,staged_request_not_an_injector_or_record
 err_builtin_aix_os_unsupported,Sema,true,true,false,1,1,c++,cpp-aix-cpu-builtin-batch-0001,staged_request_not_an_injector_or_record
 err_builtin_x64_aarch64_only,Sema,true,true,false,2,4,c|c++,c17-i386-darwin-target-batch-0017|cpp-i386-varargs-builtin-batch-0001,staged_request_not_an_injector_or_record
 err_capture_binding_openmp,Sema,true,true,false,1,3,c++,cpp23-openmp-direct-batch-0018,staged_request_not_an_injector_or_record
