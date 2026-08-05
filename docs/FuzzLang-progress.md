@@ -148,7 +148,9 @@ target name or test-source path. Their local Gemma-4-31B Injector-synthesis and
 replay jobs are serialized behind the existing one-node queue. They remain
 excluded from strict coverage until the same paired-source, no-test-source,
 portable-Injector, and exact-primary-diagnostic gates accept an actual replay
-result.
+result. Of the ten bare Objective-C candidates, eight share their diagnostic
+name with the Objective-C++ route; the two remaining distinct names are bound
+to three clean Objective-C production TUs each and queued after that route.
 
 The audit also corrects an input-discovery omission: it includes the
 compiler-verified first witness produced when a portable Injector is applied
