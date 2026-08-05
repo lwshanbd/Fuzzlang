@@ -63,6 +63,16 @@ candidates failed the exact-primary-diagnostic gate. A replacement campaign is
 queued behind a refreshed pool of 400 clean, non-test LLVM C++23 translation
 units; it will be audited and appended only after the same release gates pass.
 
+The current expansion queue is broader than that replacement alone. It
+considers 333 distinct Clang-test-reachable strict gaps across ordinary C++23,
+C++11/C++2c/C23/C11/C++98, MS extensions/compatibility, OpenMP, OpenACC,
+Blocks, and a separately constrained preprocessor route. Of these, **306**
+names have a real, clean, non-test source witness and therefore become local
+Gemma Injector-synthesis requests. Candidates without a safe source anchor or
+a clean witness are not sent to the model. All queued output remains excluded
+from the snapshot until it passes the paired-source, no-test-source, portable
+Injector, and exact-primary-diagnostic gates.
+
 The audit also corrects an input-discovery omission: it includes the
 compiler-verified first witness produced when a portable Injector is applied
 to its real source, rather than counting only later replay files.  Cross-source
