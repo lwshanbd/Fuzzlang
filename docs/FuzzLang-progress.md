@@ -1,7 +1,7 @@
 # FuzzLang: Progress
 
 Status against `FuzzLang-Proposal.md` and the executable plan in `plan.md`.
-LLVM is pinned to `llvmorg-22.1.8`; the current test suite has 596 passing
+LLVM is pinned to `llvmorg-22.1.8`; the current test suite has 598 passing
 and 5 environment-dependent skips. Detailed generation history is in
 `data/gen/README.md`.
 
@@ -110,6 +110,18 @@ others use the corresponding LLVM production source pools. Candidates without
 a safe source anchor or a clean witness are not sent to the model. All queued
 output remains excluded from the snapshot until it passes the paired-source,
 no-test-source, portable Injector, and exact-primary-diagnostic gates.
+
+**Evidence-backed C++23 exception route (2026-08-04).** The target selector
+previously treated several TableGen names containing words such as
+`category`, `wasm`, `ptrauth`, or `x86` as special-mode-only. The pinned
+Clang test scan records eight of these types under ordinary
+`-x c++ -std=c++2b` commands with no target or feature flag. The selector now
+admits only that explicit eight-name set to the ordinary C++23 route. A
+separate batch contains 24 requests (three independently clean-gated LLVM
+production TUs per type) for those eight current strict gaps. This selection
+change does not alter the strict snapshot: a type enters only after Gemma
+produces a portable Injector and exact compiler replay creates a paired
+non-test record.
 
 The audit also corrects an input-discovery omission: it includes the
 compiler-verified first witness produced when a portable Injector is applied
