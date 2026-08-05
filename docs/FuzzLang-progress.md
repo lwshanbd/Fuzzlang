@@ -1,8 +1,8 @@
 # FuzzLang: Progress
 
 Status against `FuzzLang-Proposal.md` and the executable plan in `plan.md`.
-LLVM is pinned to `llvmorg-22.1.8`; the current test suite has 580 passing,
-6 environment-dependent skips, and one environment warning. Detailed generation history is in
+LLVM is pinned to `llvmorg-22.1.8`; the current test suite has 592 passing
+and 5 environment-dependent skips. Detailed generation history is in
 `data/gen/README.md`.
 
 ## Live Strict Injector Campaign (updated 2026-08-04)
