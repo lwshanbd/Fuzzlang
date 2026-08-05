@@ -32,11 +32,36 @@ retaining the one-row-per-Injector inventory for exact lookup.  These CSVs
 are metadata only: neither carries a test source, an Injector payload, or a
 training example.
 
+### Recorded Injector and Gap Inventory
+
+The checked-in snapshot above is also the current machine-readable inventory.
+It separates an Injector's *declared target* from a diagnostic type that has
+actually passed the strict paired-record replay gate:
+
+| question | file | current answer |
+| --- | --- | --- |
+| Which Injector targets which diagnostic? | `injector_diagnostic_inventory.csv` | 9,312 portable Injector IDs map to 1,388 target diagnostic names.  The `strict_diagnostic_covered` column identifies the 1,148 target names with at least one exact-target paired record. |
+| How many Injectors target each diagnostic? | `diagnostic_injector_summary.csv` | One row per target name; includes Injector count, language, operation, and strict-coverage status. |
+| Which catalog errors remain uncovered? | `uncovered_tablegen_errors.csv` | 2,743 TableGen error types, each with component, message template, Clang-test reachability, and non-test emission-context availability. |
+| What are the headline totals? | `summary.csv` | The 3,891-type denominator and all coverage, Injector, and test-reachability totals. |
+
+Thus the inventory does **not** claim that all 1,388 Injector target
+names are covered: 240 target names currently have a portable Injector but no
+strictly accepted paired replay.  They remain generation work, as do the
+2,743 catalog names in the gap file.
+
 This audit update includes the completed C++11 and two ordinary-C++23
 test-gap batches: their 40 new records passed the paired-source,
 non-test-source, and exact-target gates. Two independently verified
 cross-target replays contribute two more new types. The next two C++23
 campaigns are prepared but deliberately excluded from this completed snapshot.
+
+The subsequent 62-target ordinary-C++23 campaign completed with **zero**
+accepted Injectors and **zero** records, so it does not change the snapshot or
+the CSVs. Its parent-source pool was stale for most requests, and the remaining
+candidates failed the exact-primary-diagnostic gate. A replacement campaign is
+queued behind a refreshed pool of 400 clean, non-test LLVM C++23 translation
+units; it will be audited and appended only after the same release gates pass.
 
 The audit also corrects an input-discovery omission: it includes the
 compiler-verified first witness produced when a portable Injector is applied
