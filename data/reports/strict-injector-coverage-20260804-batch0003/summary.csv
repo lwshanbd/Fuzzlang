@@ -1,0 +1,11 @@
+metric,value
+catalog_error_diagnostic_types,3891
+strict_verified_diagnostic_types,1148
+unique_portable_injectors,9312
+injector_target_diagnostic_types,1388
+injector_targets_not_strictly_verified,240
+uncovered_catalog_error_types,2743
+test_reachable_catalog_error_types,1444
+test_reachable_strict_overlap,749
+strict_fuzzlang_only_types,399
+test_reachable_uncovered_types,695

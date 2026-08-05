@@ -9,19 +9,19 @@ LLVM is pinned to `llvmorg-22.1.8`; the current test suite has 580 passing,
 
 The active coverage objective is **at least 1,000 distinct Clang TableGen
 error diagnostics**, measured only by the current strict FuzzLang Injector
-audit.  The latest independent live audit reports **1,116 / 3,891** catalog
-error types, backed by 6,858 paired records and 8,618 unique portable
+audit.  The latest independent live audit reports **1,148 / 3,891** catalog
+error types, backed by 6,890 paired records and 9,312 unique portable
 Injectors.  It counts a compiler-verified first application of a portable
 Injector to its real source witness, while reporting cross-source replay
-separately (693 types).  It rejects records that lack the concrete Injector
+separately (695 types).  It rejects records that lack the concrete Injector
 required by their replay provenance and excludes test/test-support sources.
 
 The machine-readable snapshot is in
-`data/reports/strict-injector-coverage-20260804-batch0002/`: its Injector inventory
-maps all **8,618** portable Injector IDs to their target diagnostic (1,146
+`data/reports/strict-injector-coverage-20260804-batch0003/`: its Injector inventory
+maps all **9,312** portable Injector IDs to their target diagnostic (1,388
 distinct target names), while the strict paired-record audit establishes that
-**1,116** of those target names are actually covered.  Its TableGen gap CSV
-lists all **2,775** uncovered error diagnostics with component, message,
+**1,148** of those target names are actually covered.  Its TableGen gap CSV
+lists all **2,743** uncovered error diagnostics with component, message,
 Clang-test reachability, and non-test emission-context availability.  The
 distinction is intentional: an Injector artifact alone is not coverage until
 compiler replay produces an exact-target paired record.
@@ -32,10 +32,11 @@ retaining the one-row-per-Injector inventory for exact lookup.  These CSVs
 are metadata only: neither carries a test source, an Injector payload, or a
 training example.
 
-This audit update also includes the completed C++11 test-gap batch: its 10
-records passed the paired-source, non-test-source, and exact-target gates and
-contributed 10 previously uncovered strict types. Two later C++23 campaigns
-are still running and are deliberately excluded from this completed snapshot.
+This audit update includes the completed C++11 and two ordinary-C++23
+test-gap batches: their 40 new records passed the paired-source,
+non-test-source, and exact-target gates. Two independently verified
+cross-target replays contribute two more new types. The next two C++23
+campaigns are prepared but deliberately excluded from this completed snapshot.
 
 The audit also corrects an input-discovery omission: it includes the
 compiler-verified first witness produced when a portable Injector is applied
@@ -81,15 +82,15 @@ minimal Clang-only build lacks unrelated optional tools/features; compiler
 stderr was retained and only typed `err_*` diagnostics were counted.
 
 The finalized union over every completed scan mode is **1,444** distinct Clang
-test-reachable diagnostics.  Recomputing it against the current strict 1,116
-FuzzLang types gives an overlap of **717**; there are therefore **727
+test-reachable diagnostics.  Recomputing it against the current strict 1,148
+FuzzLang types gives an overlap of **749**; there are therefore **695
 Clang-test-only** types and **399 FuzzLang-only** types.  These three exact
 name lists and their checksummed summary are stored
 in `data/gen/experiments/clang-test-reachability-audit-20260726/`.
 
 The first expansion campaign began from the 799 Clang-test-only names. Its
-completed standard/mode-routed batch plus the completed C++11 follow-up adds
-72 new strict types, leaving 727
+completed standard/mode-routed, C++11, ordinary-C++23, and cross-target
+follow-ups add 104 new strict types, leaving 695
 such names for subsequent routing.  It supplies Gemma-4-31B with TableGen
 definitions, Clang-test trigger evidence (as prompts only), and clean
 real-source snippets.  Generated Injectors are
