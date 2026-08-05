@@ -150,6 +150,23 @@ The target is now attained by the fresh full-catalog strict-audit artifact.
 Queued campaigns remain useful for multiplicity and later data-scale work, but
 they are not required to establish this coverage milestone.
 
+**Objective-C real-source extension (staged, not counted; 2026-08-04).**  The
+clean-source gate now accepts Objective-C and Objective-C++ translation units
+as first-class languages.  A clean `libobjc2` production pool contains 30
+non-test TUs (5 Objective-C and 3 Objective-C++, in addition to C/C++ files),
+each with its project build command and a compiling `corrected_src`.  Three
+serial local-Gemma batches are staged behind the existing one-node queue:
+one source-prechecked C++23 availability target (3 requests), 10
+Objective-C targets over three independent real source witnesses each (30
+requests), and 20 Objective-C++ targets over three witnesses each (60
+requests).  The latter 20 target names are current strict gaps and are
+Clang-test-reachable; 18 have compact prompt-only test/emission evidence and
+the remaining two retain TableGen and source context.  No test source is
+eligible for these requests.  These batches are explicitly **pending**:
+their outputs will be added only after portable-Injector replay produces an
+exact primary diagnostic on the paired non-test source.  They do not change
+the 1,166/3,891 strict snapshot or any CSV total above.
+
 ## Clang Regression-Test Reachability Audit (2026-07-26)
 
 Clang tests are used here strictly as **coverage evidence**, never as FuzzLang
