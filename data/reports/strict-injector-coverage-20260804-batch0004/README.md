@@ -29,7 +29,7 @@ records, and 1,166 covered TableGen error diagnostics out of 3,891.
   availability of a non-test emission context.
 - `staged_direct_injector_targets_20260805.csv` is a separate pending-work
   ledger.  It aggregates direct local-Gemma requests by diagnostic target:
-  202 current strict gaps are represented by 240 requests and 708 clean-source
+  205 current strict gaps are represented by 243 requests and 717 clean-source
   witnesses.  Every row is explicitly marked as not strictly covered.  A row
   describes a request for an Injector, not an Injector artifact or a dataset
   record; it can enter a future inventory only after exact-target compiler

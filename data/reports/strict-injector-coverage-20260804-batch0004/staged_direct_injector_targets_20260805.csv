@@ -15,6 +15,9 @@ err_alias_not_supported_on_darwin,Sema,true,true,false,2,4,c|c++,c17-i386-darwin
 err_arc_inconsistent_property_ownership,Sema,true,true,false,1,3,objective-c++,objcxx-bare-foundation-batch-0004,staged_request_not_an_injector_or_record
 err_arc_strong_property_ownership,Sema,true,true,false,1,3,objective-c++,objcxx-bare-foundation-batch-0004,staged_request_not_an_injector_or_record
 err_arc_weak_no_runtime,Sema,true,true,false,1,3,objective-c++,objcxx-bare-foundation-batch-0004,staged_request_not_an_injector_or_record
+err_asm_invalid_escape,AST,true,true,false,1,3,c++,cpp23-plain-asm-direct-batch-0021,staged_request_not_an_injector_or_record
+err_asm_invalid_input_size,Sema,true,true,false,1,3,c++,cpp23-plain-asm-direct-batch-0021,staged_request_not_an_injector_or_record
+err_asm_invalid_output_size,Sema,true,true,false,1,3,c++,cpp23-plain-asm-direct-batch-0021,staged_request_not_an_injector_or_record
 err_at_defs_cxx,Parse,true,true,false,1,3,objective-c++,objcxx-bare-foundation-batch-0004,staged_request_not_an_injector_or_record
 err_at_in_class,Parse,true,true,false,1,3,objective-c++,objcxx-bare-foundation-batch-0004,staged_request_not_an_injector_or_record
 err_atimport,Parse,true,true,false,2,6,objective-c|objective-c++,objc-bare-sema-batch-0004|objcxx-bare-foundation-batch-0004,staged_request_not_an_injector_or_record
