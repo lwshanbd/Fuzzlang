@@ -55,12 +55,12 @@ strictly accepted paired replay.  They remain generation work, as do the
 ### Pending Direct-Injector Ledger (updated 2026-08-05)
 
 `staged_direct_injector_targets_20260805.csv` records the current staged
-local-Gemma work separately from the verified inventory.  It contains **206**
-distinct, currently uncovered TableGen error types, represented by **244**
-direct Injector requests and **720** independently clean-gated non-test source
+local-Gemma work separately from the verified inventory.  It contains **208**
+distinct, currently uncovered TableGen error types, represented by **246**
+direct Injector requests and **726** independently clean-gated non-test source
 witness requests.  Each row includes the target name, component, language
 mode, contributing batches, and whether the target is test-reachable.  All
-206 are current strict catalog gaps and all are marked
+208 are current strict catalog gaps and all are marked
 `strict_diagnostic_covered=false`.
 
 This ledger is deliberately not an Injector count: it is the input to Gemma,
@@ -70,8 +70,8 @@ provenance, and an exact matching primary typed diagnostic can add the
 resulting Injector and record to a future strict snapshot.  The ledger covers
 the newly prepared Objective-C/Objective-C++, C11 `defer`, GNU/MS inline-asm,
 i386-Darwin target, 40-type OpenMP, 11-type OpenACC, 40-type ordinary
-C++23 preprocessor/pragma, three ordinary inline-asm, and one RISC-V RVV
-target route, along with earlier pending direct routes.
+C++23 preprocessor/pragma, three ordinary inline-asm, one RISC-V RVV, and two
+Blocks-enabled routes, along with earlier pending direct routes.
 
 Batch 4 incorporates the completed second MS-extension run and first OpenACC
 run. Their 18 accepted paired records add 18 exact target types. The full

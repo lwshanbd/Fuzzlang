@@ -27,6 +27,7 @@ err_attribute_riscv_rvv_bits_unsupported,Sema,true,true,false,1,3,c,c17-riscv64-
 err_builtin_aix_os_unsupported,Sema,true,true,false,1,1,c++,cpp-aix-cpu-builtin-batch-0001,staged_request_not_an_injector_or_record
 err_builtin_x64_aarch64_only,Sema,true,true,false,2,4,c|c++,c17-i386-darwin-target-batch-0017|cpp-i386-varargs-builtin-batch-0001,staged_request_not_an_injector_or_record
 err_capture_binding_openmp,Sema,true,true,false,1,3,c++,cpp23-openmp-direct-batch-0018,staged_request_not_an_injector_or_record
+err_capture_block_variable,Sema,true,true,false,1,3,c++,cpp23-blocks-direct-batch-0023,staged_request_not_an_injector_or_record
 err_cast_selector_expr,Sema,true,true,false,1,3,objective-c,objc-bare-unique-batch-0011,staged_request_not_an_injector_or_record
 err_catch_param_not_objc_type,Sema,true,true,false,2,6,objective-c|objective-c++,objc-bare-sema-batch-0003|objcxx-bare-foundation-batch-0005,staged_request_not_an_injector_or_record
 err_category_property,Sema,true,true,false,2,6,objective-c|objective-c++,objc-bare-sema-batch-0003|objcxx-bare-foundation-batch-0005,staged_request_not_an_injector_or_record
@@ -190,6 +191,7 @@ err_synthesize_category_decl,Sema,true,true,false,2,6,objective-c|objective-c++,
 err_synthesize_on_class_property,Sema,true,true,false,2,6,objective-c|objective-c++,objc-bare-sema-batch-0003|objcxx-bare-sema-batch-0009,staged_request_not_an_injector_or_record
 err_synthesized_property_name,Parse,true,true,false,1,3,objective-c++,objcxx-bare-sema-batch-0009,staged_request_not_an_injector_or_record
 err_synthesizing_arc_weak_property_no_runtime,Sema,true,true,false,1,3,objective-c++,objcxx-bare-sema-batch-0009,staged_request_not_an_injector_or_record
+err_typecheck_convert_incompatible_block_pointer,Sema,true,true,false,1,3,c++,cpp23-blocks-direct-batch-0023,staged_request_not_an_injector_or_record
 err_typecheck_ivar_variable_size,Sema,true,true,false,2,6,objective-c|objective-c++,objc-bare-sema-batch-0004|objcxx-bare-sema-batch-0009,staged_request_not_an_injector_or_record
 err_typecheck_member_reference_ivar,Sema,true,true,false,1,3,objective-c++,objcxx-bare-sema-batch-0010,staged_request_not_an_injector_or_record
 err_undeclared_objc_literal_class,Sema,true,true,false,2,6,objective-c|objective-c++,objc-bare-sema-batch-0004|objcxx-bare-sema-batch-0010,staged_request_not_an_injector_or_record
