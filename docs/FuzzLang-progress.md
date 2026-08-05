@@ -85,8 +85,8 @@ strict snapshot until every accepted Injector has itself replayed to the exact
 target diagnostic.
 
 The current expansion queue is broader than that replacement alone. The
-request sets that do not yet have a Gemma output bind **887** real-source
-requests to **485** distinct Clang-test-reachable strict gaps across ordinary
+request sets that do not yet have a Gemma output bind **906** real-source
+requests to **504** distinct Clang-test-reachable strict gaps across ordinary
 C++23, C++20 coroutines, C++11/C++2c/C23/C11/C++98, MS
 extensions/compatibility, OpenMP, OpenACC, Blocks, a separately constrained
 preprocessor route, modules, and ordinary C99. Every one has a clean,
@@ -94,13 +94,15 @@ non-test source witness; source variants deliberately give the same target
 more than one chance to transfer. The new C++20 coroutine route contributes
 five test-reachable diagnostic types with three independent LLVM source
 witnesses each; the OpenMP tail contributes two more with the same
-three-source replication; and the ordinary C++23 source-extension route adds
-five compiler-prechecked nullability/address-space types. The C99 route uses
-2,128 independently clean-gated FFmpeg production files; the others use the
-corresponding LLVM production source pools. Candidates without a safe source
-anchor or a clean witness are not sent to the model. All queued output remains
-excluded from the snapshot until it passes the paired-source, no-test-source,
-portable Injector, and exact-primary-diagnostic gates.
+three-source replication; the ordinary C++23 source-extension route adds five
+compiler-prechecked nullability/address-space types; and the C++98 tail adds
+19 standard-only types from the one available clean LLVM C++98 production TU.
+The C99 route uses 2,128 independently clean-gated FFmpeg production files;
+the others use the corresponding LLVM production source pools. Candidates
+without a safe source anchor or a clean witness are not sent to the model. All
+queued output remains excluded from the snapshot until it passes the
+paired-source, no-test-source, portable Injector, and exact-primary-diagnostic
+gates.
 
 The audit also corrects an input-discovery omission: it includes the
 compiler-verified first witness produced when a portable Injector is applied
