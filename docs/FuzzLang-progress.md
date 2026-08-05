@@ -1,20 +1,36 @@
 # FuzzLang: Progress
 
 Status against `FuzzLang-Proposal.md` and the executable plan in `plan.md`.
-LLVM is pinned to `llvmorg-22.1.8`; the current test suite has 503 passing and
-5 environment-dependent skips. Detailed generation history is in
+LLVM is pinned to `llvmorg-22.1.8`; the current test suite has 580 passing,
+6 environment-dependent skips, and one environment warning. Detailed generation history is in
 `data/gen/README.md`.
 
-## Live Strict Injector Campaign (2026-07-26)
+## Live Strict Injector Campaign (updated 2026-08-04)
 
 The active coverage objective is **at least 1,000 distinct Clang TableGen
 error diagnostics**, measured only by the current strict FuzzLang Injector
-audit.  The latest independent live audit reports **1,000 / 3,891** catalog
-error types, backed by 6,689 paired records and 8,507 unique portable
+audit.  The latest independent live audit reports **1,044 / 3,891** catalog
+error types, backed by 6,786 paired records and 8,546 unique portable
 Injectors.  It counts a compiler-verified first application of a portable
 Injector to its real source witness, while reporting cross-source replay
-separately (649 types).  It rejects records that lack the concrete Injector
+separately (693 types).  It rejects records that lack the concrete Injector
 required by their replay provenance and excludes test/test-support sources.
+
+The machine-readable snapshot is in
+`data/reports/strict-injector-coverage-20260804/`: its Injector inventory
+maps all **8,546** portable Injector IDs to their target diagnostic (1,074
+distinct target names), while the strict paired-record audit establishes that
+**1,044** of those target names are actually covered.  Its TableGen gap CSV
+lists all **2,847** uncovered error diagnostics with component, message,
+Clang-test reachability, and non-test emission-context availability.  The
+distinction is intentional: an Injector artifact alone is not coverage until
+compiler replay produces an exact-target paired record.
+
+The snapshot now also contains a diagnostic-level index: it aggregates the
+number, language, and operation of portable Injectors per target type, while
+retaining the one-row-per-Injector inventory for exact lookup.  These CSVs
+are metadata only: neither carries a test source, an Injector payload, or a
+training example.
 
 This audit update also corrects an input-discovery omission: it includes the
 compiler-verified first witness produced when a portable Injector is applied
@@ -33,6 +49,49 @@ and records the resulting paired source.
 The target is now attained by the fresh full-catalog strict-audit artifact.
 Queued campaigns remain useful for multiplicity and later data-scale work, but
 they are not required to establish this coverage milestone.
+
+## Clang Regression-Test Reachability Audit (2026-07-26)
+
+Clang tests are used here strictly as **coverage evidence**, never as FuzzLang
+records or source material. A fresh direct scan of 21,359 C/C++/ObjC-family
+test files under the same patched `llvmorg-22.1.8` compiler found 1,371 catalog
+error diagnostics. Against the then-current strict FuzzLang set of 1,000,
+617 overlapped this test-derived set; 754 were test-only, and 383 were
+FuzzLang-only. These are historical scan-stage counts, superseded by the
+current 1,044-type comparison below.
+
+The scan was then extended beyond ordinary frontend invocations. Replaying
+`%clang`/`%clangxx` driver commands increased the test-derived total to 1,377
+but reproduced none of the 383 FuzzLang-only diagnostics. A separate 1,080
+file, three-batch scan of `%clang_analyze_cc1` and `%clang_cl` modes found 99
+catalog errors and likewise reproduced **0/383**. These results are recorded
+under `data/gen/experiments/clang-test-*-scan-20260726/`.
+
+The module/PCH follow-up now runs **real lit**, rather than a one-file replay:
+1,546 tests ran in four 500/500/500/46-file batches with the pinned patched
+Clang. It observed 59 catalog error diagnostics and reproduced one of the 383:
+`err_non_template_in_template_id`. Therefore the currently un-reproduced set
+is **382**, not 383. Three batches have non-zero lit exits because this
+minimal Clang-only build lacks unrelated optional tools/features; compiler
+stderr was retained and only typed `err_*` diagnostics were counted.
+
+The finalized union over every completed scan mode is **1,444** distinct Clang
+test-reachable diagnostics.  Recomputing it against the current strict 1,044
+FuzzLang types gives an overlap of **645**; there are therefore **799
+Clang-test-only** types and **399 FuzzLang-only** types.  These three exact
+name lists and their checksummed summary are stored
+in `data/gen/experiments/clang-test-reachability-audit-20260726/`.
+
+The next expansion campaign uses the 799 Clang-test-only names as its gap list.
+It supplies Gemma-4-31B with TableGen definitions, Clang-test trigger evidence
+(as prompts only), and clean real-source snippets.  Generated Injectors are
+then applied only to those non-test sources and compiler-verified in bulk; no
+Clang regression-test source is eligible to become a FuzzLang record.
+
+This still is not a claim that Clang's entire suite cannot reach all 399
+remaining kinds: HLSL DXC tests use a distinct driver, and remaining lit modes
+may require optional tools/features absent from the minimal build. They must
+be executed through lit rather than approximated by a one-file syntax scan.
 
 ## Current Research Position
 
@@ -298,6 +357,63 @@ TableGen gap list and verified clean production code. Its optional archived
 recipe input only retrieves a real syntax shape; no recipe edit is passed to
 Gemma or reused as an Injector.
 
+**TP=8 Clang-test-guided expansion (2026-07-27).** A single Tioga node was
+used as one eight-logical-GPU vLLM tensor-parallel server (not eight independent
+workers and not a multi-node job). It processed 459 distinct Clang-test-grounded
+requests in 64-request bounded batches with two candidates and one feedback
+round. The archived campaign at
+`data/gen/experiments/clang-only-gemma-injectors-v0001/gemma-vllm-tp8-clang-test-v0001/`
+contains 1,030 candidate attempts, 489 syntactically valid Injector artifacts,
+and **403 distinct target diagnostics**. Every request carried regression-test
+trigger text only as prompt evidence; this is a synthesis-candidate milestone,
+not a compiler-verified record or coverage claim. A batched paired-source
+compiler replay is the next gate.
+
+**Interrupted strict replay (2026-07-27).** The replay used one CPU-only Flux
+allocation on one Tioga node (`-N1 -n16`, zero GPUs), not independent node
+jobs. Its 16 in-node ranks deterministically partitioned all 489 candidate
+Injectors and routed each rank only to the clean, non-test LLVM C++23 source
+files named by its witnesses; all 773 witness source identities are present in
+the canonical 1,992-TU pool. The task was externally cancelled after 13
+minutes, so this is an incomplete checkpoint rather than a completed campaign:
+it retained 1,608 strict compiler outcomes, with candidates rejected for
+compiling clean or emitting a different typed diagnostic, and one strict paired
+record for `err_atomic_specifier_bad_type` from
+`llvm/lib/Support/BuryPointer.cpp`. Each accepted output must pass the
+clean-parent gate and have a primary typed diagnostic name exactly equal to the
+Injector target. The checkpoint is not a final yield or a coverage update;
+only a completed replay manifest can support those claims.
+
+**Compiler-feedback retry and verification (2026-07-27).** A follow-up retry
+selected 63 targets from the interrupted replay that had emitted a wrong or no
+typed diagnostic. Gemma-4-31B generated 189 schema-accepted candidates and 73
+unique Injector artifacts in one single-node TP=8 run (one process, eight
+logical GPUs); these remain candidates, not coverage. The resulting 73
+Injectors are now being checked in one separate CPU-only, single-node
+16-process batch against clean paired sources (zero GPUs, at most 50 compiler
+attempts per Injector). The launcher now forcibly ends the local vLLM process
+group after a bounded graceful shutdown so a completed generation run cannot
+hold its node. The fragment-generation route additionally rejects any direct
+copy of a substantive Clang-test line; tests are prompt evidence only.
+
+**Append-fragment expansion checkpoint (2026-07-27).** The lexical retry was
+fully replayed in 16 CPU ranks and produced zero exact-target paired records,
+so it is retained as negative evidence rather than counted as coverage. The
+replacement route asks Gemma for a self-contained schema-v2 append fragment,
+with Clang-test text used only as prompt evidence. The parser now restores only
+request-determined JSON boilerplate that Gemma sometimes omits (schema, target
+identity, language, and the location of `operation`); explicit conflicting
+values are still rejected, and compiler replay remains the semantic gate. Its
+first complete batches accepted 499 of 512 candidates spanning 252 target
+diagnostics, before the single-node TP=8 job was externally cancelled. This is
+a resumable generation checkpoint, not strict coverage: no append candidate is
+counted until a clean production parent and exact primary diagnostic have been
+compiled and recorded.
+
+**Completed append-fragment strict replay (2026-07-28).** Three completed one-node CPU-only replays (16 local compiler processes, zero GPUs) tested the append-fragment candidates against clean, non-test LLVM C++23 translation units. Across the three rounds, the exact-target union is **184 distinct diagnostics** and 313 paired records: round 1 retained 260 records / 153 types; compiler-feedback round 2 retained 41 / 23 new types; an eight-candidate round 3 retained 12 / 8 new types. These are the only numbers counted as strict coverage from this expansion. Candidate counts are deliberately reported separately: the first append round safely normalized 880 Injectors spanning 451 targets; feedback rounds safely normalized 386 and 440 Injectors. The third round has sharply diminishing yield, so the next expansion work is to recover Clang-test run modes and target/feature parameters for the remaining test-only diagnostics, not to repeat the same default-C++23 prompt. Test excerpts remain prompt-only evidence, and every retained record has a verified clean production parent.
+
+**Mode-routed adaptive replay (2026-07-28).** Gemma-4-31B-it generated 664 distinct append-fragment Injectors from 253 standard requests, each carrying two distinct clean production-code windows and bounded Clang-test evidence. A one-node, TP=8 generation run produced 2,056 candidates; GPUs were released before validation. The mode audit selected 522 host-replayable Injector/mode pairs (C++98/11/14/17/20/2c, Blocks, and MS extensions); a one-node CPU-only replay admitted 29 paired records representing **17 diagnostic types not present in the immediately preceding mode-replay set**. The useful yield came primarily from C++98/11/14. These numbers are deliberately local to this adaptive mode-routed experiment and must not be added to any earlier global total without a full union/dedup audit.
+
 ## Existing Repair Results: Useful but No Longer the Main Claim
 
 On 1,282/1,370 reproducible Breadth eval instances with a strong hosted model,
@@ -482,3 +598,25 @@ value.
 
 The detailed six-week schedule, gates, experimental arms, metrics, fallback
 rules, and artifact requirements are maintained in `docs/plan.md`.
+
+
+### Cross-target strict Injector replay (2026-07-28)
+
+- Extracted 104 mutually exclusive C++ Injector replays from the adaptive Gemma
+  batch using the exact `-triple` flags found in the corresponding Clang test
+  `RUN:` lines.  `%itanium_abi_triple` was resolved from this build's
+  `lit.site.cfg.py` to `x86_64-unknown-linux-gnu`; no platform or ABI was
+  silently substituted.
+- Re-clean-gated a production LLVM source under four additional exact targets
+  (`x86_64-linux-gnu`, `x86_64-unknown-linux-gnu`, `i386-linux`, and
+  `i386-apple-darwin9`), each with one accepted clean source.
+- Ran the 104 replay attempts in one Flux allocation (one node, 8 CPU cores,
+  no GPU, no nested or additional jobs).  Strict primary-diagnostic equality
+  yielded 2 paired core records: `err_sizeless_nonlocal` on `arm64-linux-gnu`
+  and `err_need_header_before_typeid` on `x86_64-unknown-linux-gnu`.  Both are
+  new relative to the immediately preceding mode-routed replay; the local
+  mode-plus-target union is now 19 distinct diagnostic names.
+- The remaining 100 attempts were rejected exactly as intended: 65 emitted a
+  different primary diagnostic and 35 compiled cleanly.  This is a local
+  incremental result, not a replacement for the pending global deduplicated
+  coverage audit.

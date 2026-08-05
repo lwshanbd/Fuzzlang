@@ -36,6 +36,7 @@ def test_export_inventory_writes_mapping_and_uncovered_rows(tmp_path, monkeypatc
     test_reachable = tmp_path / "test-reachable.txt"
     test_reachable.write_text("err_a\nerr_b\n")
     injector_out = tmp_path / "injectors.csv"
+    diagnostic_out = tmp_path / "diagnostics.csv"
     uncovered_out = tmp_path / "uncovered.csv"
     summary_out = tmp_path / "summary.csv"
 
@@ -45,6 +46,7 @@ def test_export_inventory_writes_mapping_and_uncovered_rows(tmp_path, monkeypatc
         "--catalog-dir", str(catalog_dir),
         "--test-reachable", str(test_reachable),
         "--injector-out", str(injector_out),
+        "--diagnostic-out", str(diagnostic_out),
         "--uncovered-out", str(uncovered_out),
         "--summary-out", str(summary_out),
     ])
@@ -56,6 +58,29 @@ def test_export_inventory_writes_mapping_and_uncovered_rows(tmp_path, monkeypatc
                 ("err_a", "true"),
                 ("err_c", "false"),
             ]
+    diagnostic_rows = list(csv.DictReader(diagnostic_out.open()))
+    assert diagnostic_rows == [
+        {
+            "diagnostic_name": "err_a",
+            "diagnostic_id": "",
+            "component": "Sema",
+            "portable_injector_count": "1",
+            "languages": "c++",
+            "operations": "append",
+            "target_is_catalog_error": "true",
+            "strict_diagnostic_covered": "true",
+        },
+        {
+            "diagnostic_name": "err_c",
+            "diagnostic_id": "",
+            "component": "",
+            "portable_injector_count": "1",
+            "languages": "c",
+            "operations": "append",
+            "target_is_catalog_error": "false",
+            "strict_diagnostic_covered": "false",
+        },
+    ]
     uncovered_rows = list(csv.DictReader(uncovered_out.open()))
     assert uncovered_rows == [{
         "diagnostic_name": "err_b",
@@ -67,6 +92,8 @@ def test_export_inventory_writes_mapping_and_uncovered_rows(tmp_path, monkeypatc
     summary = {row["metric"]: row["value"]
                for row in csv.DictReader(summary_out.open())}
     assert summary["strict_verified_diagnostic_types"] == "1"
+    assert summary["injector_target_diagnostic_types"] == "2"
+    assert summary["injector_targets_not_strictly_verified"] == "1"
     assert summary["uncovered_catalog_error_types"] == "1"
     assert summary["test_reachable_strict_overlap"] == "1"
     assert summary["strict_fuzzlang_only_types"] == "0"
