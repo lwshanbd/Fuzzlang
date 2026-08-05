@@ -5,25 +5,25 @@ LLVM is pinned to `llvmorg-22.1.8`; the current test suite has 614 passing
 and 6 environment-dependent skips. Detailed generation history is in
 `data/gen/README.md`.
 
-## Live Strict Injector Campaign (updated 2026-08-04)
+## Live Strict Injector Campaign (updated 2026-08-05)
 
 The required lower bound of **250 distinct Clang TableGen error diagnostics**
 has been surpassed. The continuing objective is to maximize real-code
 coverage, measured only by the current strict FuzzLang Injector audit; the
 earlier 1,000-type engineering milestone is also surpassed. The latest
-independent audit reports **1,166 / 3,891** catalog error types, backed by
-6,908 paired records and 9,330 unique portable Injectors. It counts a
+independent audit reports **1,181 / 3,891** catalog error types, backed by
+6,923 paired records and 9,345 unique portable Injectors. It counts a
 compiler-verified first application of a portable Injector to its real source
 witness, while reporting cross-source replay separately (695 types). It
 rejects records that lack the concrete Injector required by their replay
 provenance and excludes test/test-support sources.
 
 The machine-readable snapshot is in
-`data/reports/strict-injector-coverage-20260804-batch0004/`: its Injector inventory
-maps all **9,330** portable Injector IDs to their target diagnostic (1,405
+`data/reports/strict-injector-coverage-20260804-batch0005/`: its Injector inventory
+maps all **9,345** portable Injector IDs to their target diagnostic (1,419
 distinct target names), while the strict paired-record audit establishes that
-**1,166** of those target names are actually covered. Its TableGen gap CSV
-lists all **2,725** uncovered error diagnostics with component, message,
+**1,181** of those target names are actually covered. Its TableGen gap CSV
+lists all **2,710** uncovered error diagnostics with component, message,
 Clang-test reachability, and non-test emission-context availability.  The
 distinction is intentional: an Injector artifact alone is not coverage until
 compiler replay produces an exact-target paired record.
@@ -42,25 +42,25 @@ actually passed the strict paired-record replay gate:
 
 | question | file | current answer |
 | --- | --- | --- |
-| Which Injector targets which diagnostic? | `injector_diagnostic_inventory.csv` | 9,330 portable Injector IDs map to 1,405 target diagnostic names. The `strict_diagnostic_covered` column identifies the 1,166 target names with at least one exact-target paired record. |
+| Which Injector targets which diagnostic? | `injector_diagnostic_inventory.csv` | 9,345 portable Injector IDs map to 1,419 target diagnostic names. The `strict_diagnostic_covered` column identifies the 1,181 target names with at least one exact-target paired record. |
 | How many Injectors target each diagnostic? | `diagnostic_injector_summary.csv` | One row per target name; includes Injector count, language, operation, and strict-coverage status. |
-| Which catalog errors remain uncovered? | `uncovered_tablegen_errors.csv` | 2,725 TableGen error types, each with component, message template, Clang-test reachability, and non-test emission-context availability. |
+| Which catalog errors remain uncovered? | `uncovered_tablegen_errors.csv` | 2,710 TableGen error types, each with component, message template, Clang-test reachability, and non-test emission-context availability. |
 | What are the headline totals? | `summary.csv` | The 3,891-type denominator and all coverage, Injector, and test-reachability totals. |
 
-Thus the inventory does **not** claim that all 1,405 Injector target
-names are covered: 239 target names currently have a portable Injector but no
+Thus the inventory does **not** claim that all 1,419 Injector target
+names are covered: 238 target names currently have a portable Injector but no
 strictly accepted paired replay.  They remain generation work, as do the
-2,725 catalog names in the gap file.
+2,710 catalog names in the gap file.
 
 ### Pending Direct-Injector Ledger (updated 2026-08-05)
 
 `staged_direct_injector_targets_20260805.csv` records the current staged
-local-Gemma work separately from the verified inventory.  It contains **208**
-distinct, currently uncovered TableGen error types, represented by **246**
-direct Injector requests and **726** independently clean-gated non-test source
+local-Gemma work separately from the verified inventory.  It contains **198**
+distinct, currently uncovered TableGen error types, represented by **236**
+direct Injector requests and **696** independently clean-gated non-test source
 witness requests.  Each row includes the target name, component, language
 mode, contributing batches, and whether the target is test-reachable.  All
-208 are current strict catalog gaps and all are marked
+198 are current strict catalog gaps and all are marked
 `strict_diagnostic_covered=false`.
 
 This ledger is deliberately not an Injector count: it is the input to Gemma,
@@ -72,6 +72,11 @@ the newly prepared Objective-C/Objective-C++, C11 `defer`, GNU/MS inline-asm,
 i386-Darwin target, 40-type OpenMP, 11-type OpenACC, 40-type ordinary
 C++23 preprocessor/pragma, three ordinary inline-asm, one RISC-V RVV, and two
 Blocks-enabled routes, along with earlier pending direct routes.
+
+Batch 5 incorporates three completed local-Gemma campaigns: the C23 standard
+route, an OpenMP route, and a C++23 retry route. Their 15 accepted paired
+records add 15 exact target types. The full release decision is recorded in
+`data/gen/experiments/clang-test-gap-injector-v0002/strict-injector-coverage-audit-batch0005.json`.
 
 Batch 4 incorporates the completed second MS-extension run and first OpenACC
 run. Their 18 accepted paired records add 18 exact target types. The full
@@ -210,7 +215,7 @@ the remaining two retain TableGen and source context.  No test source is
 eligible for these requests.  These batches are explicitly **pending**:
 their outputs will be added only after portable-Injector replay produces an
 exact primary diagnostic on the paired non-test source.  They do not change
-the 1,166/3,891 strict snapshot or any CSV total above.
+the 1,181/3,891 strict snapshot or any CSV total above.
 
 ## Clang Regression-Test Reachability Audit (2026-07-26)
 
@@ -238,8 +243,8 @@ minimal Clang-only build lacks unrelated optional tools/features; compiler
 stderr was retained and only typed `err_*` diagnostics were counted.
 
 The finalized union over every completed scan mode is **1,444** distinct Clang
-test-reachable diagnostics. Recomputing it against the current strict 1,166
-FuzzLang types gives an overlap of **767**; there are therefore **677
+test-reachable diagnostics. Recomputing it against the current strict 1,181
+FuzzLang types gives an overlap of **782**; there are therefore **662
 Clang-test-only** types and **399 FuzzLang-only** types.  These three exact
 name lists and their checksummed summary are stored
 in `data/gen/experiments/clang-test-reachability-audit-20260726/`.
