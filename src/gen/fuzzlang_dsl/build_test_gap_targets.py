@@ -147,6 +147,10 @@ def main(argv: Sequence[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--test-reachable", type=Path, action="append", required=True)
     parser.add_argument("--strict-audit", type=Path, required=True)
+    parser.add_argument(
+        "--exclude-name-file", type=Path, action="append", default=[],
+        help="diagnostic names already queued by an in-flight campaign",
+    )
     parser.add_argument("--out", type=Path, required=True)
     parser.add_argument("--manifest-out", type=Path)
     parser.add_argument("--offset", type=int, default=0)
@@ -187,9 +191,13 @@ def main(argv: Sequence[str] | None = None) -> int:
 
     test_reachable = _read_names(args.test_reachable)
     strict_audit = json.loads(args.strict_audit.read_text(encoding="utf-8"))
-    all_gap_names = test_reachable_uncovered_names(
+    strict_gap_names = test_reachable_uncovered_names(
         test_reachable=test_reachable, strict_audit=strict_audit,
     )
+    excluded_names = _read_names(args.exclude_name_file)
+    all_gap_names = [
+        name for name in strict_gap_names if name not in excluded_names
+    ]
     names = compatible_names(
         all_gap_names,
         language=args.language,
@@ -218,7 +226,9 @@ def main(argv: Sequence[str] | None = None) -> int:
             "strictly_covered_diagnostic_types": len(
                 strict_audit["verified_diagnostic_names"],
             ),
-            "test_reachable_uncovered_diagnostic_types": len(all_gap_names),
+            "test_reachable_uncovered_diagnostic_types": len(strict_gap_names),
+            "eligible_after_inflight_exclusion": len(all_gap_names),
+            "inflight_diagnostic_types_excluded": len(excluded_names),
             "mode_compatible_diagnostic_types": len(names),
             "compile_mode": {
                 "language": args.language,
@@ -240,7 +250,8 @@ def main(argv: Sequence[str] | None = None) -> int:
             "evidence_only": True,
         }, indent=2, sort_keys=True) + "\n", encoding="utf-8")
     print(json.dumps({
-        "test_reachable_uncovered_diagnostic_types": len(all_gap_names),
+        "test_reachable_uncovered_diagnostic_types": len(strict_gap_names),
+        "eligible_after_inflight_exclusion": len(all_gap_names),
         "mode_compatible_diagnostic_types": len(names),
         "selected_diagnostic_types": len(selected),
     }, sort_keys=True))

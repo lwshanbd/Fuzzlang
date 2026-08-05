@@ -106,3 +106,22 @@ def test_build_test_gap_targets_can_require_a_plain_test_trigger_mode(tmp_path):
     ]) == 0
 
     assert out.read_text() == "err_a\n"
+
+
+def test_build_test_gap_targets_excludes_an_inflight_target_queue(tmp_path):
+    tests = tmp_path / "tests.txt"
+    tests.write_text("err_a\nerr_b\n")
+    audit = tmp_path / "audit.json"
+    audit.write_text(json.dumps({"verified_diagnostic_names": []}))
+    inflight = tmp_path / "inflight.txt"
+    inflight.write_text("err_a\n")
+    out = tmp_path / "gap.txt"
+
+    assert build_test_gap_targets.main([
+        "--test-reachable", str(tests),
+        "--strict-audit", str(audit),
+        "--exclude-name-file", str(inflight),
+        "--out", str(out),
+    ]) == 0
+
+    assert out.read_text() == "err_b\n"
