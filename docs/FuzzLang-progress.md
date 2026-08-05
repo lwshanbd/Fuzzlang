@@ -63,6 +63,13 @@ candidates failed the exact-primary-diagnostic gate. A replacement campaign is
 queued behind a refreshed pool of 400 clean, non-test LLVM C++23 translation
 units; it will be audited and appended only after the same release gates pass.
 
+The first launch of the replacement's C++23 tail and the independent C++98
+tail reached local-Gemma health but exited in the GPU-service wrapper before
+the Injector runner began. They produced no candidates, Injectors, or records
+and are therefore excluded from every count above. The wrapper has been fixed
+and both unchanged, clean-source request sets are queued for a strict retry
+with fresh output directories and a wider candidate budget.
+
 The current expansion queue is broader than that replacement alone. It
 considers 410 distinct Clang-test-reachable strict gaps across ordinary C++23,
 C++11/C++2c/C23/C11/C++98, MS extensions/compatibility, OpenMP, OpenACC,
