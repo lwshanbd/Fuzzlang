@@ -85,8 +85,8 @@ strict snapshot until every accepted Injector has itself replayed to the exact
 target diagnostic.
 
 The current expansion queue is broader than that replacement alone. The
-request sets that do not yet have a Gemma output bind **927** real-source
-requests to **511** distinct Clang-test-reachable strict gaps across ordinary
+request sets that do not yet have a Gemma output bind **966** real-source
+requests to **516** distinct Clang-test-reachable strict gaps across ordinary
 C++23, C++20 coroutines, C++11/C++2c/C23/C11/C++98, MS
 extensions/compatibility, OpenMP, OpenACC, Blocks, a separately constrained
 preprocessor route, modules, and ordinary C99. Every one has a clean,
@@ -100,11 +100,12 @@ compiler-prechecked nullability/address-space types; and the C++98 tail adds
 and the TableGen-Summary route enables three further C++23 types that the
 former catalog parser had treated as message-less. A final source-level
 attribute route adds `err_attribute_pointers_only` on three independent LLVM
-C++23 witnesses. The C99 route uses 2,128 independently clean-gated FFmpeg
-production files; the others use the corresponding LLVM production source
-pools. Candidates without a safe source anchor or a clean witness are not
-sent to the model. All queued output remains excluded from the snapshot until
-it passes the paired-source, no-test-source, portable Injector, and
+C++23 witnesses; and a source-prechecked availability route adds four types
+on three witnesses each. The C99 route uses 2,128 independently clean-gated
+FFmpeg production files; the others use the corresponding LLVM production
+source pools. Candidates without a safe source anchor or a clean witness are
+not sent to the model. All queued output remains excluded from the snapshot
+until it passes the paired-source, no-test-source, portable Injector, and
 exact-primary-diagnostic gates.
 
 The audit also corrects an input-discovery omission: it includes the
