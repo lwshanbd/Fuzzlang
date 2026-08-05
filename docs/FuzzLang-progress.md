@@ -70,6 +70,19 @@ and are therefore excluded from every count above. The wrapper has been fixed
 and both unchanged, clean-source request sets are queued for a strict retry
 with fresh output directories.
 
+**Additional clean-source recovery queue (2026-08-04).** To recover target
+types that were previously missed because an old parent source was stale or a
+single source witness did not give the model enough usable context, three
+dependent local-Gemma runs are now staged after the existing retries.  They
+contain 318 requests over **104 distinct current strict gaps**: 62 ordinary
+C++23 types from the stale-parent batch, 8 remaining C++17 types, and 36
+otherwise-unqueued C++23 misses.  Each target is bound to three independently
+clean-gated, non-test real source witnesses.  The C++17 and C++23 groups share
+two target names, hence 106 target selections reduce to 104 distinct names.
+Clang-test evidence is prompt-only, and this queue remains excluded from the
+strict snapshot until every accepted Injector has itself replayed to the exact
+target diagnostic.
+
 The current expansion queue is broader than that replacement alone. It
 considers 410 distinct Clang-test-reachable strict gaps across ordinary C++23,
 C++11/C++2c/C23/C11/C++98, MS extensions/compatibility, OpenMP, OpenACC,
