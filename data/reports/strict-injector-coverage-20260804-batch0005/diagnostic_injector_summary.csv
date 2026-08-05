@@ -1370,10 +1370,8 @@ err_vla_decl_has_extern_linkage,5505,Sema,8,c++,replace,true,true
 err_vla_decl_has_static_storage,5506,Sema,8,c++,replace,true,true
 err_vla_decl_in_file_scope,5507,Sema,2,c++,append;replace,true,true
 err_void_only_param,5515,Sema,9,c++,insert;replace,true,true
-err_void_param_qualified,5516,Sema,1,c++,append,true,true
 err_while_loop_outside_of_a_function,1938,Parse,1,c++,replace,true,true
 error_subscript_overload,5548,Sema,4,c++,replace,true,true
-ext_array_init_parens,5557,Sema,1,c++,append,true,true
 ext_constexpr_function_never_constant_expr,5579,Sema,4,c++,insert,true,true
 ext_destructor_typedef_name,5596,Sema,4,c++,insert,true,true
 ext_dynamic_exception_spec,1974,Parse,8,c++,replace,true,true
@@ -1408,9 +1406,7 @@ pp_err_else_without_if,,Lex,8,c++,insert,true,true
 warn_acc_var_referenced_lacks_op,6568,Sema,1,c++,append,true,true
 warn_argument_invalid_range,,Sema,1,c++,append,true,false
 warn_atomic_member_access,6620,Sema,1,c++,append,true,true
-warn_atomic_stripped_in_enum,6623,Sema,1,c++,append,true,true
 warn_builtin_unknown,6723,Sema,2,c,append;replace,true,true
-warn_cannot_pass_non_pod_arg_to_vararg,6741,Sema,1,c++,append,true,true
 warn_consecutive_comparison,6798,Sema,1,c++,replace,true,true
 warn_delegating_ctor_cycle,6909,Sema,1,c++,replace,true,true
 warn_invalid_asm_cast_lvalue,7160,Sema,1,c++,append,true,true

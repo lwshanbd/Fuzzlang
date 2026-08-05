@@ -2,8 +2,8 @@
 
 This completed strict-coverage snapshot extends batch 4 with three completed
 local-Gemma campaigns: a C23 standard route, an OpenMP route, and a C++23
-retry route.  Their 15 accepted paired records add 15 exact target diagnostic
-types under the pinned `llvmorg-22.1.8` catalog.
+retry route.  Their final combined strict audit admits 11 new exact target
+diagnostic types under the pinned `llvmorg-22.1.8` catalog.
 
 Only compiler-verified outputs enter this snapshot.  A core record must carry
 a clean, non-test parent and `corrected_src`; a portable FuzzLang Injector must
@@ -13,8 +13,8 @@ no test or test-support source is a FuzzLang record.
 
 The release audit is
 `data/gen/experiments/clang-test-gap-injector-v0002/strict-injector-coverage-audit-batch0005.json`.
-It audited 9,345 unique portable Injectors and 6,923 strict paired records,
-covering 1,181 of 3,891 catalog error diagnostics.
+It audited 9,341 unique portable Injectors and 6,919 strict paired records,
+covering 1,177 of 3,891 catalog error diagnostics.
 
 - `summary.csv` contains the headline counts.
 - `injector_diagnostic_inventory.csv` maps each portable Injector ID to its

@@ -2631,6 +2631,7 @@ err_vm_decl_has_extern_linkage,Sema,variably modified type declaration cannot ha
 err_vm_decl_in_file_scope,Sema,variably modified type declaration not allowed at file scope,false,true
 err_vm_func_decl,Sema,function declaration cannot have variably modified type,true,true
 err_void_explicit_object_param,Sema,explicit object parameter cannot have 'void' type,false,true
+err_void_param_qualified,Sema,'void' as parameter must not have type qualifiers,true,true
 err_volatile_comparison_operator,Sema,defaulted comparison function must not be volatile,false,true
 err_vsx_builtin_nonconstant_argument,Sema,"argument %0 to %1 must be a 2-bit unsigned literal (i.e. 0, 1, 2 or 3)",false,true
 err_wasm_builtin_arg_must_be_externref_type,Sema,%ordinal0 argument must be an externref,false,true
@@ -2665,6 +2666,7 @@ error_duplicate_asm_operand_name,Sema,"duplicate use of asm operand name ""%0"""
 error_hlsl_inout_lvalue,Sema,cannot bind non-lvalue argument %0 to %select{|in}1out paramemter,false,true
 error_hlsl_inout_scalar_extension,Sema,illegal scalar extension cast on argument %0 to %select{|in}1out paramemter,false,true
 error_inoutput_conflict_with_clobber,Sema,asm-specifier for input or output variable conflicts with asm clobber list,true,true
+ext_array_init_parens,Sema,parenthesized initialization of a member array is a GNU extension,true,true
 ext_cce_narrowing,Sema,"%select{case value|enumerator value|non-type template argument|non-type parameter of template template parameter|array size|explicit specifier argument|noexcept specifier argument|call to 'size()'|call to 'data()'}0 %select{cannot be narrowed from type %2 to %3|evaluates to %2, which cannot be narrowed to type %3}1",true,true
 ext_compat_template_param_shadow,Sema,declaration of %0 shadows template parameter,false,true
 ext_implicit_lib_function_decl_c99,Sema,call to undeclared library function '%0' with type %1; ISO C99 and later do not support implicit function declarations,true,true
@@ -2686,7 +2688,9 @@ pp_include_macros_out_of_predefines,Lex,the #__include_macros directive is only 
 warn_argument_invalid_range,Sema,"argument value %0 is outside the valid range [%1, %2]",true,true
 warn_array_comparison_cxx26,Sema,"comparison between two arrays is ill-formed in C++26; to compare array addresses, use unary '+' to decay operands to pointers",true,true
 warn_ast_file_config_mismatch,Serialization,precompiled file '%0' cannot be loaded due to a configuration mismatch with the current compilation,false,true
+warn_atomic_stripped_in_enum,Sema,'_Atomic' qualifier ignored; operations involving the enumeration type will be non-atomic,true,true
 warn_attr_min_eq_max,Sema,%0 attribute minimum and maximum arguments are equal,false,true
+warn_cannot_pass_non_pod_arg_to_vararg,Sema,cannot pass object of %select{non-POD|non-trivial}0 type %1 through variadic %select{function|block|method|constructor}2; call will abort at runtime,true,true
 warn_comparison_in_fold_expression,Sema,comparison in fold expression would evaluate to '(X %0 Y) %0 Z' which does not behave the same as a mathematical expression,false,true
 warn_conv_mixed_enum_types_cxx26,Sema,"invalid %sub{select_arith_conv_kind}0 different enumeration types%diff{ ($ and $)|}1,2",false,true
 warn_cxx_ms_struct,Sema,ms_struct may not produce Microsoft-compatible layouts for classes with base classes or virtual functions,true,true
