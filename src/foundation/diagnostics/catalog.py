@@ -19,7 +19,7 @@ from __future__ import annotations
 
 import os
 import re
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from typing import Optional
 
 _HERE = os.path.dirname(os.path.abspath(__file__))
@@ -39,6 +39,7 @@ _LEADING_CLASS_RE = re.compile(r"\s*([A-Za-z_]\w*)\s*<")
 _INGROUP_RE = re.compile(r"\bInGroup<\s*([A-Za-z_]\w*)\s*>")
 _DEFAULT_ERROR_RE = re.compile(r"\bDefaultError\b")
 _STRING_RE = re.compile(r'"((?:[^"\\]|\\.)*)"')
+_SUMMARY_REF_RE = re.compile(r"^\s*([A-Za-z_]\w*)\.Summary\s*$")
 
 
 @dataclass(frozen=True)
@@ -195,17 +196,21 @@ def parse_td_text(text: str, component: Optional[str] = None) -> list[DiagEntry]
     """Parse all diagnostic definitions out of one `.td` text."""
     text = _strip_comments(text)
     entries: list[DiagEntry] = []
+    summary_refs: dict[str, str] = {}
     for m in _DEF_RE.finditer(text):
         body = _read_body(text, m.end())
         cm = _LEADING_CLASS_RE.match(body)
         if not cm or cm.group(1) not in SEVERITY_CLASSES:
             continue
         severity = cm.group(1)
-        message = _extract_message(_balanced_angle(body, cm.end() - 1))
+        angle_content = _balanced_angle(body, cm.end() - 1)
+        message = _extract_message(angle_content)
+        summary_ref = _SUMMARY_REF_RE.match(angle_content)
         gm = _INGROUP_RE.search(body)
+        name = m.group(1)
         entries.append(
             DiagEntry(
-                name=m.group(1),
+                name=name,
                 severity=severity,
                 message=message,
                 component=component,
@@ -213,7 +218,33 @@ def parse_td_text(text: str, component: Optional[str] = None) -> list[DiagEntry]
                 default_error=_DEFAULT_ERROR_RE.search(body) is not None,
             )
         )
-    return entries
+        if summary_ref is not None:
+            summary_refs[name] = summary_ref.group(1)
+
+    by_name = {entry.name: entry for entry in entries}
+    resolved: dict[str, str] = {}
+
+    def resolve_message(name: str, visiting: set[str]) -> str:
+        if name in resolved:
+            return resolved[name]
+        entry = by_name.get(name)
+        if entry is None or name in visiting:
+            return ""
+        if entry.message:
+            resolved[name] = entry.message
+            return entry.message
+        target = summary_refs.get(name)
+        if target is None:
+            return ""
+        message = resolve_message(target, visiting | {name})
+        resolved[name] = message
+        return message
+
+    return [
+        replace(entry, message=resolve_message(entry.name, set()))
+        if entry.name in summary_refs else entry
+        for entry in entries
+    ]
 
 
 def _component_from_filename(path: str) -> Optional[str]:

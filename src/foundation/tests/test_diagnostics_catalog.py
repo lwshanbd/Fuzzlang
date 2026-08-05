@@ -24,6 +24,8 @@ def warn_promoted : Warning<"promoted">, InGroup<SomeGroup>, DefaultError;
 def warn_plain : Warning<"plain warning">, InGroup<SomeGroup>;
 def ext_thing : Extension<"an extension">;
 def note_thing : Note<"a note">;
+def err_reuses_note_summary : Error<note_thing.Summary>;
+def err_reuses_error_summary : Error<err_reuses_note_summary.Summary>;
 def subst : TextSubstitution<"not a diagnostic">;
 }
 // def err_commented : Error<"nope">;
@@ -46,6 +48,13 @@ def test_parses_simple_error():
 def test_multiline_message_is_concatenated():
     e = _by_name(FIXTURE, component="Test")["err_multiline"]
     assert e.message == "line one line two"
+
+
+def test_summary_reference_uses_referenced_diagnostic_message():
+    entries = _by_name(FIXTURE, component="Test")
+
+    assert entries["err_reuses_note_summary"].message == "a note"
+    assert entries["err_reuses_error_summary"].message == "a note"
 
 
 def test_default_error_promotes_warning_to_error():
