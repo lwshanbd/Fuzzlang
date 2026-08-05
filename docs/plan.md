@@ -2,14 +2,14 @@
 
 **Target:** CGO, September 2026
 **Compiler version:** `llvmorg-22.1.8` everywhere
-**Status date:** 2026-07-26
+**Status date:** 2026-08-05
 
-> **Live campaign note (2026-07-26).** The active expansion criterion is a
-> fresh strict FuzzLang Injector audit against the full **3,891** pinned
-> TableGen error catalog, with a goal of at least **1,000** verified diagnostic
-> types.  The current live audit is 1,000/3,891.  Historical 1,935-diagnostic
-> figures in this plan are a separately scoped paper-analysis denominator and
-> must not be used to report live campaign progress.
+> **Coverage-scope note (2026-08-05).** The paper headline is the frozen
+> **1,935-diagnostic strict C/C++ code** denominator. The current strict
+> Injector audit covers **1,029/1,935** types in that scope. The same audit
+> covers 1,178/3,891 in the full pinned TableGen catalog; this unfiltered view
+> remains useful for operational gap discovery but is supplementary, not the
+> paper percentage.
 
 ## 1. Research Positioning
 

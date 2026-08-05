@@ -15,7 +15,16 @@ The release audit is
 It audits 9,342 unique portable Injectors and 6,920 strict paired records,
 covering 1,178 of 3,891 catalog error diagnostics.
 
+The paper headline is a stricter scope, not the full-catalog ratio:
+`paper_scope_summary.csv` derives the frozen **1,935** standard C/C++
+source-diagnostic denominator from the same catalog and records the current
+**1,029 / 1,935 (53.2%)** Injector coverage. It excludes invocation or
+environment diagnostics and the audited non-standard-dialect/hardware-target
+name list. The 1,178/3,891 figure remains an operational breadth audit.
+
 - `summary.csv` contains the headline counts.
+- `paper_scope_summary.csv` contains the frozen paper-scope denominator and
+  numerator, alongside the full-catalog accounting reconciliation.
 - `injector_diagnostic_inventory.csv` maps every portable Injector ID to its
   declared target and states whether that target has a strict paired replay.
 - `diagnostic_injector_summary.csv` aggregates the Injector inventory by

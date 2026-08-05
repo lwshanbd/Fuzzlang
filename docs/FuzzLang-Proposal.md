@@ -93,9 +93,18 @@ The work decomposes into four directions plus a shared Foundation that all four 
 
 **Key decisions.**
 - The **denominator is mechanically defined:** the set of error diagnostics declared in the compiler's diagnostic-definition files (TableGen) for the LLVM version we build against, extracted by a simple script. It is the authoritative count, with no hand-waving.
+- The **paper headline scope is frozen:** strict C/C++ source diagnostics only.
+  Starting from the 3,891 pinned TableGen errors, it excludes invocation or
+  environment-only components and the audited name-level list of
+  non-standard-dialect and hardware-target diagnostics. This yields the fixed
+  1,935-diagnostic denominator. The full-catalog audit remains a transparent
+  secondary operational metric for generation breadth.
 - What multiplicity target counts as "covered enough" (for example, at least three distinct examples)?
 
-**Open questions.** The raw count is settled. What remains to agree is the diagnostic space we claim: do we report against every declared error, or a scoped subset (excluding unrelated subsystems, or restricting to reachable diagnostics)? And how do we avoid gaming the metric with trivial near-duplicate examples (this links to dedup in Foundation)?
+**Open questions.** The raw count and paper scope are settled. What remains is
+how to avoid gaming the metric with trivial near-duplicate examples (this links
+to dedup in Foundation), and which secondary full-catalog breakdowns are most
+useful to report.
 
 **Dependencies.** Foundation (catalog and matcher). Drives GEN.
 
@@ -232,7 +241,10 @@ Coverage and Injector generation (P1/P2) carry the main novelty, but P4 starts i
 
 ## 8. Risks and open questions
 
-- **Coverage denominator definition.** The headline percentage is only as credible as the definition of "the diagnostic space." It must be principled and stated first.
+- **Coverage denominator enforcement.** The frozen 1,935-diagnostic strict
+  C/C++ code scope must be recomputed from the pinned catalog, invocation
+  components, and audited exclusion list for every release; the 3,891-type
+  full-catalog figure is supplementary only.
 - **Guided-generation context availability.** Not every diagnostic has a clean introducing commit or regression test; we need fallbacks and should report how often guidance was available.
 - **FuzzLang DSL scope.** A general AST/type transformation language would consume the schedule. Version 1 remains a single-site lexical language, adds only fresh local names and safe token normalization, and falls back to recipe plus direct Gemma editing if cross-project transfer fails.
 - **Gemma training risk.** Gemma-4-31B inference works locally, but its FSDP LoRA path is incompatible with the current Tioga kernel/runtime stack. The planned fallback is active: Gemma 3 4B has completed bounded smokes, a three-epoch 876-record run, adapter reload, and compiler-verified base/SFT evaluation. ROCm activation-checkpoint recomputation failed on variable-length batches, so the successful pilot disabled activation checkpointing and archived that choice. The strict three-arm training and 32-example compiler evaluation have now completed after an ECC-node retry and a uniform memory-safe microbatch change (`batch_size=1`, gradient accumulation 2). Model scale is not part of the claim; the remaining risk is scaling the result to multiple seeds and unseen projects.
@@ -241,6 +253,5 @@ Coverage and Injector generation (P1/P2) carry the main novelty, but P4 starts i
 - **Compile-clean is not correct.** Verified-fix is the primary metric, but behavior preservation needs a caveat and a tests-based spot check.
 ## 9. Where input is most wanted
 
-1. The **scope of the diagnostic space** we claim coverage over. The raw count is mechanically derived from the compiler's diagnostic-definition files; what needs agreement is the subset we report against (see §4, Coverage).
-2. The **project list** for RealSource transfer: which buildable C++ and C projects can provide stable compile databases and enough non-test translation units.
-3. The **Gemma SFT configuration and matched-token arms** after the 32/128-example smoke establishes a stable local training path.
+1. The **project list** for RealSource transfer: which buildable C++ and C projects can provide stable compile databases and enough non-test translation units.
+2. The **Gemma SFT configuration and matched-token arms** after the 32/128-example smoke establishes a stable local training path.

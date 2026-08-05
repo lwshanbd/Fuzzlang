@@ -8,15 +8,21 @@ and 6 environment-dependent skips. Detailed generation history is in
 ## Live Strict Injector Campaign (updated 2026-08-05)
 
 The required lower bound of **250 distinct Clang TableGen error diagnostics**
-has been surpassed. The continuing objective is to maximize real-code
-coverage, measured only by the current strict FuzzLang Injector audit; the
-earlier 1,000-type engineering milestone is also surpassed. The latest
-independent audit reports **1,178 / 3,891** catalog error types, backed by
-6,920 paired records and 9,342 unique portable Injectors. It counts a
-compiler-verified first application of a portable Injector to its real source
-witness, while reporting cross-source replay separately (695 types). It
-rejects records that lack the concrete Injector required by their replay
-provenance and excludes test/test-support sources.
+has been surpassed. The paper headline uses the frozen **strict C/C++ code
+scope**: **1,935** source-level diagnostics after excluding 402
+invocation/environment diagnostics and 1,554 non-standard-dialect or
+hardware-target code diagnostics. The latest strict Injector audit covers
+**1,029 / 1,935 (53.2%)** of that paper scope. It is backed by 6,920 paired
+records and 9,342 unique portable Injectors, counts a compiler-verified first
+application of a portable Injector to its real source witness, reports
+cross-source replay separately (695 types), rejects records that lack the
+concrete Injector required by their replay provenance, and excludes
+test/test-support sources.
+
+For transparent operational breadth tracking, the same audit also reports the
+unfiltered TableGen result: **1,178 / 3,891** catalog error types. The 149
+accepted types classified outside the paper scope remain archived and auditable
+but never contribute to the paper numerator or percentage.
 
 The machine-readable snapshot is in
 `data/reports/strict-injector-coverage-20260805-batch0006/`: its Injector inventory
@@ -27,6 +33,11 @@ lists all **2,713** uncovered error diagnostics with component, message,
 Clang-test reachability, and non-test emission-context availability.  The
 distinction is intentional: an Injector artifact alone is not coverage until
 compiler replay produces an exact-target paired record.
+
+`paper_scope_summary.csv` in that snapshot freezes the mutually exclusive
+denominator arithmetic and the current **1,029 / 1,935** paper-scope result.
+`data/gen/out_of_scope.txt` is the audited name-level exclusion list used to
+derive it; the full-catalog CSVs are retained as a secondary operational view.
 
 The snapshot now also contains a diagnostic-level index: it aggregates the
 number, language, and operation of portable Injectors per target type, while
@@ -45,7 +56,8 @@ actually passed the strict paired-record replay gate:
 | Which Injector targets which diagnostic? | `injector_diagnostic_inventory.csv` | 9,342 portable Injector IDs map to 1,415 target diagnostic names. The `strict_diagnostic_covered` column identifies the 1,178 target names with at least one exact-target paired record. |
 | How many Injectors target each diagnostic? | `diagnostic_injector_summary.csv` | One row per target name; includes Injector count, language, operation, and strict-coverage status. |
 | Which catalog errors remain uncovered? | `uncovered_tablegen_errors.csv` | 2,713 TableGen error types, each with component, message template, Clang-test reachability, and non-test emission-context availability. |
-| What are the headline totals? | `summary.csv` | The 3,891-type denominator and all coverage, Injector, and test-reachability totals. |
+| What are the paper headline totals? | `paper_scope_summary.csv` | The frozen 1,935-type strict C/C++ code denominator and the current 1,029-type Injector coverage. |
+| What are the full-catalog totals? | `summary.csv` | The 3,891-type operational denominator and all coverage, Injector, and test-reachability totals. |
 
 Thus the inventory does **not** claim that all 1,415 Injector target
 names are covered: 237 target names currently have a portable Injector but no
@@ -199,12 +211,12 @@ replay remains separately reported and is not used as a substitute for that
 core paired-data validation.  Active 53--64-target local-Gemma campaigns use
 resumable 45-minute slices and retain only exact target-diagnostic outcomes.
 
-This is the authoritative live metric for the expansion campaign.  It must
-not be compared directly with the historical 1,935-diagnostic denominator
-below: that older denominator is a scoped paper-analysis subset.  The live
-campaign uses the full pinned TableGen error catalog, source-clean-gates every
-parent TU, requires an exact typed compiler diagnostic after Injector replay,
-and records the resulting paired source.
+The full-catalog figure is the authoritative operational metric for expansion
+and gap discovery. The frozen **1,935-diagnostic strict C/C++ code scope** is
+the paper headline: it is derived from the same exact audit by applying the
+audited invocation/environment and dialect/target exclusions. Both views
+source-clean-gate every parent TU, require an exact typed compiler diagnostic
+after Injector replay, and record the resulting paired source.
 
 The target is now attained by the fresh full-catalog strict-audit artifact.
 Queued campaigns remain useful for multiplicity and later data-scale work, but
