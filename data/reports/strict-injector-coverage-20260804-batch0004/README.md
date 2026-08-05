@@ -27,6 +27,13 @@ records, and 1,166 covered TableGen error diagnostics out of 3,891.
 - `uncovered_tablegen_errors.csv` lists every catalog error diagnostic not yet
   covered, with component, TableGen message, Clang-test reachability, and the
   availability of a non-test emission context.
+- `staged_direct_injector_targets_20260805.csv` is a separate pending-work
+  ledger.  It aggregates direct local-Gemma requests by diagnostic target:
+  158 current strict gaps are represented by 195 requests and 583 clean-source
+  witnesses.  Every row is explicitly marked as not strictly covered.  A row
+  describes a request for an Injector, not an Injector artifact or a dataset
+  record; it can enter a future inventory only after exact-target compiler
+  replay accepts it.
 
 These CSVs contain metadata only: they do not copy program source, Clang test
 source, Injector payloads, or training records.  Outputs from active or not

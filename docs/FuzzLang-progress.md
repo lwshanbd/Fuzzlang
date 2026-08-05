@@ -1,8 +1,8 @@
 # FuzzLang: Progress
 
 Status against `FuzzLang-Proposal.md` and the executable plan in `plan.md`.
-LLVM is pinned to `llvmorg-22.1.8`; the current test suite has 606 passing
-and 5 environment-dependent skips. Detailed generation history is in
+LLVM is pinned to `llvmorg-22.1.8`; the current test suite has 614 passing
+and 6 environment-dependent skips. Detailed generation history is in
 `data/gen/README.md`.
 
 ## Live Strict Injector Campaign (updated 2026-08-04)
@@ -51,6 +51,26 @@ Thus the inventory does **not** claim that all 1,405 Injector target
 names are covered: 239 target names currently have a portable Injector but no
 strictly accepted paired replay.  They remain generation work, as do the
 2,725 catalog names in the gap file.
+
+### Pending Direct-Injector Ledger (updated 2026-08-05)
+
+`staged_direct_injector_targets_20260805.csv` records the current staged
+local-Gemma work separately from the verified inventory.  It contains **158**
+distinct, currently uncovered TableGen error types, represented by **195**
+direct Injector requests and **583** independently clean-gated non-test source
+witness requests.  Each row includes the target name, component, language
+mode, contributing batches, and whether the target is test-reachable.  All
+158 are current strict catalog gaps and all are marked
+`strict_diagnostic_covered=false`.
+
+This ledger is deliberately not an Injector count: it is the input to Gemma,
+which must first emit a portable FuzzLang Injector.  Only a subsequent replay
+that has a clean parent, a paired `corrected_src`, no test/test-support
+provenance, and an exact matching primary typed diagnostic can add the
+resulting Injector and record to a future strict snapshot.  The ledger covers
+the newly prepared Objective-C/Objective-C++, C11 `defer`, GNU/MS inline-asm,
+i386-Darwin target, 40-type OpenMP, and 11-type OpenACC routes, along with
+earlier pending direct routes.
 
 Batch 4 incorporates the completed second MS-extension run and first OpenACC
 run. Their 18 accepted paired records add 18 exact target types. The full
