@@ -16,6 +16,8 @@ CANDIDATES="${CANDIDATES:-8}"
 FEEDBACK_ROUNDS="${FEEDBACK_ROUNDS:-2}"
 MAX_TOKENS="${MAX_TOKENS:-400}"
 ALLOW_DIRECTIVE_FRAGMENTS="${ALLOW_DIRECTIVE_FRAGMENTS:-0}"
+RESUME="${RESUME:-0}"
+REGRESSION_EVIDENCE="${REGRESSION_EVIDENCE:-1}"
 
 cleanup() {
     if [[ -n "${SERVE_PID:-}" ]]; then
@@ -58,6 +60,14 @@ DIRECTIVE_ARGS=()
 if [[ "$ALLOW_DIRECTIVE_FRAGMENTS" == "1" ]]; then
     DIRECTIVE_ARGS+=(--allow-preprocessor-directives)
 fi
+RESUME_ARGS=()
+if [[ "$RESUME" == "1" ]]; then
+    RESUME_ARGS+=(--resume)
+fi
+REGRESSION_EVIDENCE_ARGS=(--regression-evidence)
+if [[ "$REGRESSION_EVIDENCE" == "0" ]]; then
+    REGRESSION_EVIDENCE_ARGS=(--no-regression-evidence)
+fi
 PYTHONPATH=src "$GEMMA/venv/bin/python" src/gen/fuzzlang_dsl/run_local_code_witness.py \
     --backend vllm --base-url "http://127.0.0.1:${PORT}/v1" \
     --vllm-concurrency "$VLLM_CONCURRENCY" \
@@ -68,5 +78,6 @@ PYTHONPATH=src "$GEMMA/venv/bin/python" src/gen/fuzzlang_dsl/run_local_code_witn
     --output-dir "$OUTPUT_DIR" \
     --candidates "$CANDIDATES" --feedback-rounds "$FEEDBACK_ROUNDS" \
     --request-batch-size "$REQUEST_BATCH_SIZE" --max-tokens "$MAX_TOKENS" \
-    --witness-mode append --regression-evidence --no-admit-observed-errors \
-    "${DIRECTIVE_ARGS[@]}"
+    --witness-mode append --no-admit-observed-errors \
+    "${DIRECTIVE_ARGS[@]}" "${RESUME_ARGS[@]}" \
+    "${REGRESSION_EVIDENCE_ARGS[@]}"
