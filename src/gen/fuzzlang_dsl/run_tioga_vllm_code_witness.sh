@@ -15,6 +15,7 @@ VLLM_CONCURRENCY="${VLLM_CONCURRENCY:-64}"
 CANDIDATES="${CANDIDATES:-8}"
 FEEDBACK_ROUNDS="${FEEDBACK_ROUNDS:-2}"
 MAX_TOKENS="${MAX_TOKENS:-400}"
+TEMPERATURE="${TEMPERATURE:-0.5}"
 ALLOW_DIRECTIVE_FRAGMENTS="${ALLOW_DIRECTIVE_FRAGMENTS:-0}"
 RESUME="${RESUME:-0}"
 REGRESSION_EVIDENCE="${REGRESSION_EVIDENCE:-1}"
@@ -78,6 +79,7 @@ PYTHONPATH=src "$GEMMA/venv/bin/python" src/gen/fuzzlang_dsl/run_local_code_witn
     --output-dir "$OUTPUT_DIR" \
     --candidates "$CANDIDATES" --feedback-rounds "$FEEDBACK_ROUNDS" \
     --request-batch-size "$REQUEST_BATCH_SIZE" --max-tokens "$MAX_TOKENS" \
+    --temperature "$TEMPERATURE" \
     --witness-mode append --no-admit-observed-errors \
     "${DIRECTIVE_ARGS[@]}" "${RESUME_ARGS[@]}" \
     "${REGRESSION_EVIDENCE_ARGS[@]}"
