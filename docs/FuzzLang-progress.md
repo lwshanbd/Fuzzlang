@@ -1,17 +1,219 @@
 # FuzzLang: Progress
 
 Status against `FuzzLang-Proposal.md` and the executable plan in `plan.md`.
-LLVM is pinned to `llvmorg-22.1.8`; the current test suite has 614 passing
-and 6 environment-dependent skips. Detailed generation history is in
+LLVM is pinned to `llvmorg-22.1.8`; the current test suite has 642 passing
+and 5 environment-dependent skips. Detailed generation history is in
 `data/gen/README.md`.
 
-## Live Strict Injector Campaign (updated 2026-08-05)
+## Submission Readiness and Generation Freeze (2026-08-07)
+
+**The project is not submission-ready yet.** The implementation, paired-data
+pipeline, and small matched-token SFT result are strong feasibility evidence,
+but the paper still needs a canonical dataset release, an Injector-versus-
+DirectEdit comparison, multi-project and multi-seed SFT evaluation, and formal
+NatErr external validity.
+
+For the active `+300 diagnostic types relative to batch 6` objective, the
+current fixed-input authority is
+`strict-injector-coverage-audit-batch0053-direct-fixed.json`: **1,200 / 1,935**
+strict C/C++ types, or **+171** relative to batch 6. It therefore remains
+**129 types short** of the 1,329-type goal. Candidates, running synthesis, and
+incomplete replay outputs are not coverage.
+
+The report also preserves an older historical FuzzLang-Breadth composite of
+1,538 / 1,935. That value and the active-goal audit use different input unions,
+so they must not be added, substituted, or used interchangeably in a paper
+table. The required next release artifact is one reproducible union audit that
+maps every reported diagnostic to accepted Records, Injector IDs, campaigns,
+and source projects.
+
+**Execution decision.** Do not launch further exploratory breadth campaigns.
+Let already-submitted target-only synthesis/replay chains complete; then run a
+canonical union audit. If it reaches 1,329 types, freeze the Injector library
+and dataset. If it does not, generate only the exact remaining gaps. Shift
+subsequent compute to E1 (Injector vs. DirectEdit), E2 (multi-project
+RealSource), E3 (multi-seed matched-token SFT), and E4 (NatErr).
+
+## Live Strict Injector Campaign (updated 2026-08-07)
+
+### Completed Fixed-Input Increment (2026-08-07)
+
+The completed test-evidenced preprocessor campaign is now included in a newer
+fixed-input audit.  Relative to batch 6, the frozen union of the completed
+ordinary-C++23, emission, recovery, and preprocessor inputs adds **109**
+paper-scope diagnostics: **1,138 / 1,935**.  The preprocessor route supplies
+the additional **28** exact replay-verified types; its 70 local-Gemma requests
+all start from clean, non-test LLVM source files, and every admitted pair
+retains `corrected_src`.  The auditable artifact is
+`data/gen/experiments/clang-test-gap-injector-v0002/strict-injector-coverage-audit-batch0036-fixed.json`.
+
+This is still a fixed completed subset.  The running C++ emission-tail, C11,
+C++20, and direct-DSL queues are deliberately excluded until their own output
+and replay inputs are frozen.
+
+**Interim fixed-union update (2026-08-07).** The completed C11 B49 replay has
+now been merged with that fixed subset (the C++ emission-tail remains running
+and is still excluded).  The resulting strict paper-scope union is **1,153 /
+1,935**, or **+124** diagnostic types relative to batch 6.  This is an
+interim checkpoint, not a replacement for the final all-wave audit: every
+count still requires a clean non-test parent, `corrected_src`, a portable
+Injector, and an exact typed replay.
+
+**Current fixed-input update (2026-08-07).** The later B53 fixed audit adds
+completed emission-tail and direct-Injector replays to that historical B49
+checkpoint, yielding **1,200 / 1,935** strict C/C++ types and **+171** types
+relative to batch 6. This is the authoritative numerator for the active +300
+goal. Its fixed inputs are recorded in
+`strict-injector-coverage-audit-batch0053-direct-fixed.json`; it is still not
+the final canonical release-union audit described above.
+
+**Strict target-only replacement (submitted 2026-08-07).** The first
+emission-tail and Abseil-tail launchers were stopped before replay after an
+integrity check found that their explicit `ADMIT_OBSERVED_ERRORS=1` setting
+could relabel an easier, already-covered observed diagnostic as the target of a
+request for a harder gap.  Their checkpoints are retained for forensic
+comparison but are excluded from every coverage numerator.  The replacement
+single-node lane B62 processes **265** LLVM C++23 TableGen/emission targets;
+264 remain gaps under the current fixed union because one was covered by the
+subsequently completed C11 batch.
+The runner now defaults to target-only admission: a model candidate must emit
+the requested typed diagnostic and its distilled portable Injector must replay
+to that same name and DiagID.  A pre-replay gate rejects any opportunistic
+outcome or Injector target outside its original request list.  Regression-test
+text remains prompt-only evidence, while every retained parent is clean,
+non-test real LLVM or Abseil code.  These runs use at most two nodes and remain
+outside the numerator until their independent replay and fixed audit complete.
+
+**Test-mode compatibility correction (2026-08-07).** A first B63 checkpoint
+showed that a diagnostic can be test-reachable only under a non-transferable
+configuration (for example, `-cc1`, a target triple, MS extensions, or a test
+macro), despite passing a name-based ordinary-C++ filter.  B63 was therefore
+withdrawn before replay.  Its replacement B64 derives its target list from the
+pinned test-scan `trigger_configs`: it retains only scans using `-x c++` and a
+C++2b/C++23/C++2c standard, without a target, `-D`, or additional `-f` mode.
+This produces 95 source-bindable current gaps (190 independent Abseil real
+source requests).  The initial B64 code-witness attempt was stopped after 144
+strictly rejected candidates and **zero** Injector/record admissions: a trigger
+configuration by itself did not expose enough semantic structure for this
+long-tail set.  It is excluded from coverage and retained as a negative result,
+not silently relabelled as a success.
+
+**Disjoint C++20 tail (active 2026-08-07).** B66 contains 200 further
+C++20-compatible, compiler-emission-evidenced targets (400 clean LLVM source
+requests).  Its selector excludes all B62/B64 target names, so its eventual
+strict replay has 200 distinct-type capacity.  B62 and B66 are the only active
+generation lanes; both use target-only admission and remain outside the
+numerator until replay and a frozen union audit complete.
+
+**Live target-only checkpoint (2026-08-07).** B62 has currently produced
+**63 candidate target diagnostic types** whose first compiler outcome matches
+the requested name.  Its replay has not started, so it contributes **zero**
+strictly verified types at this checkpoint.  B66 has processed 67 target types
+with zero target matches so far and likewise contributes zero verified types.
+Therefore the new B62/B66 goal wave has added **0** error types to the strict
+numerator to date; its candidates are not added to the later fixed **1,200 /
+1,935** (**+171**) active-goal checkpoint. Candidate matches are intentionally not
+reported as coverage until a portable Injector reproduces the same typed
+diagnostic on a clean, non-test paired source.
+
+**Direct FuzzLang-Injector recovery (queued 2026-08-07).** B68 retries the
+95 B64 gaps by asking Gemma-4-31B to author lexical FuzzLang DSL Injectors
+directly from TableGen/emission evidence, two clean Abseil source windows, and
+the typed test-trigger configuration.  B69 is a separate schema-v2 append
+fragment route for the same targets: 84 prompts additionally contain a compact
+Clang regression-test excerpt, while the remaining 11 retain only their typed
+configuration.  Test excerpts are prompt evidence only; they never become a
+dataset source.  Both waves are serialized after B66/B68 respectively, so
+there are no more than two nodes in use, and every candidate must pass clean
+parent compilation and exact typed replay on non-test Abseil code before it
+can affect coverage.
+
+**Residual test-first and compiler-evidence waves (queued 2026-08-07).** B70
+extends the test-first set with the 13 still-unselected C++ module diagnostics
+and two C23 diagnostics for which the pinned scan has an ordinary-language
+trigger.  It replays only on clean LLVM and FFmpeg sources.  Once those
+test-evidenced routes have completed, B72 and B73 apply the same direct
+append-Injector protocol to the 200 C++20 and 265 C++23 TableGen/emission-tail
+targets respectively.  These waves explicitly disable the *test-evidence
+selection* filter because they are the documented compiler-emission fallback;
+they do not weaken the clean-parent, non-test provenance, portable-Injector,
+or exact typed replay gates.  B75 additionally retries the 68 B66 targets
+whose pinned Clang scan confirms a trigger, now carrying that typed trigger
+configuration through direct append-Injector synthesis.  All are pending work,
+never coverage claims.
+
+After that audit, a separate cross-project Abseil C++23 wave is staged on two
+serialized one-node lanes.  Its 300 real-source target candidates are rebuilt
+and filtered at run time against the prior frozen audit; the current audit
+would retain 250 prompt-test-evidenced targets with 1,000 clean Abseil witness
+windows.  This is deliberately a pending target capacity, not a coverage
+numerator; each proposed Injector still needs an exact typed replay on a
+non-test source before it can count.
+
+If that direct-DSL audit remains below the active +300-type objective, a
+single-node conditional hybrid fallback runs on the same remaining Abseil
+test-evidenced targets. Gemma first constructs a mutation on a clean real
+source witness; FuzzLang then distills and replays the resulting portable
+Injector. The fallback exits before generation when the preceding strict audit
+already reaches the goal, and is separately labelled so direct and hybrid
+provenance are never conflated.
+
+A second conditional fallback is staged only after that hybrid audit: it binds
+the then-uncovered ordinary C++17 test-evidenced gaps to a 1,999-TU clean LLVM
+source pool that is disjoint from earlier recorded LLVM parents. It too exits
+without model work once the +300-type result is already proven.
+
+The final staged conditional route is language-complementary: it uses clean
+FFmpeg C99 production translation units for the remaining ordinary C
+test-evidenced gaps (98 under the current fixed audit). It follows the same
+paired-source, typed-diagnostic, non-test replay gates and exits without GPU
+work when a preceding audit has already proven +300.
+
+The ordinary, paper-scope Clang-test-reachable gap has only 246 types under
+the current fixed audit.  Therefore a final conditional C++20 TableGen-tail
+route follows the C99 audit if the +300 objective is still unproven.  It
+selects up to 300 additional *ordinary* C++20 diagnostics after applying the
+same `data/gen/out_of_scope.txt` exclusion list, binds each to four clean
+production LLVM source windows, and gives Gemma compiler emission-site
+evidence rather than a regression-test source.  Its 1,200 requests, Injector
+replay, and fixed audit are all dependency-gated; it consumes no GPU time once
+an earlier strict audit has reached +300.  This keeps Clang tests as the first
+target-prioritization signal while making the stated coverage objective
+feasible without ever making test code a dataset source.
+
+If that C++20 tail remains below the objective, the next dependency-gated
+route repeats the same compiler-evidence and exclusion gates over clean FFmpeg
+C99 production TUs. It is intentionally language-complementary rather than a
+second run over the same C++ source distribution, and likewise exits before
+Gemma generation if the preceding fixed audit already proves +300.
+
+One final conditional route then applies the same TableGen-tail procedure to
+clean Abseil C++23 production TUs. This adds an external C++ source
+distribution and C++23 semantic surface after the LLVM C++20 and FFmpeg C99
+tails, while retaining the identical non-test, portable-Injector, exact typed
+replay, and fixed-audit gates.
+
+### Earlier Completed Fixed-Input Increment (2026-08-07)
+
+The completed ordinary-C++23 breadth and emission campaigns have a separate,
+stable audit that deliberately reads only the frozen batch-6 inputs plus those
+two completed campaigns.  It does **not** read any concurrently written queue
+output.  The audit adds **81** exact replay-verified diagnostics in the paper
+scope, moving the fixed-input result from **1,029 / 1,935** to
+**1,110 / 1,935**.  It contains 66 breadth types and 15 emission-context
+types; every included record retains `corrected_src` and passed the non-test
+source-path gate.  The machine-readable artifact is
+`data/gen/experiments/clang-test-gap-injector-v0002/strict-injector-coverage-audit-batch0034-fixed.json`.
+
+This is a bounded completed increment, not a replacement for the later full
+batch audit: the high-depth, cross-project, C11, and direct-DSL campaigns
+remain intentionally excluded until each has completed replay.
 
 The required lower bound of **250 distinct Clang TableGen error diagnostics**
 has been surpassed. The paper headline uses the frozen **strict C/C++ code
 scope**: **1,935** source-level diagnostics after excluding 402
 invocation/environment diagnostics and 1,554 non-standard-dialect or
-hardware-target code diagnostics. The latest strict Injector audit covers
+hardware-target code diagnostics. The latest full-release strict Injector audit covers
 **1,029 / 1,935 (53.2%)** of that paper scope. It is backed by 6,920 paired
 records and 9,342 unique portable Injectors, counts a compiler-verified first
 application of a portable Injector to its real source witness, reports

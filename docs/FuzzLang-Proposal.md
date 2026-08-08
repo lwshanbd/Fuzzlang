@@ -237,6 +237,17 @@ Phased toward the CGO submission in September 2026, ordered by what each phase d
 
 For the September submission, P0 through P5 form the core of the paper: measured high-coverage datasets, a reusable Injector artifact with a direct-edit comparison, a matched-token Gemma SFT result, and a smaller natural-error evaluation. Wider evidence ablations, continual learning, and model-scale studies in P6 add strength but are not required.
 
+**Execution checkpoint (2026-08-07).** The current priority is no longer
+unbounded Injector expansion. After the already-submitted target-only replay
+chains finish, FuzzLang will freeze a canonical strict release audit. Further
+generation is permitted only if that audit remains below the predeclared
+`+300 diagnostic types relative to batch 6` target. The remaining schedule
+is reserved for the evidence the paper actually needs: a matched
+Injector-versus-DirectEdit experiment, project-isolated RealSource evaluation,
+matched-token Gemma SFT with multiple seeds, and formal NatErr external
+validity. This keeps dataset size from displacing the experiments required to
+establish dataset value.
+
 Coverage and Injector generation (P1/P2) carry the main novelty, but P4 starts in parallel with a small SFT smoke so that FuzzLang DSL engineering cannot block the downstream evidence. P5 harvesting is slow and operational, so it runs early but has a bounded 100--300-record goal.
 
 ## 8. Risks and open questions

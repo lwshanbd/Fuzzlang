@@ -2,14 +2,34 @@
 
 **Target:** CGO, September 2026
 **Compiler version:** `llvmorg-22.1.8` everywhere
-**Status date:** 2026-08-05
+**Status date:** 2026-08-07
 
-> **Coverage-scope note (2026-08-05).** The paper headline is the frozen
-> **1,935-diagnostic strict C/C++ code** denominator. The current strict
-> Injector audit covers **1,029/1,935** types in that scope. The same audit
-> covers 1,178/3,891 in the full pinned TableGen catalog; this unfiltered view
-> remains useful for operational gap discovery but is supplementary, not the
-> paper percentage.
+> **Coverage and freeze note (2026-08-07).** The paper headline is the frozen
+> **1,935-diagnostic strict C/C++ code** denominator. The current fixed-input
+> audit for the active `+300 new diagnostic types` goal is
+> `strict-injector-coverage-audit-batch0053-direct-fixed.json`: **1,200 / 1,935**
+> types, or **+171** relative to batch 6. Candidates and incomplete replays
+> are excluded. A separate historical Breadth summary reports 1,538 types; it
+> is not interchangeable with this goal audit until a single release-union
+> audit reproduces both its Injector and record inputs.
+
+### Immediate execution decision
+
+Do **not** start further broad Injector-generation campaigns. Let already
+submitted target-only synthesis and replay chains complete, then run one
+canonical strict union audit.
+
+1. If the union reaches **1,329 / 1,935** (the +300 goal), freeze the Injector
+   library and training data.
+2. If it falls short, generate only the exact remaining diagnostic gaps needed
+   to reach that threshold; do not open new exploratory breadth queues.
+3. Once frozen, shift the primary compute budget to E1--E4 below: method
+   comparison, multi-project evaluation, matched-token SFT, and NatErr.
+
+Before any paper table is finalized, publish a release manifest that maps each
+reported diagnostic to its Injector IDs, accepted paired records, campaigns,
+and source projects. This is required to reconcile the historical Breadth
+summary with the current goal audit.
 
 ## 1. Research Positioning
 
