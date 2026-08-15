@@ -53,12 +53,26 @@ documented rather than smoothed over: LLVM is 65% of `train`, FFmpeg is 87% of
 `heldout_project`, and the language mix flips from 75% C++ in training to 88% C
 in the held-out split.
 
+**More data or more variety? Answered (2026-08-15) — it is the data.** Two arms
+of 3,500 records each, one covering 135 diagnostics and one covering 427:
+0.873 vs 0.900 on unseen files, 0.800 vs 0.833 on unseen projects. Both paired
+intervals include zero, and the arms agree on 136 of 150 instances. Tripling
+diagnostic coverage at a fixed record count buys little.
+
+The reason is a better result than the one we were looking for. The narrow arm's
+training touched the diagnostic of only 42 of 150 unseen-project instances. It
+scored **0.810 on those and 0.796 on the 108 diagnostic types it had never seen
+once.** The model is not learning per-error fixes; it is learning to read a
+diagnostic and repair code, and that transfers to error kinds absent from
+training.
+
+So state breadth where it belongs: it is what makes the **dataset** a
+coverage-driven benchmark that can expose gaps, not what makes a fine-tuned
+model better. See `data/reports/e6-breadth-20260815/`.
+
 **What is still missing.**
 
-1. **More data or more variety?** Bigger training sets also covered more
-   diagnostics (239 → 392), so the two effects are mixed together. Breadth is
-   FuzzLang's main selling point, so this needs separating.
-2. **One model only.** Every fine-tuning result uses Gemma-3-4B.
+1. **One model only.** Every fine-tuning result uses Gemma-3-4B.
 
 **Corrections made recently — do not cite the old numbers.**
 

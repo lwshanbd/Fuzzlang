@@ -1,0 +1,5 @@
+cohort,arm,eval_diagnostics_covered_pct,instances_covered_pct,fix_rate_diagnostic_seen,n_seen,fix_rate_diagnostic_unseen,n_unseen
+eval_unseen_tu,narrow,49,65,0.888,98,0.846,52
+eval_unseen_tu,broad,89,92,0.928,138,0.583,12
+heldout_project,narrow,28,28,0.810,42,0.796,108
+heldout_project,broad,84,89,0.842,133,0.765,17
