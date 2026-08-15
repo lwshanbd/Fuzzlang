@@ -23,7 +23,7 @@ All code lives under `src/`, organized by the proposal's five parts. `src/` is *
 - `real/` — mine real failing commits from OSS git history (`harvest_stage1.py`) and reproduce them (`reproduce_stage2_llvm.py`); `split_llvm_train_dev.py` carves provenance-isolated splits. `data/natErr/` already has Stage-1 manifests for 8 projects (seed only — small, to be expanded).
 - `repair/` — the diagnostic-aware repair method + baseline ladder. `agent/` (policy + signal-mode observation), `loop/` (`run_repair_loop`: parallel-branch search with dead-end detection), `methods/` (`b0`–`b3` baselines, `diag.py`, `ablations.py`), `eval/metrics.py` (verified-fix-rate, bootstrap CI), `run_sft.py` (LoRA), `run_sweep.py`. Largely reused as-is from the prior scaffold.
 
-`data/` = dataset seeds/splits. `docs/` = the proposal + ops notes. `external/llvm-project` = the pinned LLVM submodule (shallow+sparse: only `clang/include/clang/Basic` is checked out on dev machines). Root `README.md` is **stale** (old `FUZZ_MODE` wrapper) — ignore it.
+`data/` = dataset seeds/splits. `docs/` = the proposal + ops notes. `external/llvm-project` = the pinned LLVM submodule. On this machine it carries **full history** (558k commits, detached at `ca7933e`, the commit the patched clang was built from) and a full checkout, which NatErr mining depends on; a fresh clone is shallow+sparse and must be deepened before `real/` will work. Root `README.md` is **stale** (old `FUZZ_MODE` wrapper) — ignore it.
 
 ## Commands
 
@@ -31,7 +31,7 @@ All code lives under `src/`, organized by the proposal's five parts. `src/` is *
 - Run all tests: `python3 -m pytest -q` (config in `pyproject.toml`: `pythonpath=["src"]`, `testpaths=["src"]`).
 - Run one test file / case: `python3 -m pytest src/foundation/tests/test_diagnostics_catalog.py -q` or append `::test_name`.
 - Run a script (needs `src` on the path): `PYTHONPATH=src python3 src/coverage/run_coverage.py --records <jsonl> --target 3 --gap-out <jsonl>`.
-- Get the LLVM `.td`: `git submodule update --init external/llvm-project` (already shallow/sparse-pinned to `llvmorg-22.1.8`).
+- Get the LLVM `.td`: `git submodule update --init external/llvm-project` (pinned to `llvmorg-22.1.8`; already deepened to full history here).
 - Optional deps: `pip install -e ".[dev]"` (pytest), `".[llm]"` (torch/transformers/vllm/peft, GPU), `".[harvest]"`.
 
 Development is **test-first** (TDD): write a failing test, watch it fail, then implement. Keep the suite green.

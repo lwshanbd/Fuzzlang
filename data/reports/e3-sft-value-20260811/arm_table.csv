@@ -1,0 +1,9 @@
+cohort,arm,seeds,instances_per_seed,verified_fix_rate,std_across_seeds,ci95_low,ci95_high,exact_match_rate,parse_rate,fix_rate_excl_abseil
+eval_unseen_tu,base,1,150,0.1667,0.0,0.1067,0.2267,0.0067,0.86,0.1667
+heldout_project,base,1,150,0.06,0.0,0.0267,0.1,0.0067,0.84,0.0667
+eval_unseen_tu,direct_edit,3,150,0.6422,0.0257,0.5978,0.6844,0.3778,0.9889,0.6422
+heldout_project,direct_edit,3,150,0.7111,0.0206,0.6689,0.7511,0.4156,0.9711,0.6381
+eval_unseen_tu,fuzzlang,3,150,0.78,0.0144,0.74,0.8178,0.5378,0.9933,0.78
+heldout_project,fuzzlang,3,150,0.7356,0.03,0.6956,0.7756,0.5422,0.98,0.7365
+eval_unseen_tu,mechanical,3,150,0.02,0.0094,0.0089,0.0333,0.0089,0.9867,0.02
+heldout_project,mechanical,3,150,0.0267,0.0109,0.0133,0.0422,0.0,0.96,0.0349

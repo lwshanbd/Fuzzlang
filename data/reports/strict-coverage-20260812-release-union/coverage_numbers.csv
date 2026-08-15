@@ -1,0 +1,7 @@
+figure,value,denominator,percent,population,gate,artifact,use
+strict_release_union,1208,1935,62.4,canonical batch-6 lineage + E1 multi-project replay,strict target-only,data/reports/strict-coverage-20260812-release-union/,PAPER HEADLINE
+inclusive_release_union,1242,1935,64.2,same inputs as above,opportunistic relabelling allowed,data/reports/strict-coverage-20260812-release-union/,published so the difference is visible
+strict_canonical_batch6,1195,1935,61.8,batch-6 campaign lineage only,strict target-only,data/reports/strict-injector-coverage-20260807-canonical/,authority for the +300-types goal in isolation
+inclusive_canonical_batch6,1242,1935,64.2,batch-6 campaign lineage only,opportunistic relabelling allowed,data/reports/strict-injector-coverage-20260807-canonical/,comparison baseline only
+e1_realsource_pass,459,1935,23.7,one capped replay pass over 13 real projects (de-vendored),strict target-only,data/reports/e1-construction-20260812-devendored/,"what one capped real-source pass realizes; never cite as the tool's reach"
+breadth_composite_historical,1538,1935,79.5,historical FuzzLang-Breadth self-contained fragments,predates the strict admission gate,docs/FuzzLang-progress.md Breadth section,NOT the paper's coverage claim; do not add or substitute

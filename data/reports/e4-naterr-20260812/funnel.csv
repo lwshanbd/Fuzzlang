@@ -1,0 +1,5 @@
+stage,count,note
+fix_build_candidates,2039,llvm 2022-06-01..2026-08-12; every SHA reachable locally
+self_contained_single_file,682,fix touches exactly one source file and no header
+reproduced_typed_diagnostic,163,predecessor version fails with a typed primary diagnostic
+accepted_paired_records,3,fix side also compiles clean under the same command

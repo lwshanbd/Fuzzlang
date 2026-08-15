@@ -177,7 +177,18 @@ Every generated candidate is verifier-checked: it enters the dataset only if the
 
 **Deliverables.** A matched-token SFT table, before/after Gemma results on RealSource and NatErr, data-source ablations, per-diagnostic-family and per-project analyses, and quality checks beyond compile success.
 
-**Current feasibility evidence.** A single-seed 876-record Gemma 3 4B pilot on a fixed 32-example RealSource slice improved verified Fix@1 from 5/32 for the base model to 20/32 after SFT, while the offset-target SFT arm reached 0/32. The stricter construction-arm experiment now provides an initial controlled result. A zero-API LLVM run retained 297 RealSource-Mechanical pairs after 810 compiler invocations, with no test sources or missing corrected code. The Mechanical/DirectEdit/FuzzLang arms each contain 297 records, exactly 144,710 rendered tokens, and train for the same 57 optimizer steps; completion-token totals remain separately reported. They have no eval leakage and no cross-arm exact localized-input, pair, or record-ID overlap. On one 32-example, driver-correct LLVM slice, Base/Mechanical/DirectEdit/FuzzLang achieved verified Fix@1 of 5/5/15/16 and exact match of 0/1/6/11. FuzzLang and DirectEdit shared 13 compiler fixes, with three FuzzLang-only and two DirectEdit-only; FuzzLang's five additional exact matches were all one-sided. This supports the value of targeted generated data over the Mechanical control, but the one-fix FuzzLang-versus-DirectEdit gap is not evidence of repair-rate superiority. One compiler-clean DirectEdit output and one compiler-clean FuzzLang output share the same deletion-based quality flag. Larger project-isolated evaluation, multiple seeds, and behavior/NatErr columns remain required.
+**Main result (2026-08-11).** Under matched records, matched rendered tokens,
+and matched optimizer updates, fine-tuning Gemma 3 4B on FuzzLang data raises
+verified repair from 0.167 to 0.780 on held-out files of training projects, and
+from 0.060 to 0.736 on four projects that contributed no training data at all —
+a transfer that also crosses the C/C++ boundary. FuzzLang beats the equal-budget
+DirectEdit arm on unseen files (0.780 vs 0.642, non-overlapping intervals) and
+on exact match in both columns (0.538 vs 0.378; 0.542 vs 0.416). The Mechanical
+control is *worse than no fine-tuning* (0.020 vs 0.167) despite the lowest
+training loss, which is what makes the result a statement about data quality
+rather than token count. Details and caveats: `data/reports/e3-sft-value-20260811/`.
+
+**Earlier feasibility evidence.** A single-seed 876-record Gemma 3 4B pilot on a fixed 32-example RealSource slice improved verified Fix@1 from 5/32 for the base model to 20/32 after SFT, while the offset-target SFT arm reached 0/32. The stricter construction-arm experiment now provides an initial controlled result. A zero-API LLVM run retained 297 RealSource-Mechanical pairs after 810 compiler invocations, with no test sources or missing corrected code. The Mechanical/DirectEdit/FuzzLang arms each contain 297 records, exactly 144,710 rendered tokens, and train for the same 57 optimizer steps; completion-token totals remain separately reported. They have no eval leakage and no cross-arm exact localized-input, pair, or record-ID overlap. On one 32-example, driver-correct LLVM slice, Base/Mechanical/DirectEdit/FuzzLang achieved verified Fix@1 of 5/5/15/16 and exact match of 0/1/6/11. FuzzLang and DirectEdit shared 13 compiler fixes, with three FuzzLang-only and two DirectEdit-only; FuzzLang's five additional exact matches were all one-sided. This supports the value of targeted generated data over the Mechanical control, but the one-fix FuzzLang-versus-DirectEdit gap is not evidence of repair-rate superiority. One compiler-clean DirectEdit output and one compiler-clean FuzzLang output share the same deletion-based quality flag. Larger project-isolated evaluation, multiple seeds, and behavior/NatErr columns remain required.
 
 **Key decisions.**
 - The fairness protocol matches training tokens, optimizer-update count, base checkpoint, LoRA recipe, and inference budget, and reports completion tokens separately, so improvements cannot be dismissed as "just more data or compute." Training remains unpacked because the available TRL+SDPA packing path risks cross-sample attention.
@@ -229,23 +240,25 @@ Phased toward the CGO submission in September 2026, ordered by what each phase d
 | --- | --- | --- | --- |
 | **P0. Foundation** | Consolidate into one clean codebase: catalog, verifier, record format, config and tests | The substrate; reproducible builds | Core |
 | **P1. Coverage engine** | Define the diagnostic space; measure current coverage; stand up the gap list | First real coverage number | Core (headline) |
-| **P2. Injector Gen** | Distill compiler evidence into reusable FuzzLang DSL Injectors; compare against direct editing; drive coverage up on real-project source | High-coverage Breadth and RealSource datasets + Injector artifact | Core (headline) |
+| **P2. Injector Gen** | Distill compiler evidence into reusable FuzzLang DSL Injectors; replay them across real-project source at zero GPU/token cost; drive coverage up and measure reach on unseen projects | High-coverage Breadth and RealSource datasets + Injector artifact | Core (headline) |
 | **P3. Dataset release** | Validation, dedup, splits, provenance, public release | The artifact | Core |
 | **P4. Gemma SFT** | Train matched-token Gemma arms on mechanical, direct-edit, and FuzzLang data | Main dataset-value result | Core |
 | **P5. Natural-error eval** | Formalize NatErr from two or three projects and evaluate the frozen SFT arms | External-validity result | Core (lean) |
 | **P6. Ablations and scale** | Compiler-evidence ablations, model scale, continual learning, wider behavior-preservation checks | Appendix strength | Optional |
 
-For the September submission, P0 through P5 form the core of the paper: measured high-coverage datasets, a reusable Injector artifact with a direct-edit comparison, a matched-token Gemma SFT result, and a smaller natural-error evaluation. Wider evidence ablations, continual learning, and model-scale studies in P6 add strength but are not required.
+For the September submission, P0 through P5 form the core of the paper: measured high-coverage datasets, a reusable Injector artifact whose replay cost is zero GPU hours and zero model tokens, a matched-budget Gemma SFT result with an unseen-project generalization column, and a smaller natural-error evaluation. Wider evidence ablations, continual learning, and model-scale studies in P6 add strength but are not required.
+
+**Framing note (2026-08-08).** The Injector is not evaluated by contest against a language model at generating errors. It is a near-zero-cost offline tool; an LLM handed a specific file and target will win that contest, and the outcome is uninformative about the dataset. The artifact is judged by breadth, reach onto unseen projects, and replay cost; the dataset is judged by whether fine-tuning on it improves verified repair, including on projects it never saw. A model-based generator appears only as an equal-budget training-data baseline in P4. See `docs/E1-dataset-construction.md`.
 
 **Execution checkpoint (2026-08-07).** The current priority is no longer
 unbounded Injector expansion. After the already-submitted target-only replay
 chains finish, FuzzLang will freeze a canonical strict release audit. Further
 generation is permitted only if that audit remains below the predeclared
 `+300 diagnostic types relative to batch 6` target. The remaining schedule
-is reserved for the evidence the paper actually needs: a matched
-Injector-versus-DirectEdit experiment, project-isolated RealSource evaluation,
-matched-token Gemma SFT with multiple seeds, and formal NatErr external
-validity. This keeps dataset size from displacing the experiments required to
+is reserved for the evidence the paper actually needs: a multi-project
+zero-cost Injector replay measurement, project-isolated RealSource evaluation,
+matched-budget Gemma SFT with multiple seeds and an unseen-project
+generalization column, and formal NatErr external validity. This keeps dataset size from displacing the experiments required to
 establish dataset value.
 
 Coverage and Injector generation (P1/P2) carry the main novelty, but P4 starts in parallel with a small SFT smoke so that FuzzLang DSL engineering cannot block the downstream evidence. P5 harvesting is slow and operational, so it runs early but has a bounded 100--300-record goal.

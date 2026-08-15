@@ -1,0 +1,5 @@
+test,environment,candidates,not_in_compile_db,compile_cleanly,reproduce_error,note
+frozen_build_2026-04,mismatched by up to 4 years,682,510,60,163,"163 'reproductions' are largely header-drift artifacts"
+snapshot_window_21d,within 21 days,34,25,6,3,"all 3 fail pairing: source/header correspondence already broken"
+snapshot_window_3d,within 3 days,5,3,2,0,"reproduction rate collapses once the environment is close"
+exact_predecessor_commit,exact,1,0,1,0,"fix was +#include <atomic>; breaks only on a stdlib that lacks the transitive include"

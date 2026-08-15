@@ -1,0 +1,13 @@
+metric,strict,inclusive
+catalog_error_diagnostic_total,3891,3891
+cross_source_replay_diagnostic_types,835,835
+injector_diagnostic_types,1615,1615
+input_injector_rows,9976,9976
+input_record_rows,10800,10800
+strict_verified_records,6850,7535
+unique_portable_injectors,9760,9760
+verified_diagnostic_types,1341,1391
+paper_scope_total_diagnostic_types,1935,1935
+paper_scope_verified_diagnostic_types,1195,1242
+paper_scope_baseline_batch0006_types,981,1029
+paper_scope_new_vs_batch0006_types,214,213

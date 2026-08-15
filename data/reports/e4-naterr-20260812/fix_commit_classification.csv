@@ -1,0 +1,6 @@
+category,count,share_pct,reproducible_under_one_fixed_config
+larger code change,292,42.8,unknown
+<=2 line edit (other),218,32.0,unknown
+subject names another config,140,20.5,no
+adds a preprocessor guard,19,2.8,no
+pure #include addition,13,1.9,no

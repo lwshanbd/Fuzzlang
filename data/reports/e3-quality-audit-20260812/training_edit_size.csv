@@ -1,0 +1,4 @@
+arm,records,gold_edit_p25,gold_edit_p50,gold_edit_p75,gold_edit_zero,skipped
+mechanical,557,1,1,1,0,0
+direct_edit,557,11,23,52,0,0
+fuzzlang,557,25,54,87,0,0

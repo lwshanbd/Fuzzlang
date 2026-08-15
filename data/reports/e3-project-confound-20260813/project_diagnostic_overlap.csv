@@ -1,0 +1,3 @@
+cohort,instances,projects,diagnostics,project_exclusive_diagnostics,instances_with_shared_diagnostic,separable_fraction,median_instances_per_diagnostic
+eval_unseen_tu,150,9,61,42,94,0.6267,1
+heldout_project,150,4,68,61,26,0.1733,1

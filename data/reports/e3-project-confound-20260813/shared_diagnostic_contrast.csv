@@ -1,0 +1,5 @@
+arm,project,instances,verified_fix_rate,difference_vs_leveldb,ci95_low,ci95_high
+direct_edit,abseil,11,0.758,0.113,-0.210,0.418
+direct_edit,leveldb,15,0.644,,,
+fuzzlang,abseil,11,0.545,-0.188,-0.503,0.137
+fuzzlang,leveldb,15,0.733,,,

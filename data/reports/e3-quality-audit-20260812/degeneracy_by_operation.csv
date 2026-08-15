@@ -1,0 +1,15 @@
+cohort,arm,operation,fixes,degenerate,degenerate_share
+eval_unseen_tu,base,insert,21,1,0.0476
+eval_unseen_tu,base,replace,4,1,0.25
+eval_unseen_tu,direct_edit,insert,236,3,0.0127
+eval_unseen_tu,direct_edit,replace,53,17,0.3208
+eval_unseen_tu,fuzzlang,insert,291,4,0.0137
+eval_unseen_tu,fuzzlang,replace,60,19,0.3167
+eval_unseen_tu,mechanical,replace,9,0,0.0
+heldout_project,base,insert,9,0,0.0
+heldout_project,direct_edit,insert,274,6,0.0219
+heldout_project,direct_edit,replace,46,10,0.2174
+heldout_project,fuzzlang,insert,286,6,0.021
+heldout_project,fuzzlang,replace,45,6,0.1333
+heldout_project,mechanical,insert,8,0,0.0
+heldout_project,mechanical,replace,4,0,0.0

@@ -1,0 +1,9 @@
+cohort,arm,seeds,verified_fixes_mean,degenerate_mean,degenerate_share,nondegenerate_share,edit_size_median,identity_prediction_share,pure_line_deletion,large_deletion,excessive_edit,empty_repair
+eval_unseen_tu,base,n/a,25.0,2.0,0.08,0.92,36,0.0155,0,0,2,0
+eval_unseen_tu,direct_edit,1337|20260808|42,96.3333,6.6667,0.0692,0.9308,44,0.0225,20,0,0,0
+eval_unseen_tu,fuzzlang,1337|20260808|42,117.0,7.6667,0.0655,0.9345,56,0.0201,21,0,2,0
+eval_unseen_tu,mechanical,1337|20260808|42,3.0,0.0,0.0,1.0,8,0.6757,0,0,0,0
+heldout_project,base,n/a,9.0,0.0,0.0,1.0,18,0.0079,0,0,0,0
+heldout_project,direct_edit,1337|20260808|42,106.6667,5.3333,0.05,0.95,41.0,0.0183,14,0,2,0
+heldout_project,fuzzlang,1337|20260808|42,110.3333,4.0,0.0363,0.9637,44,0.0159,11,0,1,0
+heldout_project,mechanical,1337|20260808|42,4.0,0.0,0.0,1.0,3.0,0.6273,0,0,0,0

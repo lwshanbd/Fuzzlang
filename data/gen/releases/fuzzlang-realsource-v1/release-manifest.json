@@ -1,0 +1,124 @@
+{
+  "compiler": {
+    "llvm_tag": "llvmorg-22.1.8",
+    "verifier": "Fuzzlang-patched clang with DiagID emission"
+  },
+  "created": "2026-08-14",
+  "inputs": {
+    "records": [
+      "data/gen/experiments/e1-library-replay-v0001/lexical-train/records.jsonl",
+      "data/gen/experiments/e1-library-replay-v0001/lexical-eval_unseen_tu/records.jsonl",
+      "data/gen/experiments/e1-library-replay-v0001/lexical-heldout_project/records.jsonl",
+      "data/gen/experiments/e1-library-replay-v0001/append-train/records.jsonl",
+      "data/gen/experiments/e1-library-replay-v0001/append-eval_unseen_tu/records.jsonl",
+      "data/gen/experiments/e1-library-replay-v0001/append-heldout_project/records.jsonl"
+    ],
+    "records_sha256": {
+      "data/gen/experiments/e1-library-replay-v0001/append-eval_unseen_tu/records.jsonl": "a37f605257ba46a42ee3152d3b9eac053104aeb77819fa8dddbbd7324327f1cb",
+      "data/gen/experiments/e1-library-replay-v0001/append-heldout_project/records.jsonl": "4b98f23fc722fe7312d38c6110deccd6cba4ffdcb19fb86e902fe1b774d689d6",
+      "data/gen/experiments/e1-library-replay-v0001/append-train/records.jsonl": "632c2cec0960f94cf1d6f710f7259ad35c184c19ce131c10d5f07012cc673fdc",
+      "data/gen/experiments/e1-library-replay-v0001/lexical-eval_unseen_tu/records.jsonl": "4a84f39cd5331abfe34d7ff91487a2ef8c27057be64a5e21ce98a419572b05d5",
+      "data/gen/experiments/e1-library-replay-v0001/lexical-heldout_project/records.jsonl": "ea9cd754e724b79a5b1bc13d970a38cca1cb6f32979f87f784aca6ccd4c2e1bb",
+      "data/gen/experiments/e1-library-replay-v0001/lexical-train/records.jsonl": "f4b635f05918eef2deb68ffbe7c52bb9fe996b872373f9de40f3fa1e34c0be40"
+    }
+  },
+  "method": {
+    "gpu_hours": 0.0,
+    "injector_library": "data/gen/experiments/e1-library-replay-v0001/library.jsonl",
+    "injector_library_sha256": "678a76ee9b3c24d770bdff7e3be6ef9bd2a5eaf06bf3ee827fcb714ab99b2798",
+    "model_calls": 0,
+    "name": "FuzzLang Injector library replay over clean real-project source",
+    "uses_llm_api": false
+  },
+  "release": "fuzzlang-realsource-v1",
+  "release_gates": {
+    "corrected_differs": "pass",
+    "corrected_src_present": "pass",
+    "injector_recorded": "pass",
+    "no_test_source": "pass",
+    "no_vendored_source": "pass",
+    "primary_matches_target": "pass",
+    "target_not_relabelled": "pass",
+    "unique_record_id": "pass"
+  },
+  "schema_version": 1,
+  "split_policy": "frozen before generation; carried per record in provenance.detail.source_split",
+  "splits": {
+    "eval_unseen_tu": {
+      "bytes": 82385796,
+      "diagnostics": 138,
+      "diagnostics_at_multiplicity_3": 101,
+      "injectors": 140,
+      "languages": {
+        "c": 267,
+        "c++": 1444
+      },
+      "path": "eval_unseen_tu.jsonl",
+      "projects": {
+        "curl": 162,
+        "duckdb": 30,
+        "fmt": 6,
+        "libuv": 18,
+        "llvm": 1267,
+        "protobuf": 177,
+        "spdlog": 4,
+        "yaml-cpp": 17,
+        "zlib": 30
+      },
+      "records": 1711,
+      "sha256": "00247e724fbd1ff29b52f29821f14e9e5e95538899e6475fe102b2778b46ffe4",
+      "source_files": 376
+    },
+    "heldout_project": {
+      "bytes": 223309137,
+      "diagnostics": 224,
+      "diagnostics_at_multiplicity_3": 202,
+      "injectors": 283,
+      "languages": {
+        "c": 4883,
+        "c++": 671
+      },
+      "path": "heldout_project.jsonl",
+      "projects": {
+        "abseil": 468,
+        "ffmpeg": 4821,
+        "json-c": 62,
+        "leveldb": 203
+      },
+      "records": 5554,
+      "sha256": "c44274deb8872b6edd8c4564de9bc90c1b0b9764b126c2a85e7bd37f5538bda0",
+      "source_files": 1389
+    },
+    "train": {
+      "bytes": 295240330,
+      "diagnostics": 427,
+      "diagnostics_at_multiplicity_3": 306,
+      "injectors": 461,
+      "languages": {
+        "c": 1413,
+        "c++": 4329
+      },
+      "path": "train.jsonl",
+      "projects": {
+        "curl": 805,
+        "duckdb": 137,
+        "fmt": 8,
+        "libuv": 188,
+        "llvm": 3743,
+        "protobuf": 714,
+        "spdlog": 22,
+        "yaml-cpp": 66,
+        "zlib": 59
+      },
+      "records": 5742,
+      "sha256": "96db13cbb9535bfa9838a3bbb5d76c1faf219e8a9912a293fa3986949b5ed806",
+      "source_files": 1949
+    }
+  },
+  "totals": {
+    "diagnostics": 514,
+    "records": 13007,
+    "source_files": 3714,
+    "vendored_records_dropped": 2090
+  }
+}

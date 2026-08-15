@@ -4,14 +4,36 @@
 **Compiler version:** `llvmorg-22.1.8` everywhere
 **Status date:** 2026-08-07
 
-> **Coverage and freeze note (2026-08-07).** The paper headline is the frozen
-> **1,935-diagnostic strict C/C++ code** denominator. The current fixed-input
-> audit for the active `+300 new diagnostic types` goal is
-> `strict-injector-coverage-audit-batch0053-direct-fixed.json`: **1,200 / 1,935**
-> types, or **+171** relative to batch 6. Candidates and incomplete replays
-> are excluded. A separate historical Breadth summary reports 1,538 types; it
-> is not interchangeable with this goal audit until a single release-union
-> audit reproduces both its Injector and record inputs.
+> **Coverage and freeze note (2026-08-07, superseded 2026-08-12).** The paper
+> headline is the frozen **1,935-diagnostic strict C/C++ code** denominator.
+>
+> **Quote `1,208 / 1,935` (62.4%), strict rule**, from the release-union audit
+> in `data/reports/strict-coverage-20260812-release-union/`. It is the canonical
+> batch-6 campaign audit plus the multi-project library replay (E1), folded in
+> under explicit labels by one command, with all 1,977 inputs checksummed. All
+> 15,097 E1 records enter with zero rejections under the unchanged admission
+> gate.
+>
+> Folding E1 in moved the strict count from **1,195 → 1,208 (+13)** while the
+> inclusive count stayed at **1,242**. That is the informative part: those 13
+> types were previously reached *only* by records whose target had been
+> relabelled to whatever error fired, and the real-source replay reached them
+> **on target**. Paper-scope types that depend on relabelling alone fall from
+> **47 to 34**. Applying the library to source it has never seen both extends
+> and hardens coverage.
+>
+> The 08-07 canonical audit remains the authority for the batch-6 lineage in
+> isolation (1,195 / +214 strict, 1,242 / +213 inclusive) and for why the
+> superseded `batch0053` (1,200 / +171) and live `batch0074` (1,241 / +212)
+> audits disagreed — each enumerated a different subset of the same completed
+> campaigns.
+>
+> **Four coverage figures circulate; never add or substitute them.** 1,208 =
+> everything released, strict gate (headline). 1,242 = same inputs, relabelling
+> allowed. 459 = what one capped real-source pass realizes
+> (`data/reports/e1-construction-20260812-devendored/`). 1,538 = the historical
+> FuzzLang-Breadth composite, which predates the strict gate and draws on a
+> different input union — **not** the paper's coverage claim.
 
 ### Immediate execution decision
 
@@ -23,8 +45,9 @@ canonical strict union audit.
    library and training data.
 2. If it falls short, generate only the exact remaining diagnostic gaps needed
    to reach that threshold; do not open new exploratory breadth queues.
-3. Once frozen, shift the primary compute budget to E1--E4 below: method
-   comparison, multi-project evaluation, matched-token SFT, and NatErr.
+3. Once frozen, shift the primary compute budget to the experiments below:
+   E1 (multi-project construction and cost; E2 merged in), E3 (matched-budget
+   SFT plus unseen-project generalization), and E4 (NatErr).
 
 Before any paper table is finalized, publish a release manifest that maps each
 reported diagnostic to its Injector IDs, accepted paired records, campaigns,
@@ -84,7 +107,10 @@ Current baseline:
 - 1,538/1,935 strict C/C++ code diagnostics covered (79.5%);
 - 1,194/1,935 diagnostics covered at multiplicity at least three (61.7%).
 
-This dataset supports the diagnostic-space breadth claim.
+This dataset supports the diagnostic-space breadth claim. **Its 1,538 figure
+predates the strict admission gate and uses a different input union, so it is
+not the paper's coverage headline** — that is 1,208/1,935 from
+`data/reports/strict-coverage-20260812-release-union/`.
 
 ### 2.2 FuzzLang-RealSource
 
@@ -393,8 +419,8 @@ space with lower TU and compiler-invocation cost at the 100-diagnostic cap.
 The matched Abseil replay demonstrates non-trivial second-project transfer and
 adds 46 exact-target diagnostics outside the original portable space. The
 FuzzLang DSL gate therefore passes. No broader DSL redesign is authorized on
-the critical path; the next method work is Gemma Injector synthesis and the
-matched Injector-versus-direct-edit experiment.
+the critical path; the next work is the multi-project zero-cost replay
+measurement (E1) and the matched-budget SFT result (E3).
 
 Execution snapshot (2026-07-22): the offline `google/gemma-4-31B-it`
 compiler-evidence loop has synthesized and replayed 23 record-emitting
@@ -410,8 +436,8 @@ compiler evidence can improve a reusable Injector after its first replay.
 Trigger witnesses and replay feedback are synthesis evidence only; retained
 data still originates solely from real clean LLVM production code. The archive
 manifest pins every synthesis/replay manifest and checksum. This is an
-in-progress construction result, not an E1 comparison: the matched DirectEdit
-arm and cross-project replay of these synthesized Injectors remain required.
+in-progress construction result: a released multi-project replay measurement of
+these Injectors, at zero GPU and token cost, remains required.
 
 For reproducible gap-driven queue construction, `run_build_requests.py` now
 filters a TableGen gap list, retrieves two matching snippets from verified,
@@ -447,84 +473,129 @@ base model to 20/32 after SFT. The remaining work is the paper experiment:
 matched-token construction arms, larger and project-isolated evaluation,
 multiple seeds, and behavior/NatErr checks.
 
-## 7. Core Experiment E1: Injector Versus Direct Edit
+## 7. Core Experiment E1: Multi-Project Dataset Construction at Near-Zero Cost
 
-This is the highest-priority method experiment. It directly tests whether
-reusable Injector synthesis is better than making a model call for every
-record.
+*(E2 was merged into E1 on 2026-08-08; §8 is retained as a pointer.)*
+
+> **Framing correction (2026-08-08).** E1 was previously written as "Injector
+> versus Direct Edit", a head-to-head contest between the FuzzLang Injector and
+> a large language model at *generating* errors. That framing is retired. It
+> asks the wrong question and invites a meaningless answer: a 31B model given a
+> concrete file and a concrete target will of course beat a deliberately narrow
+> lexical rewriting tool at first-attempt success. FuzzLang's claim was never
+> "our tool is smarter than an LLM."
+>
+> FuzzLang is an **offline tool with near-zero marginal cost**: point it at
+> correct source code and it produces compiler-verified errors across a wide
+> range of diagnostics, using **no GPU and no model tokens**. Its value is
+> established by (a) the breadth and diversity of the dataset it constructs and
+> (b) whether fine-tuning on that dataset improves repair, including on projects
+> the dataset never saw. Those are E1 and E3 respectively.
+>
+> A model-based generator is therefore **not a rival to beat at generation
+> time**. It appears in this plan in exactly one place where it is meaningful:
+> as a *training-data construction baseline* inside E3, answering "does an equal
+> budget of FuzzLang-built data train a better repair model than an equal budget
+> of LLM-built data?" See §9.
+>
+> The retired head-to-head and the reason it was withdrawn are recorded in
+> `docs/E1-dataset-construction.md` so the result is not re-derived or cited as
+> evidence against FuzzLang.
+
+E1 characterizes what the FuzzLang Injector library produces when it is applied
+to correct real-project source, and what that costs.
 
 ### 7.1 Protocol
 
-- Select 100--200 strict C/C++ diagnostics, stratified by Sema/Parse/Lex and by
-  current coverage.
-- Use the same fixed pool of clean, non-test real-project translation units.
-- Use the same local Gemma checkpoint and compiler evidence.
-- Apply the same patched Clang verifier and diagnostic-target acceptance rule.
-- Match wall-clock/GPU budgets where possible and record actual model output
-  tokens and compiler invocations.
-- Cap records per diagnostic, source TU, and project before deduplication.
+- Fix the released Injector library and its version; record its ID set.
+- Fix a pool of clean, non-test real-project translation units per project.
+- Replay the library with the pinned patched Clang. **No model call is made and
+  none is permitted**; a run that needs one is a bug, not a result.
+- Apply the same acceptance rule used everywhere: clean parent, failing mutant,
+  primary typed diagnostic exactly equal to the Injector's declared target
+  (name and DiagID), `corrected_src` retained, no test/test-support source.
+- Cap records per diagnostic, per source TU, and per project before structural
+  deduplication so one Injector or one file cannot flood the dataset.
 
-### 7.2 Arms
+### 7.2 Reported quantities
 
-1. generic mechanical mutation without diagnostic-specific compiler evidence;
-2. Gemma direct edit, with a model invocation per attempted record;
-3. Gemma-synthesized FuzzLang DSL Injector, amortized over many sources;
-4. the hybrid policy: Injector first, direct edit for the unresolved tail.
+Construction reach:
 
-An optional evidence ablation, if time permits, compares diagnostic
-name/template alone against name/template plus emission site and regression
-evidence.
+- strict diagnostic coverage and multiplicity, per project and unioned;
+- structurally unique records; distinct source TUs and projects reached;
+- sources and projects reached per Injector (the amortization curve);
+- yield on translation units and on **projects the library never saw**.
 
-### 7.3 Metrics
+Construction cost:
 
-- exact-target rate per attempted and per accepted candidate;
-- verified records and structurally unique records;
-- new `coverage@1` and `coverage@3` diagnostics;
-- effective records per target diagnostic;
-- records per model output token and per GPU hour;
-- compiler invocations per accepted record;
-- Injector synthesis/repair cost and amortization curve;
-- transfer rate across unseen TUs and unseen projects;
-- number of sources and projects reached per Injector;
-- failure categories: not applicable, clean mutant, wrong diagnostic, timeout,
-  unsafe/oversized edit, and source compilation failure.
+- GPU hours and model tokens consumed: **zero for library replay**, by design;
+- compiler invocations per accepted record, and wall-clock per 1,000 records;
+- the one-off cost already sunk in building the library, reported separately
+  and honestly, so replay cost and construction cost are never conflated.
 
-The expected Injector advantage is amortized efficiency and transfer, not
-necessarily the highest first-attempt success rate.
+Failure categories, so the tool's limits are visible: Injector does not match
+the source, clean mutant, wrong diagnostic, timeout, oversized edit, parent
+does not compile.
 
-## 8. Core Experiment E2: Multi-Project RealSource Expansion
+### 7.3 The cost statement the paper makes
 
-LLVM remains the main C++ training source, but an LLVM-only result cannot prove
-cross-project transfer and is approaching diminishing diagnostic returns.
+The claim is a cost/reach statement, not a quality contest:
 
-### 8.1 Candidate Projects
+> Applying the released Injector library to a previously unseen project
+> produces N compiler-verified paired records over K diagnostics using zero GPU
+> hours and zero model tokens.
+
+Existing zero-API evidence already supports the shape of this claim: 896
+retained records on 428 unseen LLVM TUs, and 97--100 exact-target records from
+51--64 sources on held-out Abseil, all with no model or API call. E1 turns that
+into a released, multi-project measurement.
+
+Where a per-record model generator is measured at all, it is measured only to
+price the alternative (GPU hours and tokens for an equal number of accepted
+records), never to declare a winner at error generation.
+
+### 7.4 Projects
 
 Run a short build-feasibility screen before fixing the final list. Prefer
 projects with a reproducible build, a usable `compile_commands.json`, and many
 non-test translation units.
 
 - LLVM: main C++ training source;
-- DuckDB: manageable CMake-based real C++ application;
-- Abseil or fmt: template-heavy C++ transfer source;
-- curl: CMake-supported C project for C-family diagnostics;
-- FFmpeg/PostgreSQL: optional later C expansion, not an initial dependency.
+- Abseil: template-heavy C++, build-screened, 159/159 clean non-test library TUs;
+- FFmpeg: C-family source, 2,131 clean-gated production TUs already available;
+- DuckDB / fmt / curl: further candidates if a third training project is needed.
 
 Qt and dependency-heavy projects are considered only if their build setup is
 already reliable. A project is dropped if it cannot provide a stable compile
 database and a high clean-baseline rate within two engineering days.
 
-### 8.2 Isolation
+### 7.5 Split and holdout discipline (decided before generation)
 
-- training projects and final held-out projects must be disjoint;
-- no source TU may straddle train/dev/eval;
-- final evaluation must include at least one entirely unseen project;
-- report both seen-diagnostic/unseen-source and unseen-diagnostic slices;
+The dataset artifact and the SFT training set are **different sizes and must not
+be confused**. The artifact target below is a release goal; the SFT training set
+is a deliberately small matched-budget subset of it (§9). Nothing is "used up"
+by training — the risk is leakage, not exhaustion.
+
+Holdout is frozen **before** any record is generated, and every record is
+labelled with its split at creation time:
+
+- at least one project is **fully held out** and contributes no training record
+  at any stage; it exists only as the unseen-project evaluation column;
+- inside every training project, a fixed fraction of translation units is
+  reserved as the unseen-TU evaluation column before generation begins;
+- no source TU may straddle train/dev/eval, and no Injector ID may produce
+  records on both sides of a split without being recorded as shared;
+- NatErr (E4) is never trained on;
 - compiler tests, project tests, examples, benchmarks, fuzzers, and test support
-  remain excluded from RealSource.
+  are excluded from RealSource entirely.
 
-### 8.3 Targets
+A generation run that would emit a record from a held-out TU or a held-out
+project must fail loudly rather than silently relabel it.
 
-Targets are goals, not release claims:
+### 7.6 Release targets
+
+Targets are goals, not release claims, and describe the **artifact**, not the
+training set:
 
 - 10,000--30,000 structurally deduplicated RealSource records;
 - at least three real projects represented;
@@ -538,12 +609,79 @@ curves will be reported as functions of records, Injectors, and projects.
 
 Execution snapshot (2026-07-19): Abseil passes the build-feasibility and
 cross-project transfer screen with 159/159 clean non-test library TUs. The
-matched v0/v1 experiment above is transfer evidence, but its 100 records remain
-an experiment rather than a merged RealSource release. Abseil is therefore a
-viable C++ project for E2; a C-family project and release-scale generation are
-still required.
+matched v0/v1 experiment is transfer evidence, but its 100 records remain an
+experiment rather than a merged RealSource release. A C-family project and
+release-scale generation are still required.
+
+## 8. Core Experiment E2: merged into E1
+
+E2 ("Multi-Project RealSource Expansion") was merged into E1 on 2026-08-08.
+Once E1 was reframed from a method contest into a multi-project
+construction-and-cost measurement, the two asked the same question. Its project
+list, isolation rules, and release targets now live in §7.4--§7.6. The section
+number is retained so later cross-references do not shift.
 
 ## 9. Core Experiment E3: Gemma Fine-Tuning Value
+
+> **Result (2026-08-11).** Full table and reproduction commands in
+> `data/reports/e3-sft-value-20260811/`. Three arms matched at 557 records and
+> exactly 260,751 rendered tokens (relative gap 0.0), identical epochs/batch/
+> accumulation so optimizer updates match, three seeds each, 150-instance
+> cohorts, zero eval leakage on six dimensions.
+>
+> | cohort | Base | Mechanical | DirectEdit | **FuzzLang** |
+> |---|---:|---:|---:|---:|
+> | unseen file | 0.167 | 0.020 | 0.642 | **0.780** |
+> | unseen project | 0.060 | 0.027 | 0.711 | **0.736** |
+> | unseen project, excl. Abseil | 0.067 | 0.035 | 0.638 | **0.737** |
+>
+> Exact match on unseen files: 0.007 / 0.009 / 0.378 / **0.538**. Fine-tuning on
+> FuzzLang data lifts verified repair from 16.7% to 78.0% on unseen files and
+> from 6.0% to 73.6% on projects that contributed no training data, a transfer
+> that also crosses C/C++. **Mechanical-SFT is worse than no fine-tuning**
+> (0.020 vs 0.167), losing 25 of 26 decided pairs to the base model while having
+> the lowest training loss of the three arms — the control that shows the gain
+> is not simply more tokens, and a concrete reminder that loss is not quality.
+>
+> Caveat: Abseil is contaminated for the FuzzLang and Mechanical arms via
+> `build/_deps/absl-src/` vendored into duckdb and protobuf; DirectEdit is
+> clean.
+>
+> **The matched budget is a floor (E5, 2026-08-14).** 557 records is what
+> DirectEdit could afford at one 31B call per record. Trained on 4,000 FuzzLang
+> records — still cheap, and the pool holds 5,734 — the same arm reaches
+> **0.893** on unseen files and **0.853** on unseen projects, both with
+> intervals disjoint from DirectEdit's, and the curve is still rising. The
+> unseen-project tie below is therefore an artifact of the shared budget. But
+> the *matched* comparison also has to be corrected: on the de-vendored pool at
+> 557 records FuzzLang scores **0.687** on unseen projects, not 0.736, and
+> slightly below DirectEdit's clean 0.711 with overlapping intervals. **Do not
+> quote 0.736.** See `data/reports/e5-scaling-20260814/`.
+>
+> **Correction (2026-08-13).** The `excl. Abseil` row was previously called the
+> trustworthy unseen-project number. It is not. In this cohort **61 of 68
+> diagnostics occur in exactly one project**, so the per-project and
+> per-diagnostic breakdowns are the same table; diagnostic mix predicts every
+> per-project rate to a mean absolute residual of 0.010. Dropping Abseil is
+> justified as contamination control but simultaneously changes the diagnostic
+> mix, so it is not the same comparison minus contamination. **Quote the
+> full-cohort unseen-project figures (FuzzLang 0.736 vs DirectEdit 0.711, a
+> tie), and do not read the per-project table as a project effect.** A real
+> project effect needs a cohort stratified by diagnostic × project. See
+> `data/reports/e3-project-confound-20260813/`.
+>
+> **Behaviour audit (2026-08-12, `data/reports/e3-quality-audit-20260812/`).**
+> Compile-clean is satisfied by delete-to-compile, so every archived generation
+> was re-read for edit-shape degeneracy. **93–96% of FuzzLang's verified fixes
+> survive** — non-degenerate 0.729 (unseen file) and 0.709 (unseen project) vs
+> DirectEdit 0.598 and 0.676, ranking unchanged and the unseen-project margin
+> widened. Zero large deletions, zero empty repairs. Degeneracy tracks the
+> **injector operation, not the generator** (`insert` 1.3–2.2% for both arms,
+> `replace` 13–32% for both), because a `replace` overwrites the original
+> statement and leaves the inverse task under-determined. The Mechanical
+> control's collapse is explained: its reference repair is one character wide at
+> every quartile, so it learned the identity map and **67.6% of its predictions
+> are byte-identical to their input**.
 
 The primary downstream evidence is Gemma repair before and after SFT. The
 experiment must separate the value of FuzzLang data from the trivial effect of
@@ -673,12 +811,41 @@ Tasks:
 7. add one or two buildable projects beyond LLVM;
 8. use project and/or temporal isolation from all SFT data.
 
-The formalization code and rejection accounting are now implemented. An
-initial three-candidate LLVM smoke was blocked by the shallow sparse history in
-`external/llvm-project` and by stale Stage-2 build paths/generated headers. The
-next operational prerequisite is a full historical checkout plus a relocatable
-or reconstructed compile environment; lowering the pairing or no-test gates is
-not an acceptable workaround.
+**Status 2026-08-12 (`data/reports/e4-naterr-20260812/`).** The pipeline runs
+end to end. `external/llvm-project` now carries full history (558k commits), so
+the checkout prerequisite is met. Funnel: 2,039 reachable candidates → 682
+self-contained single-file fixes → 163 reproduced typed diagnostics → **3
+accepted paired records**, all isolated from the SFT arms.
+
+Two things were settled by measurement:
+
+- **Mining natural compile errors only works on very large, very fast
+  projects.** Fix-build commits over full history: llvm 2,039 (since 2022-06),
+  ffmpeg 81, abseil 3, json-c 2, leveldb 2. This is quotable in its own right —
+  it is the motivation for a construction framework, measured on other people's
+  repositories. It also means LLVM is the only source, and LLVM is the biggest
+  training project, so `real/naterr_isolation.py` enforces file-level isolation
+  rather than relying on project choice.
+- **Natural compile errors are environment-bound, which caps this approach.**
+  A snapshot campaign was built and priced (46 node-hours at ±3-day windows),
+  then the premise was tested first. At the exact predecessor commit the
+  candidate compiles cleanly — its fix was `+#include <atomic>`, a break only
+  on a standard library without the transitive include. A ±3-day window gave 0
+  reproductions from 5 candidates. The 163 "reproduced" were largely artifacts
+  of compiling historical source against a mismatched header tree. The reason
+  is structural: a large project's pre-merge CI covers the mainstream
+  configuration, so the breaks that reach `main` and need a follow-up fix are
+  the ones it misses — another compiler, standard library, platform, or build
+  system. **Reproducing a natural build break costs a configuration matrix, not
+  a git checkout.**
+
+Together with the scarcity table, this is the measured case for constructing
+errors rather than mining them, and both halves belong in the paper. The
+campaign scripts stay checked in; running them is not recommended. A future
+NatErr attempt should invert the premise: fix one configuration, then search
+history for errors reproducible in it.
+
+Lowering the pairing or no-test gates is still not an acceptable workaround.
 
 Core target: 100--300 high-quality natural errors from two or three projects.
 Report candidate-mining yield, reproduction yield, rejection reasons, and
@@ -717,7 +884,7 @@ external-validity comparison.
 
 - enforce the FuzzLang DSL and Gemma SFT gates;
 - freeze or fall back immediately when a gate fails;
-- run the first matched Injector-versus-direct-edit pilot;
+- run the first zero-cost multi-project Injector replay measurement;
 - select the final multi-project source pool.
 
 ### Week 3: RealSource Expansion
@@ -738,7 +905,10 @@ external-validity comparison.
 - complete remaining seeds and ablations;
 - finalize NatErr paired records;
 - run unseen-project and NatErr evaluations;
-- conduct minimality and behavior-preservation audits.
+- ~~conduct minimality audits~~ — done 2026-08-12,
+  `data/reports/e3-quality-audit-20260812/`; behaviour *preservation* beyond
+  edit shape still needs the projects' own test suites, which this pipeline does
+  not build.
 
 ### Week 6: Analysis and Artifact
 
@@ -751,12 +921,18 @@ external-validity comparison.
 
 The paper is ready only when these four results exist:
 
-1. a matched comparison showing the reuse, transfer, and cost behavior of
-   FuzzLang DSL Injectors versus direct per-record editing;
-2. a multi-project RealSource dataset with measured diagnostic coverage and
-   provenance isolation;
-3. a matched-token Gemma SFT result demonstrating the value of FuzzLang data;
+1. a multi-project construction result: the released Injector library applied to
+   correct, non-test source from several projects, with measured strict
+   diagnostic coverage, multiplicity, per-Injector reach, provenance isolation,
+   and the zero-GPU/zero-token replay cost;
+2. a matched-budget Gemma SFT result demonstrating the value of FuzzLang data
+   against equal-budget Mechanical and LLM-built data arms;
+3. a generalization result: the same fine-tuned model repairs errors in a
+   project that contributed nothing to training;
 4. an external-validity result on a smaller, formal NatErr set.
+
+Note what is *not* on this list: a head-to-head contest between the Injector and
+a language model at generating errors. See the framing correction in §7.
 
 ## 14. Explicit Stop/Deprioritization Rules
 
@@ -769,6 +945,11 @@ The paper is ready only when these four results exist:
   the dataset.
 - Do not claim that typed diagnostics outperform stderr without new evidence.
 - Do not claim behaviorally correct repair from compile success alone.
+- **Do not stage the FuzzLang Injector against a language model as a generator
+  of errors.** FuzzLang is a near-zero-cost offline tool; an LLM given a
+  concrete file and target will win that contest and the result says nothing
+  about the dataset's value. A model-based generator is admissible only as an
+  equal-budget training-data construction baseline inside E3.
 
 These rules preserve a complete fallback paper: compiler-derived high-coverage
 data, a narrow reusable Injector artifact, and a controlled Gemma SFT result,

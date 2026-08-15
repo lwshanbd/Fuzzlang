@@ -1,0 +1,7 @@
+cohort,training_records,verified_fix_rate,std,ci95_low,ci95_high,exact_match_rate,delta_vs_previous,records_added,seeds,base_rate
+eval_unseen_tu,557,0.7867,0.0,0.7133,0.8533,0.56,,,42,0.1667
+eval_unseen_tu,1500,0.8267,0.0,0.76,0.8867,0.6533,0.04,943,42,0.1667
+eval_unseen_tu,4000,0.8933,0.0,0.84,0.94,0.7333,0.0666,2500,42,0.1667
+heldout_project,557,0.6867,0.0,0.6133,0.7533,0.4733,,,42,0.06
+heldout_project,1500,0.8133,0.0,0.7533,0.8733,0.6667,0.1266,943,42,0.06
+heldout_project,4000,0.8533,0.0,0.7933,0.9067,0.6933,0.04,2500,42,0.06

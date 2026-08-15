@@ -1,0 +1,6 @@
+project,commits,fix_build_commits,window,usable
+llvm,565548,2039,2022-06-01..2026-08-12,yes
+ffmpeg,125767,81,all time,no
+abseil,3508,3,all time,no
+json-c,1469,2,all time,no
+leveldb,447,2,all time,no

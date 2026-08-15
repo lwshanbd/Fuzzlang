@@ -1,0 +1,7 @@
+operations,split,sources_scanned,library_injectors,records,diagnostics,projects,source_tus,new_vs_canonical_diagnostics,model_calls,gpu_hours,compiler_invocations,compiler_invocations_per_record,wall_seconds,injectors_with_a_record,sources_per_injector_mean,sources_per_injector_max,injectors_reaching_multiple_sources,injectors_reaching_multiple_projects
+append,eval_unseen_tu,440,1525,793,33,9,409,2,0,0.0,8986,11.3317,1213.796,33,24.03,25,33,21
+append,heldout_project,2263,1525,3229,131,4,1113,3,0,0.0,14953,4.6308,149.679,131,24.649,25,131,10
+append,train,2694,1525,1706,72,9,780,3,0,0.0,57755,33.854,6509.257,72,23.694,25,70,32
+lexical,eval_unseen_tu,440,8235,1280,116,9,427,3,0,0.0,4123,3.2211,612.747,116,11.034,25,93,59
+lexical,heldout_project,2263,8235,2325,138,4,987,4,0,0.0,23465,10.0925,138.705,152,15.296,25,125,18
+lexical,train,2694,8235,5764,401,9,2287,10,0,0.0,47494,8.2398,5104.169,419,13.757,25,309,150

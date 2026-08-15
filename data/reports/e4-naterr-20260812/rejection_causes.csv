@@ -1,0 +1,8 @@
+stage,cause,count,interpretation
+formalize,corrected_not_clean,142,header drift: fixed source will not compile against the frozen 22.1.8 tree
+formalize,test_source,20,clang regression tests; permanently excluded by design
+corrected_not_clean,no_member_or_out_of_line_mismatch,41,declaring header moved on
+corrected_not_clean,header_not_found,38,header added or deleted since the commit
+corrected_not_clean,undeclared_identifier,11,API renamed since the commit
+corrected_not_clean,other,52,macro arity / deleted ctor / overload sets - same drift
+pilot_materialized_tree,buggy_became_clean,7,of 30: the error was an artifact of our own reconstruction
