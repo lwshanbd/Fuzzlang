@@ -3,8 +3,9 @@ from __future__ import annotations
 
 import json
 from collections import Counter
+from dataclasses import dataclass
 from pathlib import Path
-from typing import Iterable
+from typing import Iterable, Iterator
 
 from foundation.diagnostics.catalog import Catalog
 from foundation.record import Record
@@ -96,6 +97,100 @@ def _record_rejection(
     ):
         return "injector_diag_id_mismatch"
     return None
+
+
+@dataclass(frozen=True)
+class RecordEvaluation:
+    """One Record judged against the strict admission gate.
+
+    ``rejection`` is ``None`` exactly when the Record counts toward strict
+    coverage.  ``record_path`` is retained so a release audit can attribute an
+    admitted Record to the campaign file it came from.
+    """
+
+    record_path: Path
+    record: Record
+    rejection: str | None
+    is_cross_source_replay: bool
+
+
+@dataclass(frozen=True)
+class InjectorIndex:
+    """The portable Injectors an audit run is allowed to satisfy records with."""
+
+    input_rows: int
+    by_id: dict[str, FuzzLangInjector]
+    by_target: dict[tuple[str, str], tuple[FuzzLangInjector, ...]]
+
+    @property
+    def diagnostic_names(self) -> set[str]:
+        return {injector.target_diag for injector in self.by_id.values()}
+
+
+def index_injectors(injector_paths: Iterable[Path]) -> InjectorIndex:
+    """Load portable Injectors and group them by identity and by target."""
+    input_injectors = _load_injectors(injector_paths)
+    by_id = {
+        injector.injector_id: injector
+        for injector in input_injectors
+        if injector.portable
+    }
+    grouped: dict[tuple[str, str], list[FuzzLangInjector]] = {}
+    for injector in by_id.values():
+        grouped.setdefault((injector.target_diag, injector.language), []).append(injector)
+    return InjectorIndex(
+        input_rows=len(input_injectors),
+        by_id=by_id,
+        by_target={key: tuple(values) for key, values in grouped.items()},
+    )
+
+
+def evaluate_records(
+    record_paths: Iterable[Path],
+    index: InjectorIndex,
+    *,
+    catalog_error_names: frozenset[str] | None = None,
+) -> Iterator[RecordEvaluation]:
+    """Apply the strict admission gate to every Record, keeping its file."""
+    for path in record_paths:
+        path = Path(path)
+        for record in load_records_jsonl(path):
+            reason = _record_rejection(
+                record, index.by_target, index.by_id, catalog_error_names,
+            )
+            injector_id = record.provenance.detail.get("injector_id")
+            yield RecordEvaluation(
+                record_path=path,
+                record=record,
+                rejection=reason,
+                is_cross_source_replay=(
+                    reason is None
+                    and record.provenance.detail.get("strategy")
+                    == "synthesized_injector_campaign"
+                    and isinstance(injector_id, str)
+                    and injector_id in index.by_id
+                ),
+            )
+
+
+def paper_scope_names(
+    catalog: Catalog, out_of_scope: Iterable[str],
+) -> frozenset[str]:
+    """The frozen strict C/C++ source-diagnostic denominator for this catalog.
+
+    Invocation/environment components cannot form a broken/corrected source
+    pair at all; ``out_of_scope`` is the audited non-standard-dialect and
+    hardware-target name list.  Both exclusions are applied by name so the
+    denominator is reproducible from the pinned catalog alone.
+    """
+    from coverage.tracker import INVOCATION_COMPONENTS
+
+    excluded = frozenset(out_of_scope)
+    return frozenset(
+        entry.name for entry in catalog.errors()
+        if entry.name not in excluded
+        and entry.component not in INVOCATION_COMPONENTS
+    )
 
 
 def audit_verified_injector_coverage(

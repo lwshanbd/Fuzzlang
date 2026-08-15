@@ -54,3 +54,27 @@ def test_build_clang_argv_resolves_compile_directory_relative_paths():
     assert "-MT" not in argv and "a.o" not in argv
     assert "../src/a.c" not in argv
     assert argv[argv.index("-iquote") + 1] == "/project/src"
+
+
+def test_build_clang_argv_drops_compile_only_flags(tmp_path: Path):
+    """`-c` is meaningless once `-fsyntax-only` is forced.
+
+    Clang reports the unused argument as a warning, and any project that builds
+    with `-Werror` (leveldb, curl, protobuf, ...) turns that warning into an
+    error — so every translation unit would be rejected as an unclean parent
+    for a reason that has nothing to do with its source.
+    """
+    src = tmp_path / "a.cc"
+    src.write_text("int main() { return 0; }\n")
+    entry = {
+        "directory": str(tmp_path),
+        "file": "a.cc",
+        "arguments": ["c++", "-c", "-Werror", "-O2", "a.cc", "-o", "a.o"],
+    }
+
+    argv = build_clang_argv(entry, "__CLANG__", "__SRC__")
+
+    assert "-c" not in argv
+    assert "-o" not in argv and "a.o" not in argv
+    assert argv[0] == "__CLANG__" and argv[-1] == "__SRC__"
+    assert "-Werror" in argv and "-O2" in argv

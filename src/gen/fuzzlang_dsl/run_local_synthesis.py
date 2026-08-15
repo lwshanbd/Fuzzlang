@@ -5,10 +5,12 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import os
 from collections import Counter
 from dataclasses import replace
 from pathlib import Path
 from typing import Any, Iterable, Sequence, TypeVar
+from uuid import uuid4
 
 from gen.fuzzlang_dsl.injector import FuzzLangInjector
 from gen.fuzzlang_dsl.local_gemma import (
@@ -19,11 +21,14 @@ from gen.fuzzlang_dsl.local_gemma import (
     load_request_file,
     require_gemma_31b,
 )
+from gen.fuzzlang_dsl.regression_evidence import has_regression_trigger_evidence
 from gen.fuzzlang_dsl.synthesis import (
-    DiagnosticEvidence, SynthesisRequest,
-    synthesize_injectors,
+    DiagnosticEvidence, SynthesisRequest, build_synthesis_messages,
+    build_fragment_synthesis_messages, synthesize_fragment_injectors,
+    synthesize_injectors, validate_fragment_synthesis_responses,
+    validate_synthesis_responses,
 )
-from repair.agent.chat_backend import ChatBackend
+from repair.agent.chat_backend import ChatBackend, VLLMChatBackend
 
 
 _RequestT = TypeVar("_RequestT")
@@ -36,7 +41,15 @@ def _canonical_json(value: Any) -> str:
 
 
 def _write_jsonl(path: Path, values: Iterable[dict[str, Any]]) -> None:
-    path.write_text("".join(_canonical_json(value) + "\n" for value in values))
+    """Atomically publish a checkpoint so readers never observe partial JSONL."""
+    payload = "".join(_canonical_json(value) + "\n" for value in values)
+    temporary = path.with_name(f".{path.name}.{uuid4().hex}.tmp")
+    try:
+        temporary.write_text(payload)
+        os.replace(temporary, path)
+    finally:
+        if temporary.exists():
+            temporary.unlink()
 
 
 def _file_metadata(path: Path) -> dict[str, Any]:
@@ -46,6 +59,24 @@ def _file_metadata(path: Path) -> dict[str, Any]:
         "bytes": len(payload),
         "rows": sum(1 for line in payload.splitlines() if line.strip()),
     }
+
+
+def _read_jsonl(path: Path) -> list[dict[str, Any]]:
+    """Load an atomic JSONL checkpoint and reject malformed rows early."""
+    if not path.exists():
+        return []
+    rows: list[dict[str, Any]] = []
+    for line_number, line in enumerate(path.read_text().splitlines(), 1):
+        if not line.strip():
+            continue
+        try:
+            row = json.loads(line)
+        except json.JSONDecodeError as error:
+            raise ValueError(f"{path}:{line_number}: invalid checkpoint JSON") from error
+        if not isinstance(row, dict):
+            raise ValueError(f"{path}:{line_number}: checkpoint row must be an object")
+        rows.append(row)
+    return rows
 
 
 def _request_dict(request: SynthesisRequest) -> dict[str, Any]:
@@ -73,6 +104,20 @@ def select_request_range(
     if resolved_stop < start or resolved_stop > len(requests):
         raise ValueError("request stop must fall within the input range and follow start")
     return tuple(requests[start:resolved_stop])
+
+
+def require_regression_test_evidence(
+    requests: Sequence[SynthesisRequest],
+) -> tuple[SynthesisRequest, ...]:
+    """Keep only targets whose prompt contains Clang regression-test evidence.
+
+    The test snippet remains prompt-only evidence.  It never becomes a dataset
+    source; replay still operates exclusively on paired clean production code.
+    """
+    return tuple(
+        request for request in requests
+        if has_regression_trigger_evidence(request.evidence.emission_evidence)
+    )
 
 
 def with_validation_feedback(
@@ -112,7 +157,10 @@ def run_synthesis_campaign(
     temperature: float = 0.2,
     max_tokens: int = 1200,
     feedback_rounds: int = 1,
+    request_batch_size: int = 1,
+    synthesis_mode: str = "lexical",
     excluded_injector_ids: Iterable[str] = (),
+    resume: bool = False,
 ) -> dict[str, Any]:
     """Run bounded synthesis and preserve every raw/validated outcome."""
     require_gemma_31b(model_name)
@@ -121,11 +169,41 @@ def run_synthesis_campaign(
     requests_path = output_dir / "requests.jsonl"
     attempts_path = output_dir / "attempts.jsonl"
     injectors_path = output_dir / "injectors.jsonl"
-    _write_jsonl(requests_path, (_request_dict(item) for item in requests))
-    _write_jsonl(attempts_path, ())
-    _write_jsonl(injectors_path, ())
-    attempts: list[dict[str, Any]] = []
-    injectors: dict[str, dict[str, Any]] = {}
+    request_rows = [_request_dict(item) for item in requests]
+    if resume:
+        archived_requests = _read_jsonl(requests_path)
+        if archived_requests and archived_requests != request_rows:
+            raise ValueError(
+                "resume checkpoint requests do not match this bounded synthesis shard"
+            )
+        if not archived_requests:
+            _write_jsonl(requests_path, request_rows)
+        attempts = _read_jsonl(attempts_path)
+        injector_rows = _read_jsonl(injectors_path)
+        injectors = {}
+        for row in injector_rows:
+            injector = FuzzLangInjector.from_dict(row)
+            injectors[injector.injector_id] = injector.to_dict()
+        completed_request_indices: set[int] = set()
+        for row in attempts:
+            request_index = row.get("request_index")
+            if (
+                not isinstance(request_index, int)
+                or isinstance(request_index, bool)
+                or request_index < 0
+                or request_index >= len(requests)
+            ):
+                raise ValueError(
+                    "resume checkpoint has an invalid request_index for this shard"
+                )
+            completed_request_indices.add(request_index)
+    else:
+        _write_jsonl(requests_path, request_rows)
+        _write_jsonl(attempts_path, ())
+        _write_jsonl(injectors_path, ())
+        attempts = []
+        injectors = {}
+        completed_request_indices = set()
     excluded_ids = frozenset(excluded_injector_ids)
     if any(not isinstance(injector_id, str) or not injector_id for injector_id in excluded_ids):
         raise ValueError("excluded Injector IDs must be non-empty strings")
@@ -135,25 +213,103 @@ def run_synthesis_campaign(
         or feedback_rounds <= 0
     ):
         raise ValueError("feedback_rounds must be a positive integer")
-    rejection_counts: Counter[str] = Counter()
-    accepted_candidates = 0
-    output_tokens = 0
+    if (
+        isinstance(request_batch_size, bool)
+        or not isinstance(request_batch_size, int)
+        or request_batch_size <= 0
+    ):
+        raise ValueError("request_batch_size must be a positive integer")
+    batch_chat = getattr(backend, "chat_batch", None)
+    if request_batch_size > 1 and not callable(batch_chat):
+        raise ValueError("request_batch_size > 1 requires backend.chat_batch")
+    if synthesis_mode not in {"lexical", "fragment"}:
+        raise ValueError("synthesis_mode must be 'lexical' or 'fragment'")
+    message_builder = (
+        build_fragment_synthesis_messages
+        if synthesis_mode == "fragment" else build_synthesis_messages
+    )
+    response_validator = (
+        validate_fragment_synthesis_responses
+        if synthesis_mode == "fragment" else validate_synthesis_responses
+    )
+    synthesizer = (
+        synthesize_fragment_injectors
+        if synthesis_mode == "fragment" else synthesize_injectors
+    )
+    rejection_counts: Counter[str] = Counter(
+        str(row["reason"])
+        for row in attempts
+        if row.get("status") == "rejected" and isinstance(row.get("reason"), str)
+    )
+    accepted_candidates = sum(
+        row.get("status") == "accepted" for row in attempts
+    )
+    output_tokens = sum(
+        row["output_tokens"] for row in attempts
+        if isinstance(row.get("output_tokens"), int)
+        and not isinstance(row["output_tokens"], bool)
+    )
+    # Prompt usage is not archived in an attempt row.  Once resumed, avoid
+    # presenting a partial token count as a full campaign measurement.
     prompt_tokens = 0
-    prompt_tokens_known = True
+    prompt_tokens_known = not resume
     token_counter = getattr(backend, "count_prompt_tokens", None)
 
-    feedback_round_requests = 0
+    feedback_round_requests = len({
+        row["request_index"] for row in attempts
+        if isinstance(row.get("request_index"), int)
+        and isinstance(row.get("feedback_round"), int)
+        and row["feedback_round"] > 0
+    })
+    prefetched_results: dict[int, Any] = {}
+    prefetched_prompt_count = 0
     for request_index, request in enumerate(requests):
-        current_request = request
-        for feedback_round in range(feedback_rounds):
-            result = synthesize_injectors(
-                current_request,
-                backend,
-                n_candidates=n_candidates,
+        if request_batch_size > 1 and request_index % request_batch_size == 0:
+            stop = min(request_index + request_batch_size, len(requests))
+            batch = [
+                (batch_index, requests[batch_index])
+                for batch_index in range(request_index, stop)
+                if batch_index not in completed_request_indices
+            ]
+            if not batch:
+                continue
+            messages_batch = [message_builder(item) for _, item in batch]
+            responses_batch = batch_chat(
+                messages_batch=messages_batch,
                 temperature=temperature,
                 max_tokens=max_tokens,
-                prompt_token_counter=token_counter,
+                n=n_candidates,
             )
+            if len(responses_batch) != len(batch):
+                raise RuntimeError(
+                    "chat_batch returned a response group for the wrong number "
+                    "of synthesis requests"
+                )
+            for (batch_index, batch_request), messages, responses in zip(
+                batch, messages_batch, responses_batch, strict=True,
+            ):
+                prompt_tokens = (
+                    token_counter(messages) if token_counter is not None else None
+                )
+                prefetched_results[batch_index] = response_validator(
+                    batch_request, responses, prompt_tokens=prompt_tokens,
+                )
+            prefetched_prompt_count += len(batch)
+        if request_index in completed_request_indices:
+            continue
+        current_request = request
+        for feedback_round in range(feedback_rounds):
+            if feedback_round == 0 and request_index in prefetched_results:
+                result = prefetched_results.pop(request_index)
+            else:
+                result = synthesizer(
+                    current_request,
+                    backend,
+                    n_candidates=n_candidates,
+                    temperature=temperature,
+                    max_tokens=max_tokens,
+                    prompt_token_counter=token_counter,
+                )
             output_tokens += result.usage.output_tokens
             if result.usage.prompt_tokens is None:
                 prompt_tokens_known = False
@@ -224,8 +380,12 @@ def run_synthesis_campaign(
         "generation": {
             "candidates_per_request": n_candidates,
             "feedback_rounds": feedback_rounds,
+            "request_batch_size": request_batch_size,
+            "prefetched_prompt_count": prefetched_prompt_count,
             "temperature": temperature,
             "max_output_tokens": max_tokens,
+            "synthesis_mode": synthesis_mode,
+            "resumed": resume,
         },
         "counts": {
             "requests": len(requests),
@@ -262,12 +422,35 @@ def _parser() -> argparse.ArgumentParser:
     parser.add_argument("--requests", type=Path, required=True)
     parser.add_argument("--output-dir", type=Path, required=True)
     parser.add_argument(
+        "--backend", choices=("vllm", "transformers"), default="vllm",
+        help=(
+            "vllm uses the local single-node TP=8 server (the production path); "
+            "transformers is only for a direct local smoke"
+        ),
+    )
+    parser.add_argument(
+        "--base-url", default="http://127.0.0.1:8000/v1",
+        help="OpenAI-compatible local vLLM endpoint, used with --backend vllm",
+    )
+    parser.add_argument(
+        "--vllm-concurrency", type=int, default=64,
+        help="maximum in-flight HTTP requests to the local TP=8 vLLM server",
+    )
+    parser.add_argument(
         "--model-path", type=Path, default=DEFAULT_GEMMA_31B_SNAPSHOT,
     )
     parser.add_argument("--candidates", type=int, default=1)
+    parser.add_argument(
+        "--synthesis-mode", choices=("lexical", "fragment"), default="lexical",
+        help="lexical edits or bounded v2 append fragments",
+    )
     parser.add_argument("--temperature", type=float, default=0.2)
     parser.add_argument("--max-tokens", type=int, default=1200)
     parser.add_argument("--seed", type=int, default=0)
+    parser.add_argument(
+        "--request-batch-size", type=int, default=64,
+        help="distinct diagnostic prompts submitted as one bounded vLLM batch",
+    )
     parser.add_argument(
         "--feedback-rounds", type=int, default=2,
         help="retry a target with DSL-validation feedback when its first round has no accepted Injector",
@@ -281,10 +464,21 @@ def _parser() -> argparse.ArgumentParser:
         help="zero-based exclusive request index for a bounded retry shard",
     )
     parser.add_argument(
+        "--require-regression-test-evidence", action="store_true",
+        help="only synthesize targets whose prompt carries Clang-test trigger evidence",
+    )
+    parser.add_argument(
         "--exclude-injectors", type=Path, action="append",
         help=(
             "canonical Injector JSONL whose identities must be rejected from "
             "this synthesis run; repeat for multiple prior batches"
+        ),
+    )
+    parser.add_argument(
+        "--resume", action="store_true",
+        help=(
+            "preserve atomic per-request checkpoints in --output-dir and only "
+            "synthesize the unfinished tail of the same bounded shard"
         ),
     )
     return parser
@@ -316,6 +510,8 @@ def main() -> None:
             f"{DEFAULT_GEMMA_31B_SNAPSHOT}"
         )
     all_requests = load_request_file(args.requests)
+    if args.require_regression_test_evidence:
+        all_requests = require_regression_test_evidence(all_requests)
     try:
         requests = select_request_range(
             all_requests, start=args.request_start, stop=args.request_stop,
@@ -323,7 +519,15 @@ def main() -> None:
         excluded_ids = load_excluded_injector_ids(args.exclude_injectors)
     except ValueError as error:
         _parser().error(str(error))
-    backend = LocalGemma31BBackend(args.model_path, seed=args.seed)
+    if args.backend == "vllm":
+        backend: ChatBackend = VLLMChatBackend(
+            "gemma-4-31B-it",
+            base_url=args.base_url,
+            timeout_s=600.0,
+            max_concurrency=args.vllm_concurrency,
+        )
+    else:
+        backend = LocalGemma31BBackend(args.model_path, seed=args.seed)
     manifest = run_synthesis_campaign(
         requests,
         backend,
@@ -334,7 +538,10 @@ def main() -> None:
         temperature=args.temperature,
         max_tokens=args.max_tokens,
         feedback_rounds=args.feedback_rounds,
+        request_batch_size=args.request_batch_size,
+        synthesis_mode=args.synthesis_mode,
         excluded_injector_ids=excluded_ids,
+        resume=args.resume,
     )
     print(json.dumps(manifest["counts"], sort_keys=True))
 

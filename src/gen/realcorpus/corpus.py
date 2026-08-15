@@ -57,6 +57,35 @@ def is_test_path(path: str) -> bool:
     return False
 
 
+# Directory names that mark code a project fetched or generated rather than
+# wrote.  Vendored dependencies are the dangerous case: they carry another
+# project's source under this project's name, which silently breaks held-out
+# project isolation.
+_VENDORED_COMPONENTS = frozenset({
+    "_deps", "third_party", "thirdparty", "third-party", "vendor", "vendored",
+    "contrib", "deps", "cmakefiles",
+})
+_GENERATED_STEM_RE = re.compile(r"^ub_[a-z0-9_]+$", re.IGNORECASE)
+
+
+def is_vendored_path(path: str) -> bool:
+    """True for fetched dependencies and generated build output.
+
+    ``build/`` alone is not enough to reject: some projects legitimately keep
+    sources there.  What is rejected is a dependency directory anywhere in the
+    path, or a generated unity-build stub inside a build tree.
+    """
+    parts = [part for part in path.replace("\\", "/").split("/") if part]
+    lowered = [part.lower() for part in parts]
+    if any(part in _VENDORED_COMPONENTS for part in lowered):
+        return True
+    if "build" in lowered and lowered.index("build") < len(lowered) - 1:
+        stem = parts[-1].rsplit(".", 1)[0]
+        if _GENERATED_STEM_RE.match(stem):
+            return True
+    return False
+
+
 @dataclass(frozen=True)
 class Fragment:
     rel_path: str                 # source path (as recorded in the compile DB)

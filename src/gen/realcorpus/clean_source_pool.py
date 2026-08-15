@@ -18,13 +18,13 @@ from typing import Any, Iterable, Mapping, Sequence
 from foundation.compile_db import build_clang_argv
 from foundation.record import Record
 from foundation.verifier.base import BaseVerifier
-from gen.realcorpus.corpus import is_test_path, sanitize_cmd
+from gen.realcorpus.corpus import is_test_path, is_vendored_path, sanitize_cmd
 from gen.realcorpus.finalize import portable_source_path
 
 
 CLEAN_SOURCE_TU_SCHEMA = "fuzzlang.clean_source_tu"
 CLEAN_SOURCE_TU_VERSION = 1
-_SOURCE_EXTENSIONS = (".c", ".cc", ".cpp", ".cxx", ".c++")
+_SOURCE_EXTENSIONS = (".c", ".cc", ".cpp", ".cxx", ".c++", ".m", ".mm")
 
 
 def _source_sha256(source: str) -> str:
@@ -32,7 +32,12 @@ def _source_sha256(source: str) -> str:
 
 
 def _language_for_path(path: str) -> str:
-    return "c" if path.lower().endswith(".c") else "c++"
+    suffix = Path(path).suffix.lower()
+    if suffix == ".m":
+        return "objective-c"
+    if suffix == ".mm":
+        return "objective-c++"
+    return "c" if suffix == ".c" else "c++"
 
 
 def _valid_compile_cmd(value: Sequence[str]) -> bool:
@@ -69,8 +74,14 @@ class CleanSourceTU:
             raise ValueError("source_id must equal project:source_path")
         if is_test_path(self.source_path) or is_test_path(self.source_id):
             raise ValueError("test/example/benchmark/fuzzer paths are forbidden")
-        if self.language not in ("c", "c++"):
-            raise ValueError("language must be 'c' or 'c++'")
+        if is_vendored_path(self.source_path):
+            # A vendored dependency carries another project's source under this
+            # project's name, which silently breaks held-out project isolation.
+            raise ValueError("vendored/generated third-party paths are forbidden")
+        if self.language not in ("c", "c++", "objective-c", "objective-c++"):
+            raise ValueError(
+                "language must be 'c', 'c++', 'objective-c', or 'objective-c++'",
+            )
         if not isinstance(self.corrected_src, str) or not self.corrected_src:
             raise ValueError("corrected_src must be non-empty")
         if not isinstance(self.compile_cmd, tuple):
@@ -167,19 +178,29 @@ _CPP_STANDARD_RE = re.compile(r"^(?:gnu\+\+|c\+\+)\d[a-z0-9]*$")
 _C_STANDARD_RE = re.compile(r"^(?:gnu|c)(?:89|90|99|11|17|23|2x|2y)$")
 
 
+def _standard_family(language: str) -> str:
+    """Return the C or C++ standard family for a frontend language mode."""
+    if language in {"c", "objective-c"}:
+        return "c"
+    if language in {"c++", "objective-c++"}:
+        return "c++"
+    raise ValueError(f"unsupported FuzzLang source language: {language!r}")
+
+
 def _with_standard(
     command: Sequence[str], *, language: str, standard: str,
 ) -> tuple[str, ...]:
     """Replace (or add) one language-standard flag in a clean-pool command."""
-    matcher = _CPP_STANDARD_RE if language == "c++" else _C_STANDARD_RE
-    if language not in {"c", "c++"} or not matcher.fullmatch(standard):
+    family = _standard_family(language)
+    matcher = _CPP_STANDARD_RE if family == "c++" else _C_STANDARD_RE
+    if not matcher.fullmatch(standard):
         raise ValueError(f"standard {standard!r} is invalid for language {language!r}")
     result: list[str] = []
     replaced = False
     for argument in command:
         match = _STANDARD_FLAG_RE.fullmatch(argument)
         is_cpp_flag = match is not None and "++" in match.group("standard")
-        if match is None or (language == "c++") != is_cpp_flag:
+        if match is None or (family == "c++") != is_cpp_flag:
             result.append(argument)
             continue
         if not replaced:
@@ -226,8 +247,9 @@ def revalidate_standard_pool(
     if workers <= 0:
         raise ValueError("workers must be positive")
     # Validate before scheduling work, including when the input is empty.
-    matcher = _CPP_STANDARD_RE if language == "c++" else _C_STANDARD_RE
-    if language not in {"c", "c++"} or not matcher.fullmatch(standard):
+    family = _standard_family(language)
+    matcher = _CPP_STANDARD_RE if family == "c++" else _C_STANDARD_RE
+    if not matcher.fullmatch(standard):
         raise ValueError(f"standard {standard!r} is invalid for language {language!r}")
     values = tuple(sources)
     candidates = [source for source in values if source.language == language]
@@ -316,6 +338,7 @@ def build_clean_source_pool(
     excluded = set(excluded_source_ids)
     candidates: list[tuple[str, str, str]] = []
     test_sources = 0
+    vendored_sources = 0
     excluded_known_sources = 0
     source_candidates = 0
     for raw_path in sorted(compile_db):
@@ -326,6 +349,9 @@ def build_clean_source_pool(
             continue
         if is_test_path(raw_path):
             test_sources += 1
+            continue
+        if is_vendored_path(portable_source_path(raw_path, source_root=source_root)):
+            vendored_sources += 1
             continue
         source_candidates += 1
         logical_path = portable_source_path(raw_path, source_root=source_root)
@@ -389,6 +415,7 @@ def build_clean_source_pool(
             "source_candidates": source_candidates,
             "excluded_known_sources": excluded_known_sources,
             "test_sources": test_sources,
+            "vendored_sources": vendored_sources,
             "attempted_clean_gates": len(candidates),
             "accepted_clean_sources": len(sources),
         },
@@ -431,6 +458,7 @@ def build_clean_source_pool_from_records(
         "unique_source_candidates": 0,
         "duplicate_parent_records": 0,
         "test_sources": 0,
+        "vendored_sources": 0,
         "invalid_record_provenance": 0,
         "excluded_known_sources": 0,
     }
@@ -452,7 +480,7 @@ def build_clean_source_pool_from_records(
             or not isinstance(command, list)
             or not _valid_compile_cmd(command)
             or not record.corrected_src
-            or record.language not in ("c", "c++")
+            or record.language not in ("c", "c++", "objective-c", "objective-c++")
         ):
             counts["invalid_record_provenance"] += 1
             rejections.append(CleanSourceRejection(
@@ -462,6 +490,9 @@ def build_clean_source_pool_from_records(
             continue
         if is_test_path(path) or is_test_path(source_id):
             counts["test_sources"] += 1
+            continue
+        if is_vendored_path(path):
+            counts["vendored_sources"] = counts.get("vendored_sources", 0) + 1
             continue
         candidate = (path, record.language, record.corrected_src, tuple(command))
         previous = candidates.get(source_id)

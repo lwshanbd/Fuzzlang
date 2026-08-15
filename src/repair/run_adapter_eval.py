@@ -187,6 +187,39 @@ def summarize_results(results: Sequence[dict[str, Any]]) -> dict[str, int | floa
     }
 
 
+def adapter_training_target_format(adapter: "str | Path | None") -> str | None:
+    """The repair representation an adapter was actually trained on."""
+    if adapter is None:
+        return None
+    manifest = Path(adapter) / "run-manifest.json"
+    if not manifest.is_file():
+        return None
+    try:
+        return json.loads(manifest.read_text()).get("target_format")
+    except (OSError, json.JSONDecodeError):
+        return None
+
+
+def check_target_format(
+    adapter: "str | Path | None", *, requested: str, allow_mismatch: bool = False,
+) -> None:
+    """Refuse to score an adapter in a representation it was not trained on.
+
+    Training on ``window-rewrite`` and evaluating with ``relative-edit`` asks the
+    model for an artifact it never learned to produce.  The run still completes
+    and still reports a number, so the failure is indistinguishable from a
+    genuinely bad model unless it is caught here.
+    """
+    trained = adapter_training_target_format(adapter)
+    if trained is None or trained == requested or allow_mismatch:
+        return
+    raise ValueError(
+        f"adapter was trained with target_format={trained!r} but evaluation "
+        f"requested {requested!r}; pass --allow-target-format-mismatch to "
+        "override deliberately"
+    )
+
+
 def _parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser()
     parser.add_argument("--base-model", required=True)
@@ -208,6 +241,10 @@ def _parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
         "--target-format",
         choices=("relative-edit", "window-rewrite"),
         default="relative-edit",
+    )
+    parser.add_argument(
+        "--allow-target-format-mismatch", action="store_true",
+        help="evaluate an adapter in a representation it was not trained on",
     )
     parser.add_argument("--context-lines", type=int, default=8)
     parser.add_argument("--max-window-chars", type=int, default=8_000)
@@ -285,6 +322,10 @@ def main(argv: Sequence[str] | None = None) -> int:
     args = _parse_args(argv)
     if args.max_new_tokens <= 0:
         raise ValueError("max_new_tokens must be positive")
+    check_target_format(
+        args.adapter, requested=args.target_format,
+        allow_mismatch=args.allow_target_format_mismatch,
+    )
 
     import torch
 

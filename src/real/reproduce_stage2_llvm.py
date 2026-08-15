@@ -53,6 +53,7 @@ from typing import Optional
 
 from foundation.compile_db import build_clang_argv as _shared_build_clang_argv
 from foundation.compile_db import load_compile_db as _shared_load_compile_db
+from gen.realcorpus.corpus import sanitize_cmd
 from foundation.compile_db import split_command as _shared_split_command
 
 
@@ -207,8 +208,18 @@ def _build_clang_argv(entry: dict, clang_bin: str, src_tmpfile: str) -> list[str
     - Drop `-o <out>` (we only want -fsyntax-only).
     - Drop any trailing source path and append our tmp source.
     - Force `-fsyntax-only` to avoid .o writes.
+    - Drop `-Werror*`.
+
+    The last one is load-bearing. LLVM builds with `-Werror` and passes
+    GCC-only suppressions such as `-Wno-class-memaccess`; Clang answers those
+    with `-Wunknown-warning-option`, which `-Werror` promotes to an error. The
+    *fixed* revision of a file then fails to compile and the pair is discarded
+    -- 240 of 269 candidates, before this was fixed. A NatErr record asks
+    whether the source has a compilation error, not whether it satisfies the
+    project's warning policy, and the command stored in the record has to be
+    the one under which the pair actually reproduces.
     """
-    return _shared_build_clang_argv(entry, clang_bin, src_tmpfile)
+    return sanitize_cmd(_shared_build_clang_argv(entry, clang_bin, src_tmpfile))
 
 
 def _reverse_lookup_diagname(diagtool_bin: str, diag_id: int,

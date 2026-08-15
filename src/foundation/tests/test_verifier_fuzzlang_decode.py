@@ -17,6 +17,8 @@ def test_guess_suffix_uses_stable_logical_path_when_command_has_no_language():
 
     assert _guess_suffix(command, "absl/base/log_severity.cc") == ".cpp"
     assert _guess_suffix(command, "src/runtime.c") == ".c"
+    assert _guess_suffix(command, "runtime/NSObject.m") == ".m"
+    assert _guess_suffix(command, "runtime/Selector.mm") == ".mm"
 
 
 def test_guess_suffix_respects_explicit_language_over_logical_path():
@@ -33,6 +35,8 @@ def test_verifier_can_select_distinct_c_and_cxx_drivers() -> None:
 
     assert verifier._compiler_for(command, "src/runtime.c") == "clang"
     assert verifier._compiler_for(command, "src/runtime.cc") == "clang++"
+    assert verifier._compiler_for(command, "src/runtime.m") == "clang"
+    assert verifier._compiler_for(command, "src/runtime.mm") == "clang++"
 
 
 def test_verify_tolerates_non_utf8_stderr(tmp_path):

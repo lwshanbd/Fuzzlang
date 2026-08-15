@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import argparse
 import json
+from concurrent.futures import ThreadPoolExecutor
 from collections import Counter
 from pathlib import Path
 from typing import Callable, Sequence
@@ -44,8 +45,19 @@ def main(
     parser.add_argument("--manifest-out", type=Path, required=True)
     parser.add_argument("--timeout", type=float, default=30.0)
     parser.add_argument("--limit", type=int)
+    parser.add_argument(
+        "--jobs", type=int, default=1,
+        help=(
+            "Rows to formalize concurrently. Each row costs two whole-"
+            "translation-unit compiles, so a real LLVM run needs this. Threads, "
+            "not processes: the work is subprocess I/O and the verifier holds "
+            "no per-call state. Output is independent of the value."
+        ),
+    )
     args = parser.parse_args(argv)
 
+    if args.jobs < 1:
+        parser.error(f"--jobs must be at least 1, got {args.jobs}")
     if not args.project_checkout.is_dir():
         parser.error(f"project checkout does not exist: {args.project_checkout}")
     outputs = (args.out, args.rejected_out, args.manifest_out)
@@ -66,11 +78,11 @@ def main(
     accepted = 0
     distinct_diagnostics: set[str] = set()
     sources: set[str] = set()
-    with (
-        args.input.open(encoding="utf-8") as input_stream,
-        args.out.open("w", encoding="utf-8") as output_stream,
-        args.rejected_out.open("w", encoding="utf-8") as rejected_stream,
-    ):
+
+    # Read and pre-classify first, so the concurrent stage handles only rows
+    # that reach the compiler.  Malformed lines keep their input position.
+    parsed: list[tuple[int, dict | None, str | None]] = []
+    with args.input.open(encoding="utf-8") as input_stream:
         for line_number, line in enumerate(input_stream, 1):
             if not line.strip():
                 continue
@@ -80,28 +92,48 @@ def main(
             try:
                 row = json.loads(line)
             except json.JSONDecodeError as exc:
-                status = "invalid_json"
-                statuses[status] += 1
-                rejected_stream.write(json.dumps({
-                    "line": line_number, "status": status, "detail": str(exc)
-                }, sort_keys=True) + "\n")
+                parsed.append((line_number, None, f"invalid_json\t{exc}"))
                 continue
             if not isinstance(row, dict):
-                status = "invalid_row"
+                parsed.append(
+                    (line_number, None, "invalid_row\trow is not a JSON object")
+                )
+                continue
+            parsed.append((line_number, row, None))
+
+    def _formalize(row: dict):
+        return formalize_row(
+            row,
+            args.project_checkout,
+            verifier,
+            source_at=source_at,
+            expected_project=args.project,
+        )
+
+    rows_to_run = [row for _, row, _ in parsed if row is not None]
+    if args.jobs > 1 and rows_to_run:
+        with ThreadPoolExecutor(max_workers=args.jobs) as pool:
+            # `map` preserves input order, so the output is byte-identical to
+            # the serial run regardless of completion order.
+            results = list(pool.map(_formalize, rows_to_run))
+    else:
+        results = [_formalize(row) for row in rows_to_run]
+    pending = iter(results)
+
+    with (
+        args.out.open("w", encoding="utf-8") as output_stream,
+        args.rejected_out.open("w", encoding="utf-8") as rejected_stream,
+    ):
+        for line_number, row, failure in parsed:
+            if row is None:
+                status, _, detail = (failure or "").partition("\t")
                 statuses[status] += 1
                 rejected_stream.write(json.dumps({
-                    "line": line_number, "status": status,
-                    "detail": "row is not a JSON object",
+                    "line": line_number, "status": status, "detail": detail,
                 }, sort_keys=True) + "\n")
                 continue
 
-            result = formalize_row(
-                row,
-                args.project_checkout,
-                verifier,
-                source_at=source_at,
-                expected_project=args.project,
-            )
+            result = next(pending)
             statuses[result.status] += 1
             if result.record is not None:
                 output_stream.write(

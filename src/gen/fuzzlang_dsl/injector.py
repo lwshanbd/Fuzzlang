@@ -26,7 +26,7 @@ FUZZLANG_DSL_VERSION = 2
 _SUPPORTED_VERSIONS = frozenset({0, 1, 2})
 
 _OPERATIONS = frozenset({"append", "insert", "delete", "replace"})
-_LANGUAGES = frozenset({"c", "c++"})
+_LANGUAGES = frozenset({"c", "c++", "objective-c", "objective-c++"})
 _PART_KINDS_BY_VERSION = {
     0: frozenset({"literal", "binding"}),
     1: frozenset({"literal", "binding", "fresh"}),

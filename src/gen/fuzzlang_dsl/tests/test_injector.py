@@ -71,6 +71,22 @@ def test_recipe_conversion_is_lossless_and_versioned():
     assert injector.to_recipe() == recipe
 
 
+def test_injector_accepts_objective_c_language_for_truthful_replay():
+    injector = FuzzLangInjector(
+        target_diag="err_objc_missing_end",
+        language="objective-c",
+        operation="append",
+        old_patterns=(),
+        new_text="\n@interface FuzzLangBroken\n",
+        left_context=(),
+        right_context=(),
+        portable=True,
+        replacement_parts=(("literal", "\n@interface FuzzLangBroken\n"),),
+    )
+
+    assert injector.language == "objective-c"
+
+
 def test_delete_recipe_conversion_preserves_empty_replacement_parts():
     recipe = extract_recipe(
         _record("int f(){ return value; }", "int f(){ return value }"),

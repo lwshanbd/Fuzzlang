@@ -8,7 +8,12 @@ sweep never reaches (target-feature, OpenMP, etc.).
 from __future__ import annotations
 
 from foundation.verifier.base import PLACEHOLDER
-from gen.guided.runline import parse_cc1_configs
+from gen.guided.runline import (
+    parse_analyzer_configs,
+    parse_cc1_configs,
+    parse_cl_configs,
+    parse_driver_configs,
+)
 
 RES = "/RES"
 
@@ -69,3 +74,26 @@ def test_identical_run_lines_deduped():
     text = ("// RUN: %clang_cc1 -triple aarch64 -fsyntax-only -verify %s\n"
             "// RUN: %clang_cc1 -triple aarch64 -fsyntax-only -verify %s\n")
     assert len(parse_cc1_configs(text, resource_dir=RES)) == 1
+
+
+def test_driver_line_keeps_frontend_flags_and_forces_syntax_only():
+    cfgs = parse_driver_configs(
+        "// RUN: not %clang -fblocks -fbracket-depth=512 -fsyntax-only %s 2>&1\n"
+    )
+    assert cfgs == [["__CLANG__", "-fblocks", "-fbracket-depth=512",
+                     "-fsyntax-only", PLACEHOLDER]]
+
+
+def test_analyzer_line_preserves_analyze_action():
+    cfgs = parse_analyzer_configs(
+        "// RUN: %clang_analyze_cc1 -std=c11 -analyzer-checker=core -verify %s\n",
+        resource_dir=RES,
+    )
+    assert cfgs == [["__CLANG__", "-cc1", "-resource-dir", RES, "-std=c11",
+                     "-analyzer-checker=core", "-analyze", PLACEHOLDER]]
+
+
+def test_cl_line_uses_cl_driver_mode_and_syntax_check():
+    cfgs = parse_cl_configs("// RUN: not %clang_cl /std:c++20 /c %s 2>&1\n")
+    assert cfgs == [["__CLANG__", "--driver-mode=cl", "/std:c++20", "/Zs",
+                     PLACEHOLDER]]

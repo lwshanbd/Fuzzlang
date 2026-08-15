@@ -14,3 +14,20 @@ __pycache__/
 new-docs/
 .artifacts/
 external/ffmpeg/
+
+# Build artifacts and stray files from interactive runs on the cluster.
+*.core
+tmp*.d
+tmp*.i
+build/
+external/libobjc2/
+data/gen/source-pools/
+flux-*.out
+flux-*.err
+.artifacts/
+# Accidental filenames created by mistyped shell redirections.
+/-I
+/-fsyntax-only
+/>
+/%t/
+modules.timestamp

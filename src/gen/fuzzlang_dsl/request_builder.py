@@ -61,6 +61,7 @@ def request_to_dict(request: SynthesisRequest) -> dict[str, object]:
         "tablegen_definition": request.evidence.tablegen_definition,
         "emission_evidence": request.evidence.emission_evidence,
         "correct_snippets": list(request.correct_snippets),
+        "single_witness_long_tail": request.single_witness_long_tail,
     }
 
 

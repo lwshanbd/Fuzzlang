@@ -4,7 +4,11 @@ from pathlib import Path
 import pytest
 
 from gen.fuzzlang_dsl import FuzzLangInjector
+from gen.realcorpus.recipes import LearnedRecipe
 from repair import build_sft_arms
+from repair.build_sft_arms import (
+    Candidate, select_by_breadth, select_scaling_tiers,
+)
 
 
 class FakeTokenizer:
@@ -257,3 +261,217 @@ def test_count_and_token_matching_finds_largest_common_cardinality() -> None:
         arm: sum(row.rendered_tokens for row in rows)
         for arm, rows in selected.items()
     } == {arm: 90 for arm in arms}
+
+
+def _library_replay_row(record_id: str, source_key: str, injector_id: str) -> dict:
+    row = _row(record_id, source_key, method="fuzzlang")
+    row["provenance"]["detail"] = {
+        "strategy": "fuzzlang_library_replay",
+        "injector_id": injector_id,
+        "target_diag": "err_undeclared_var_use",
+        "source_path": source_key.split(":", 1)[1],
+    }
+    return row
+
+
+def test_library_replay_rows_are_accepted_via_their_immutable_injector_id(
+    tmp_path,
+) -> None:
+    """E1 replays a released library, so a record names its Injector directly.
+
+    That is stronger provenance than the recipe indirection: the Injector ID is
+    a content hash of the artifact, so it cannot silently drift.
+    """
+    injector = FuzzLangInjector.from_recipe(LearnedRecipe(**_recipe()))
+    row = _library_replay_row("rec-1", "llvm:a.cc", injector.injector_id)
+
+    derived = build_sft_arms.validated_arm_row(
+        row, method="fuzzlang", location="mem:1",
+        injector_by_recipe={}, injector_by_id={injector.injector_id: injector},
+    )
+
+    assert derived["provenance"]["detail"]["sft_arm"] == "fuzzlang"
+    assert derived["provenance"]["detail"]["injector_id"] == injector.injector_id
+    assert derived["provenance"]["detail"]["injector_content_hash"] == (
+        injector.content_hash
+    )
+    assert derived["split"] == "train"
+
+
+def test_a_library_replay_row_naming_an_unknown_injector_is_rejected(tmp_path) -> None:
+    row = _library_replay_row("rec-1", "llvm:a.cc", "fuzzlang-v2-not-in-library")
+
+    with pytest.raises(ValueError, match="Injector"):
+        build_sft_arms.validated_arm_row(
+            row, method="fuzzlang", location="mem:1",
+            injector_by_recipe={}, injector_by_id={},
+        )
+
+
+def test_recipe_paths_are_optional_when_a_pinned_library_is_supplied(tmp_path) -> None:
+    """A released-library replay needs no recipe map; requiring one is noise."""
+    parser_error = None
+    try:
+        build_sft_arms.require_injector_authority(recipes=[], library=["lib.jsonl"])
+    except ValueError as error:  # pragma: no cover - asserted below
+        parser_error = error
+    assert parser_error is None
+
+    with pytest.raises(ValueError, match="recipe"):
+        build_sft_arms.require_injector_authority(recipes=[], library=[])
+
+
+def test_overlength_records_are_excluded_explicitly_never_silently(tmp_path) -> None:
+    """The plan forbids silent truncation or dropping of overlength examples.
+
+    Raising is the safe default. When a corpus legitimately contains windows
+    wider than the context budget, the caller must opt in and the count lands in
+    the exclusion report, so no example disappears without a number attached.
+    """
+    assert build_sft_arms.overlength_disposition(
+        rendered_tokens=5_000, max_seq_len=1_024, on_overlength="exclude",
+    ) == "overlength"
+    assert build_sft_arms.overlength_disposition(
+        rendered_tokens=100, max_seq_len=1_024, on_overlength="exclude",
+    ) is None
+    with pytest.raises(ValueError, match="no implicit truncation"):
+        build_sft_arms.overlength_disposition(
+            rendered_tokens=5_000, max_seq_len=1_024, on_overlength="error",
+        )
+
+
+def test_manifest_records_the_overlength_policy_that_actually_ran(tmp_path) -> None:
+    """A manifest that misreports the run is worse than no manifest.
+
+    The overlength policy decides whether examples were dropped, so hardcoding
+    it would claim `error` (nothing dropped) on a run that excluded examples.
+    """
+    import inspect
+
+    source = inspect.getsource(build_sft_arms.build_matched_arms)
+    assert '"overlong_policy": "error"' not in source
+    assert '"overlong_policy": on_overlength' in source
+
+
+def test_scaling_sizes_are_nested_so_the_curve_isolates_quantity():
+    # A data-scaling curve only isolates *how much* data if the smaller arm is a
+    # subset of the larger one. Otherwise a difference could come from which
+    # records were drawn rather than from how many.
+    candidates = [
+        Candidate(
+            record_id=f"r{n}", row={"record_id": f"r{n}"}, source_key=f"s{n}",
+            diagnostic="err_a", rendered_tokens=100 + n, completion_tokens=10,
+            localized_input_hash=f"h{n}", paired_source_hash=f"p{n}",
+        )
+        for n in range(20)
+    ]
+
+    tiers = select_scaling_tiers(candidates, sizes=[4, 8, 16], seed=42)
+
+    assert [len(tiers[size]) for size in (4, 8, 16)] == [4, 8, 16]
+    ids = {size: {c.record_id for c in tiers[size]} for size in tiers}
+    assert ids[4] < ids[8] < ids[16]
+
+
+def test_scaling_rejects_a_size_larger_than_the_pool():
+    candidates = [
+        Candidate(
+            record_id=f"r{n}", row={"record_id": f"r{n}"}, source_key=f"s{n}",
+            diagnostic="err_a", rendered_tokens=100, completion_tokens=10,
+            localized_input_hash=f"h{n}", paired_source_hash=f"p{n}",
+        )
+        for n in range(5)
+    ]
+    with pytest.raises(ValueError):
+        select_scaling_tiers(candidates, sizes=[4, 9], seed=42)
+
+
+def test_scaling_order_is_deterministic_and_independent_of_input_order():
+    def pool():
+        return [
+            Candidate(
+                record_id=f"r{n}", row={"record_id": f"r{n}"}, source_key=f"s{n}",
+                diagnostic="err_a", rendered_tokens=100 + (n % 7), completion_tokens=10,
+                localized_input_hash=f"h{n}", paired_source_hash=f"p{n}",
+            )
+            for n in range(12)
+        ]
+
+    forward = select_scaling_tiers(pool(), sizes=[3, 6], seed=7)
+    reverse = select_scaling_tiers(list(reversed(pool())), sizes=[3, 6], seed=7)
+
+    assert [c.record_id for c in forward[3]] == [c.record_id for c in reverse[3]]
+    assert [c.record_id for c in forward[6]] == [c.record_id for c in reverse[6]]
+
+
+def _diag_pool():
+    """20 records: 'err_common' holds 11, the rest hold 1 each."""
+    pool = []
+    for n in range(11):
+        pool.append(Candidate(
+            record_id=f"c{n}", row={"record_id": f"c{n}"}, source_key=f"s{n}",
+            diagnostic="err_common", rendered_tokens=100, completion_tokens=10,
+            localized_input_hash=f"h{n}", paired_source_hash=f"p{n}"))
+    for n in range(9):
+        pool.append(Candidate(
+            record_id=f"r{n}", row={"record_id": f"r{n}"}, source_key=f"t{n}",
+            diagnostic=f"err_{n}", rendered_tokens=100, completion_tokens=10,
+            localized_input_hash=f"g{n}", paired_source_hash=f"q{n}"))
+    return pool
+
+
+def test_breadth_modes_hold_the_record_count_and_move_only_the_coverage():
+    # The scaling curve grew volume and diagnostic coverage together. To tell
+    # them apart we need two arms of the same size whose coverage differs.
+    narrow = select_by_breadth(_diag_pool(), count=10, mode="narrow", seed=42)
+    broad = select_by_breadth(_diag_pool(), count=10, mode="broad", seed=42)
+
+    assert len(narrow) == len(broad) == 10
+    narrow_diags = {c.diagnostic for c in narrow}
+    broad_diags = {c.diagnostic for c in broad}
+    # narrow fills from the most populous diagnostic first...
+    assert narrow_diags == {"err_common"}
+    # ...broad spreads one per diagnostic before taking a second from any.
+    assert len(broad_diags) == 10
+
+
+def test_broad_mode_spreads_evenly_while_every_diagnostic_still_has_records():
+    # Round-robin can only stay balanced while records remain; once a
+    # diagnostic is exhausted the rest must absorb the remainder. Check the
+    # invariant on a pool where nothing runs out.
+    from collections import Counter
+
+    balanced = [
+        Candidate(
+            record_id=f"d{d}-{n}", row={"record_id": f"d{d}-{n}"},
+            source_key=f"s{d}{n}", diagnostic=f"err_{d}",
+            rendered_tokens=100, completion_tokens=10,
+            localized_input_hash=f"h{d}{n}", paired_source_hash=f"p{d}{n}",
+        )
+        for d in range(5) for n in range(4)
+    ]
+    counts = Counter(
+        c.diagnostic for c in select_by_breadth(
+            balanced, count=12, mode="broad", seed=42)
+    )
+
+    assert len(counts) == 5
+    assert max(counts.values()) - min(counts.values()) <= 1
+
+
+def test_broad_mode_exhausts_small_diagnostics_before_repeating_a_large_one():
+    # err_common holds 11 records, nine others hold 1 each. Asking for 12 must
+    # take all nine singletons rather than 12 copies of the easy diagnostic.
+    broad = select_by_breadth(_diag_pool(), count=12, mode="broad", seed=42)
+    assert len({c.diagnostic for c in broad}) == 10
+
+
+def test_breadth_selection_rejects_an_impossible_count():
+    with pytest.raises(ValueError):
+        select_by_breadth(_diag_pool(), count=99, mode="broad", seed=42)
+
+
+def test_breadth_selection_is_deterministic():
+    a = select_by_breadth(_diag_pool(), count=10, mode="broad", seed=7)
+    b = select_by_breadth(list(reversed(_diag_pool())), count=10, mode="broad", seed=7)
+    assert [c.record_id for c in a] == [c.record_id for c in b]

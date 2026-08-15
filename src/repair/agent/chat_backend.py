@@ -9,8 +9,12 @@ Tests use `MockChatBackend` to inject scripted responses.
 """
 from __future__ import annotations
 
+from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass
+import json
 from typing import Any, Optional, Protocol
+from urllib.error import HTTPError, URLError
+from urllib.request import Request, urlopen
 
 
 @dataclass(frozen=True)
@@ -84,7 +88,13 @@ def build_chat_kwargs(
 
 
 class OpenAIChatBackend:
-    """Real backend. Lazy-imports `openai` so unit tests need not install it."""
+    """Real backend with optional bounded concurrent submission.
+
+    vLLM continuously batches concurrent HTTP requests.  ``chat_batch`` is
+    therefore deliberately a client-side concurrency primitive rather than a
+    fake prompt-concatenation scheme: it preserves one response group per
+    diagnostic while keeping a TP-sharded vLLM server busy.
+    """
 
     def __init__(
         self,
@@ -93,11 +103,15 @@ class OpenAIChatBackend:
         base_url: str = "http://localhost:8000/v1",
         api_key: str = "dummy",
         timeout_s: float = 120.0,
+        max_concurrency: int = 1,
     ):
+        if isinstance(max_concurrency, bool) or max_concurrency <= 0:
+            raise ValueError("max_concurrency must be a positive integer")
         self.model_name = model_name
         self.base_url = base_url
         self.api_key = api_key
         self.timeout_s = timeout_s
+        self.max_concurrency = max_concurrency
         self._client = None
 
     def _ensure_client(self):
@@ -126,3 +140,129 @@ class OpenAIChatBackend:
                 output_tokens=per_choice,
             ))
         return out
+
+    def chat_batch(
+        self,
+        *,
+        messages_batch: list[list[dict[str, str]]],
+        temperature: float,
+        max_tokens: int,
+        n: int = 1,
+        response_format: Optional[dict[str, Any]] = None,
+    ) -> list[list[ChatResponse]]:
+        """Submit a bounded batch concurrently and return results in input order.
+
+        This is intended for the local TP=8 vLLM server.  The server, not the
+        caller, owns scheduling and dynamic batching across all eight GCDs.
+        """
+        if not messages_batch:
+            return []
+        workers = min(self.max_concurrency, len(messages_batch))
+        with ThreadPoolExecutor(max_workers=workers) as executor:
+            futures = [
+                executor.submit(
+                    self.chat,
+                    messages=messages,
+                    temperature=temperature,
+                    max_tokens=max_tokens,
+                    n=n,
+                    response_format=response_format,
+                )
+                for messages in messages_batch
+            ]
+            return [future.result() for future in futures]
+
+
+class VLLMChatBackend:
+    """Dependency-free client for the local vLLM OpenAI-compatible endpoint.
+
+    Tioga's Gemma transformers environment intentionally does not depend on
+    the external ``openai`` package.  Keeping this client in the standard
+    library lets the one-node TP=8 synthesis launcher use that environment
+    unchanged.
+    """
+
+    def __init__(
+        self,
+        model_name: str,
+        *,
+        base_url: str = "http://127.0.0.1:8000/v1",
+        timeout_s: float = 120.0,
+        max_concurrency: int = 1,
+    ) -> None:
+        if isinstance(max_concurrency, bool) or max_concurrency <= 0:
+            raise ValueError("max_concurrency must be a positive integer")
+        self.model_name = model_name
+        self.base_url = base_url.rstrip("/")
+        self.timeout_s = timeout_s
+        self.max_concurrency = max_concurrency
+
+    def _post_json(self, payload: dict[str, Any]) -> dict[str, Any]:
+        request = Request(
+            self.base_url + "/chat/completions",
+            data=json.dumps(payload).encode("utf-8"),
+            headers={"Content-Type": "application/json", "Authorization": "Bearer dummy"},
+            method="POST",
+        )
+        try:
+            with urlopen(request, timeout=self.timeout_s) as response:
+                decoded = json.loads(response.read().decode("utf-8"))
+        except HTTPError as error:
+            raise RuntimeError(f"vLLM HTTP {error.code}: {error.read().decode('utf-8', 'replace')}") from error
+        except (URLError, TimeoutError) as error:
+            raise RuntimeError(f"vLLM request failed: {error}") from error
+        if not isinstance(decoded, dict):
+            raise RuntimeError("vLLM response must be a JSON object")
+        return decoded
+
+    def chat(self, *, messages, temperature, max_tokens, n=1, response_format=None):
+        payload = build_chat_kwargs(
+            self.model_name, messages, temperature=temperature,
+            max_tokens=max_tokens, n=n, response_format=response_format,
+        )
+        response = self._post_json(payload)
+        choices = response.get("choices")
+        if not isinstance(choices, list):
+            raise RuntimeError("vLLM response has no choices list")
+        usage = response.get("usage")
+        total_out = usage.get("completion_tokens", 0) if isinstance(usage, dict) else 0
+        per_choice = total_out // max(1, len(choices))
+        result: list[ChatResponse] = []
+        for choice in choices:
+            if not isinstance(choice, dict):
+                raise RuntimeError("vLLM response choice must be an object")
+            message = choice.get("message")
+            if not isinstance(message, dict):
+                raise RuntimeError("vLLM response choice has no message")
+            content = message.get("content")
+            result.append(ChatResponse(
+                text=content if isinstance(content, str) else "",
+                output_tokens=per_choice,
+            ))
+        return result
+
+    def chat_batch(
+        self,
+        *,
+        messages_batch: list[list[dict[str, str]]],
+        temperature: float,
+        max_tokens: int,
+        n: int = 1,
+        response_format: Optional[dict[str, Any]] = None,
+    ) -> list[list[ChatResponse]]:
+        if not messages_batch:
+            return []
+        workers = min(self.max_concurrency, len(messages_batch))
+        with ThreadPoolExecutor(max_workers=workers) as executor:
+            futures = [
+                executor.submit(
+                    self.chat,
+                    messages=messages,
+                    temperature=temperature,
+                    max_tokens=max_tokens,
+                    n=n,
+                    response_format=response_format,
+                )
+                for messages in messages_batch
+            ]
+            return [future.result() for future in futures]

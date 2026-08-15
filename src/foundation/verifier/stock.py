@@ -73,24 +73,30 @@ def _guess_suffix(
     compile_cmd: list[str], logical_path: Optional[str] = None,
 ) -> str:
     for a in compile_cmd:
+        if a.endswith(".mm"):
+            return ".mm"
+        if a.endswith(".m"):
+            return ".m"
         if a.endswith((".cpp", ".cc", ".cxx", ".c++")):
             return ".cpp"
     for i, a in enumerate(compile_cmd):
         if a == "-x" and i + 1 < len(compile_cmd):
             if compile_cmd[i + 1] in ("c++", "objective-c++"):
-                return ".cpp"
+                return ".mm" if compile_cmd[i + 1] == "objective-c++" else ".cpp"
             if compile_cmd[i + 1] in ("c", "objective-c"):
-                return ".c"
+                return ".m" if compile_cmd[i + 1] == "objective-c" else ".c"
         if a in ("-xc++", "-xobjective-c++"):
-            return ".cpp"
+            return ".mm" if a == "-xobjective-c++" else ".cpp"
         if a in ("-xc", "-xobjective-c"):
-            return ".c"
+            return ".m" if a == "-xobjective-c" else ".c"
     for a in compile_cmd:
         if a.startswith(("-std=c++", "-std=gnu++")):
             return ".cpp"
-    if logical_path and logical_path.lower().endswith(
-        (".cpp", ".cc", ".cxx", ".c++")
-    ):
+    if logical_path and logical_path.lower().endswith(".mm"):
+        return ".mm"
+    if logical_path and logical_path.lower().endswith(".m"):
+        return ".m"
+    if logical_path and logical_path.lower().endswith((".cpp", ".cc", ".cxx", ".c++")):
         return ".cpp"
     return ".c"
 

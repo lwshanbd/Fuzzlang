@@ -1,6 +1,9 @@
 from __future__ import annotations
 
-from gen.fuzzlang_dsl.regression_evidence import regression_evidence_for
+from gen.fuzzlang_dsl.regression_evidence import (
+    has_regression_test_source_evidence, has_regression_trigger_evidence,
+    regression_evidence_for,
+)
 from gen.fuzzlang_dsl import regression_evidence
 
 
@@ -68,3 +71,21 @@ def test_regression_evidence_bounds_optional_search_latency(tmp_path, monkeypatc
         "this diagnostic message is long enough", tests,
     ) is None
     assert captured == [5]
+
+
+def test_exact_test_trigger_configuration_counts_as_existing_evidence():
+    assert has_regression_trigger_evidence(
+        "Clang regression-test trigger evidence (not a dataset source):\n"
+        "  -fsyntax-only -x c++ -std=c++2b"
+    )
+    assert not has_regression_test_source_evidence(
+        "Clang regression-test trigger evidence (not a dataset source):\n"
+        "  -fsyntax-only -x c++ -std=c++2b"
+    )
+
+
+def test_test_source_evidence_requires_an_excerpt_not_only_a_scan_configuration():
+    assert has_regression_test_source_evidence(
+        "Regression-test trigger evidence (not a dataset source):\n"
+        "SemaCXX/example.cpp:\nint x = ; // expected-error {{expected expression}}"
+    )

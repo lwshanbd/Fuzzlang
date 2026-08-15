@@ -562,10 +562,10 @@ def _prepare_source_pool(
                 source_path=path,
             ))
             continue
-        if record.language not in ("c", "c++"):
+        if record.language not in ("c", "c++", "objective-c", "objective-c++"):
             rejections.append(CampaignRejection(
                 status="unsupported_language",
-                reason="campaign supports only C and C++ source Records",
+                reason="campaign source language is not supported by FuzzLang",
                 parent_record_id=record.record_id,
                 provenance_source=source,
                 source_path=path,

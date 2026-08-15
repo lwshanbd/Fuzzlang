@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+from pathlib import Path
 
 from gen.fuzzlang_dsl.code_witness import CodeWitnessRequest
 from gen.fuzzlang_dsl.direct_source import replay_direct_injector_on_source
@@ -93,3 +94,27 @@ def test_campaign_archives_only_direct_injectors_with_exact_seed_replay(tmp_path
     assert manifest["counts"]["seed_records"] == 1
     row = json.loads((tmp_path / "attempts.jsonl").read_text())
     assert row["status"] == "exact_seed_replay"
+
+
+def test_direct_tioga_runner_forwards_a_bounded_request_shard():
+    """Direct Injector jobs need disjoint resumable request ranges."""
+    root = Path("src/gen/fuzzlang_dsl")
+    replay = (root / "run_tioga_direct_injector_replay.sh").read_text()
+    synthesis = (root / "run_tioga_vllm_synthesis.sh").read_text()
+
+    assert 'REQUEST_START="${REQUEST_START:-0}"' in synthesis
+    assert 'REQUEST_STOP="${REQUEST_STOP:-}"' in synthesis
+    assert 'RESUME="${RESUME:-0}"' in synthesis
+    assert 'REQUIRE_REGRESSION_EVIDENCE="${REQUIRE_REGRESSION_EVIDENCE:-1}"' in synthesis
+    assert 'EVIDENCE_ARGS+=(--require-regression-test-evidence)' in synthesis
+    assert '"${EVIDENCE_ARGS[@]}"' in synthesis
+    assert 'RESUME_ARGS+=(--resume)' in synthesis
+    assert '"${RANGE_ARGS[@]}"' in synthesis
+    assert 'kill -KILL "$SERVE_PID" 2>/dev/null || true' in synthesis
+    assert 'RUN_MARKER="$OUTPUT_DIR/.fuzzlang-run-start"' in synthesis
+    assert '"$OUTPUT_DIR/manifest.json" -nt "$RUN_MARKER"' in synthesis
+    assert 'kill -TERM "$RUN_PID" 2>/dev/null || true' in synthesis
+    assert 'exec 9>"$OUTPUT_DIR/.fuzzlang-writer.lock"' in synthesis
+    assert 'flock -n 9' in synthesis
+    assert 'REQUEST_START="${REQUEST_START:-0}"' in replay
+    assert 'REQUEST_STOP="${REQUEST_STOP:-}"' in replay

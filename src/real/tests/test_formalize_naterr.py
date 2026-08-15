@@ -197,3 +197,56 @@ def test_cli_streams_records_and_rejections_with_manifest(
     }
     assert report["release_gates"]["test_sources_excluded"] is True
     assert json.loads(capsys.readouterr().out) == report
+
+
+def _run_cli(tmp_path: Path, rows: list[dict], jobs: int, tag: str) -> dict[str, str]:
+    """Run the CLI over `rows` at a given worker count; return output text."""
+    input_path = tmp_path / f"in-{tag}.jsonl"
+    input_path.write_text(
+        "".join(json.dumps(row) + "\n" for row in rows), encoding="utf-8"
+    )
+    out = tmp_path / tag
+    argv = [
+        "--input", str(input_path),
+        "--project", "llvm",
+        "--project-checkout", str(tmp_path),
+        "--clang-bin", "/fake/clang",
+        "--diagtool-bin", "/fake/diagtool",
+        "--out", str(out / "records.jsonl"),
+        "--rejected-out", str(out / "rejected.jsonl"),
+        "--manifest-out", str(out / "manifest.json"),
+        "--jobs", str(jobs),
+    ]
+    assert main(
+        argv,
+        verifier_factory=lambda clang, diagtool, timeout: _good_verifier(),
+        source_at=lambda checkout, revision, path: (CORRECTED, ""),
+    ) == 0
+    manifest = json.loads((out / "manifest.json").read_text())
+    manifest.pop("input", None)
+    manifest["outputs"] = {}
+    return {
+        "records": (out / "records.jsonl").read_text(),
+        "rejected": (out / "rejected.jsonl").read_text(),
+        "manifest": json.dumps(manifest, sort_keys=True),
+    }
+
+
+def test_worker_count_does_not_change_the_output(tmp_path: Path) -> None:
+    # Each row costs two large-TU compiles, so the real run must parallelise.
+    # Parallelism is only safe if it is invisible: same records, same order,
+    # same rejection lines, same counts.
+    rows = [_row(instance_id=f"row-{n}", commit_sha=f"pred{n}") for n in range(6)]
+    rows.insert(3, _row(instance_id="test-row",
+                        source_file="clang/test/Sema/failure.cpp"))
+
+    serial = _run_cli(tmp_path, rows, jobs=1, tag="serial")
+    parallel = _run_cli(tmp_path, rows, jobs=4, tag="parallel")
+
+    assert parallel == serial
+    assert len(serial["records"].splitlines()) == 6
+
+
+def test_worker_count_must_be_positive(tmp_path: Path) -> None:
+    with pytest.raises(SystemExit):
+        _run_cli(tmp_path, [_row()], jobs=0, tag="zero")

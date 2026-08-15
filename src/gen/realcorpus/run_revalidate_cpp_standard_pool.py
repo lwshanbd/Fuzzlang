@@ -46,11 +46,18 @@ def _file_info(path: Path, *, rows: int) -> dict[str, Any]:
 def _parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--clean-sources", type=Path, required=True)
-    parser.add_argument("--language", choices=("c", "c++"), default="c++")
+    parser.add_argument(
+        "--language", choices=("c", "c++", "objective-c", "objective-c++"),
+        default="c++",
+    )
     parser.add_argument("--standard", required=True, help="e.g. c++20 or c11")
     parser.add_argument(
         "--append-arg", action="append", default=[],
         help="repeatable compiler-mode argument inserted before the source slot",
+    )
+    parser.add_argument(
+        "--max-files", type=int, default=0,
+        help="0 clean-gates every matching source; otherwise use this deterministic prefix",
     )
     parser.add_argument("--clang-bin", required=True)
     parser.add_argument("--clang-c-bin", required=True)
@@ -68,10 +75,14 @@ def main(argv: Sequence[str] | None = None) -> int:
     args = _parser().parse_args(argv)
     if args.timeout <= 0:
         _parser().error("--timeout must be positive")
+    if args.max_files < 0:
+        _parser().error("--max-files must be non-negative")
     output_paths = {args.out.resolve(), args.rejections_out.resolve(), args.manifest_out.resolve()}
     if len(output_paths) != 3:
         raise ValueError("out, rejections-out, and manifest-out must be distinct")
     sources = load_clean_sources_jsonl(args.clean_sources)
+    if args.max_files:
+        sources = sources[:args.max_files]
     verifier = FuzzlangClangVerifier(
         args.clang_bin, args.diagtool_bin, timeout_s=args.timeout,
         clang_c_bin=args.clang_c_bin,
@@ -100,6 +111,7 @@ def main(argv: Sequence[str] | None = None) -> int:
             "standard": args.standard,
             "extra_args": args.append_arg,
         },
+        "selection": {"max_files": args.max_files},
         "compiler": {
             "clang_cxx_bin": args.clang_bin,
             "clang_c_bin": args.clang_c_bin,

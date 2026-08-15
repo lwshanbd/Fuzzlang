@@ -67,7 +67,11 @@ def build_clang_argv(entry: dict, clang_bin: str, src: str) -> list[str]:
         if tok == "-o" or tok in dependency_output_options:
             index += 2
             continue
-        if tok in {"-MD", "-MMD"}:
+        if tok in {"-MD", "-MMD", "-c"}:
+            # `-c` is redundant once `-fsyntax-only` is forced, and Clang warns
+            # that it went unused.  Projects built with `-Werror` promote that
+            # warning to an error, which would reject every one of their
+            # translation units as an unclean parent.
             index += 1
             continue
         if tok in path_options:

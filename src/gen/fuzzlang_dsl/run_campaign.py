@@ -38,6 +38,14 @@ def _parser() -> argparse.ArgumentParser:
             "workers"
         ),
     )
+    parser.add_argument(
+        "--shard-count", type=_positive_int, default=1,
+        help="partition the selected Injector input into this many stable shards",
+    )
+    parser.add_argument(
+        "--shard-index", type=int, default=0,
+        help="zero-based shard index to replay (requires 0 <= index < shard-count)",
+    )
     parser.add_argument("--sources", help="canonical paired Record JSONL")
     parser.add_argument(
         "--clean-sources",
@@ -121,19 +129,31 @@ def _file_info(path: Path, *, rows: int | None = None) -> dict[str, Any]:
 
 
 def _select_injectors(
-    injectors, requested_ids: Sequence[str] | None,
+    injectors,
+    requested_ids: Sequence[str] | None,
+    *,
+    shard_count: int = 1,
+    shard_index: int = 0,
 ):
     """Select requested Injector rows while retaining input-order determinism."""
+    if shard_count <= 0:
+        raise ValueError("shard_count must be positive")
+    if not 0 <= shard_index < shard_count:
+        raise ValueError("shard_index must satisfy 0 <= shard_index < shard_count")
     if not requested_ids:
-        return list(injectors)
-    requested = set(requested_ids)
-    available = {injector.injector_id for injector in injectors}
-    missing = sorted(requested - available)
-    if missing:
-        raise ValueError(
-            "--injector-id not found in --injectors: " + ", ".join(missing)
-        )
-    return [injector for injector in injectors if injector.injector_id in requested]
+        selected = list(injectors)
+    else:
+        requested = set(requested_ids)
+        available = {injector.injector_id for injector in injectors}
+        missing = sorted(requested - available)
+        if missing:
+            raise ValueError(
+                "--injector-id not found in --injectors: " + ", ".join(missing)
+            )
+        selected = [
+            injector for injector in injectors if injector.injector_id in requested
+        ]
+    return selected[shard_index::shard_count]
 
 
 def main(argv: Sequence[str] | None = None) -> int:
@@ -165,7 +185,12 @@ def main(argv: Sequence[str] | None = None) -> int:
         raise ValueError("campaign outputs must not overwrite an input JSONL")
 
     all_injectors = load_injectors_jsonl(injector_path)
-    injectors = _select_injectors(all_injectors, args.injector_ids)
+    injectors = _select_injectors(
+        all_injectors,
+        args.injector_ids,
+        shard_count=args.shard_count,
+        shard_index=args.shard_index,
+    )
     excluded_source_ids = {
         record.provenance.source
         for path in excluded_record_paths
@@ -291,6 +316,8 @@ def main(argv: Sequence[str] | None = None) -> int:
         },
         "injector_selection": {
             "requested_injector_ids": sorted(set(args.injector_ids or ())),
+            "shard_count": args.shard_count,
+            "shard_index": args.shard_index,
             "selected_input_rows": len(injectors),
             "selected_injector_ids": sorted({
                 injector.injector_id for injector in injectors

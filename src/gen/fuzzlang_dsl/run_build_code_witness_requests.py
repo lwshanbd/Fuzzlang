@@ -6,6 +6,8 @@ import argparse
 import json
 import re
 from collections import Counter
+from concurrent.futures import ThreadPoolExecutor
+from dataclasses import replace
 from pathlib import Path
 from typing import Sequence, TypeVar
 
@@ -18,6 +20,9 @@ from gen.fuzzlang_dsl.code_witness import CodeWitnessRequest
 from gen.fuzzlang_dsl.emission_evidence import (
     emission_evidence_for,
     load_emission_index,
+)
+from gen.fuzzlang_dsl.regression_evidence import (
+    has_regression_trigger_evidence, regression_evidence_for,
 )
 from gen.mutate._scan import code_mask
 from gen.realcorpus.clean_source_pool import load_clean_sources_jsonl
@@ -53,6 +58,92 @@ def _source_variant_orders(
         _rotated_sources(values, start=start + variant * stride)
         for variant in range(variants)
     )
+
+
+def _has_explicit_target(command: Sequence[str]) -> bool:
+    """Whether a clean-source compile command fixes a non-default target."""
+    for index, argument in enumerate(command):
+        if argument.startswith("--target="):
+            return True
+        if argument in {"-target", "-triple"} and index + 1 < len(command):
+            return True
+    return False
+
+
+def _prompt_evidence_by_diagnostic(paths: Sequence[Path]) -> dict[str, str]:
+    """Load archived prompt-only Clang-test evidence by diagnostic name.
+
+    This preserves already recovered regression-test context when binding a
+    target to a new real clean source.  The evidence remains prompt-only; the
+    returned requests still carry only production ``corrected_src`` values.
+    """
+    evidence: dict[str, str] = {}
+    for path in paths:
+        for line in path.read_text().splitlines():
+            if not line.strip():
+                continue
+            row = json.loads(line)
+            name = row.get("diag_name")
+            nested = row.get("evidence")
+            value = (
+                nested.get("emission_evidence") if isinstance(nested, dict)
+                else row.get("emission_evidence")
+            )
+            if isinstance(name, str) and name and isinstance(value, str) and value:
+                evidence.setdefault(name, value)
+    return evidence
+
+
+def _trigger_config_evidence_by_diagnostic(
+    paths: Sequence[Path],
+) -> dict[str, str]:
+    """Load bounded, source-free test trigger configurations by diagnostic.
+
+    The scan artifacts retain compiler argument vectors, not test source text.
+    They are useful when message-based excerpt recovery has no exact match,
+    especially for target or warning-promoted diagnostics.  Keep at most two
+    unique configurations so this remains compact prompt-only evidence.
+    """
+    rows_by_name: dict[str, list[tuple[str, ...]]] = {}
+    for path in paths:
+        payload = json.loads(path.read_text(encoding="utf-8"))
+        configs = payload.get("trigger_configs", {})
+        if not isinstance(configs, dict):
+            raise ValueError(f"trigger config file lacks trigger_configs: {path}")
+        for name, values in configs.items():
+            if not isinstance(name, str) or not isinstance(values, list):
+                continue
+            bucket = rows_by_name.setdefault(name, [])
+            for value in values:
+                if not isinstance(value, list) or not all(
+                    isinstance(flag, str) for flag in value
+                ):
+                    continue
+                flags = tuple(
+                    flag for flag in value if flag not in {"__CLANG__", "__SRC__"}
+                )
+                if flags and flags not in bucket:
+                    bucket.append(flags)
+    return {
+        name: "Clang regression-test trigger evidence (not a dataset source):\n"
+        + "\n".join("  " + " ".join(flags) for flags in configs[:2])
+        for name, configs in rows_by_name.items()
+        if configs
+    }
+
+
+def _ordered_diagnostic_names_from_text(paths: Sequence[Path]) -> tuple[str, ...]:
+    """Load ordered diagnostic names from newline-delimited audit gap lists."""
+    names: list[str] = []
+    seen: set[str] = set()
+    for path in paths:
+        for raw in path.read_text().splitlines():
+            name = raw.strip()
+            if not name or name.startswith("#") or name in seen:
+                continue
+            seen.add(name)
+            names.append(name)
+    return tuple(names)
 
 
 def _matching_source_candidates(
@@ -95,6 +186,25 @@ def _matching_source_candidates(
         )
         cache[key] = matched
     return matched
+
+
+def _anchorless_profile_source(
+    sources: Sequence[_SourceT], *, used_by_target: set[str], used_global: set[str],
+) -> _SourceT | None:
+    """Return one unused real TU for an explicit profile-constrained fallback.
+
+    This is intentionally not an ordinary anchor fallback.  It is used only
+    when a target/profile has exactly one clean-gated real source and thus
+    cannot satisfy the normal reusable multi-witness route.
+    """
+    return next(
+        (
+            source for source in sources
+            if getattr(source, "source_id") not in used_by_target
+            and getattr(source, "source_id") not in used_global
+        ),
+        None,
+    )
 
 
 def _window(source: str, anchor: int) -> tuple[int, int]:
@@ -224,12 +334,21 @@ def _anchor_pattern(diag_name: str) -> re.Pattern[str]:
 
 
 def _anchor_patterns(diag_name: str) -> tuple[re.Pattern[str], ...]:
-    """Return a diagnostic-shaped anchor plus a ubiquitous safe fallback."""
+    """Return diagnostic-shaped anchors plus safe real-source fallbacks.
+
+    Append-mode Injector synthesis needs a bounded production-code window for
+    context, but does not require the target construct to pre-exist in that
+    window.  Some valid small real TUs contain neither a suitable diagnostic
+    anchor nor a ``return`` statement, notably target-specific build stubs.
+    A final identifier fallback keeps those clean sources eligible while the
+    code mask still excludes comments and literals.
+    """
     primary = _anchor_pattern(diag_name)
     fallback = re.compile(r"\breturn\b")
+    identifier = re.compile(r"\b[A-Za-z_]\w*\b")
     if primary.pattern == fallback.pattern:
-        return (primary,)
-    return primary, fallback
+        return primary, identifier
+    return primary, fallback, identifier
 
 
 def _ordered_diagnostic_names_from_jsonl(paths: Sequence[Path]) -> tuple[str, ...]:
@@ -409,6 +528,7 @@ def _resolve_target_entries(
     auto_uncovered_limit: int | None,
     covered: set[str],
     attempted: set[str],
+    excluded: set[str] | None = None,
     language: str = "c++",
     cpp_standard: str = "c++17",
     c_standard: str = "c17",
@@ -416,6 +536,11 @@ def _resolve_target_entries(
     feature_specific_only: bool = False,
 ) -> tuple[DiagEntry, ...]:
     """Resolve either explicit targets or a coverage-first TableGen gap slice."""
+    excluded = excluded or set()
+    filter_language = {
+        "objective-c": "c",
+        "objective-c++": "c++",
+    }.get(language, language)
     if explicit_names and auto_uncovered_limit is not None:
         raise ValueError("--diag-name and --auto-uncovered-limit are exclusive")
     if not explicit_names and auto_uncovered_limit is None:
@@ -423,10 +548,10 @@ def _resolve_target_entries(
     if auto_uncovered_limit is not None:
         return select_uncovered_diagnostics(
             catalog.entries,
-            covered=covered,
+            covered=covered | excluded,
             attempted=attempted,
             limit=auto_uncovered_limit,
-            language=language,
+            language=filter_language,
             cpp_standard=cpp_standard,
             c_standard=c_standard,
             feature_mode=feature_mode,
@@ -438,9 +563,15 @@ def _resolve_target_entries(
         if entry is None or not entry.is_error:
             raise ValueError(f"target is not a catalog error: {name}")
         if (
+            entry.name in covered
+            or entry.name in attempted
+            or entry.name in excluded
+        ):
+            continue
+        if (
             not entry.message.strip()
             or not supports_default_diagnostic_name(
-                entry.name, language=language, cpp_standard=cpp_standard,
+                entry.name, language=filter_language, cpp_standard=cpp_standard,
                 c_standard=c_standard,
                 feature_mode=feature_mode,
             )
@@ -455,11 +586,13 @@ def main() -> int:
     parser.add_argument("--clean-sources", type=Path, required=True)
     parser.add_argument("--catalog-dir", required=True)
     parser.add_argument(
-        "--language", choices=("c", "c++"), default="c++",
+        "--language", choices=("c", "c++", "objective-c", "objective-c++"), default="c++",
         help="language of the verified real-source pool and target campaign",
     )
     parser.add_argument(
-        "--cpp-standard", choices=("c++17", "c++20", "c++23"),
+        "--cpp-standard", choices=(
+            "c++98", "c++11", "c++14", "c++17", "c++20", "c++23", "c++2c",
+        ),
         default="c++17",
         help="C++ standard mode of the verified source pool (ignored for C)",
     )
@@ -471,7 +604,7 @@ def main() -> int:
     parser.add_argument(
         "--feature-mode", choices=(
             "ordinary", "openmp", "blocks", "openacc", "objc", "modules",
-            "preprocessor",
+            "preprocessor", "target", "profile",
         ),
         default="ordinary",
         help="compiler feature mode of the verified source pool",
@@ -481,10 +614,53 @@ def main() -> int:
         help="select only diagnostics specific to --feature-mode",
     )
     parser.add_argument(
+        "--allow-anchorless-profile-target", action="store_true",
+        help=(
+            "allow one anchorless real-source window only for target/profile "
+            "long-tail generation; this does not claim cross-source transfer"
+        ),
+    )
+    parser.add_argument(
         "--emission-index", type=Path,
         help="optional cached Clang diagnostic emission-site index",
     )
+    parser.add_argument(
+        "--prompt-evidence-requests", type=Path, action="append", default=[],
+        help=(
+            "archived synthesis requests providing prompt-only Clang-test "
+            "evidence keyed by diagnostic name"
+        ),
+    )
+    parser.add_argument(
+        "--trigger-config", type=Path, action="append", default=[],
+        help=(
+            "test-scan JSON containing prompt-only compiler trigger "
+            "configurations; test sources are never read as data"
+        ),
+    )
+    parser.add_argument(
+        "--regression-test-root", type=Path,
+        help=(
+            "Clang test tree to scan in parallel for prompt-only trigger "
+            "evidence; test files never become dataset sources"
+        ),
+    )
+    parser.add_argument(
+        "--regression-evidence-workers", type=int, default=1,
+        help="parallel Clang-test evidence lookups when --regression-test-root is set",
+    )
     parser.add_argument("--diag-name", action="append", default=[])
+    parser.add_argument(
+        "--diag-name-file", type=Path, action="append", default=[],
+        help="newline-delimited diagnostic names, for example a Clang-test gap list",
+    )
+    parser.add_argument(
+        "--exclude-diag-name-file", type=Path, action="append", default=[],
+        help=(
+            "newline-delimited diagnostic names excluded from every target "
+            "selection mode, for example the paper out-of-scope list"
+        ),
+    )
     parser.add_argument(
         "--retry-requests", type=Path, action="append", default=[],
         help="retry target diagnostics from these request JSONLs on new sources",
@@ -556,12 +732,26 @@ def main() -> int:
     parser.add_argument("--out", type=Path, required=True)
     parser.add_argument("--manifest-out", type=Path)
     args = parser.parse_args()
+    if (
+        args.allow_anchorless_profile_target
+        and args.feature_mode not in {"target", "profile"}
+    ):
+        parser.error(
+            "--allow-anchorless-profile-target requires --feature-mode=target "
+            "or --feature-mode=profile",
+        )
+    if args.allow_anchorless_profile_target and args.source_variants != 1:
+        parser.error(
+            "--allow-anchorless-profile-target requires --source-variants=1",
+        )
     if args.source_start < 0:
         parser.error("--source-start must be non-negative")
     if args.source_variants <= 0:
         parser.error("--source-variants must be positive")
     if args.source_variant_stride <= 0:
         parser.error("--source-variant-stride must be positive")
+    if args.regression_evidence_workers <= 0:
+        parser.error("--regression-evidence-workers must be positive")
     if args.auto_uncovered_limit is not None and args.auto_uncovered_limit <= 0:
         parser.error("--auto-uncovered-limit must be positive")
     if args.observed_min_count <= 0:
@@ -578,6 +768,12 @@ def main() -> int:
         if args.emission_index is not None
         else {}
     )
+    prompt_evidence = _prompt_evidence_by_diagnostic(
+        args.prompt_evidence_requests,
+    )
+    trigger_evidence = _trigger_config_evidence_by_diagnostic(
+        args.trigger_config,
+    )
     covered = _diagnostic_names_from_jsonl(args.covered_records)
     try:
         covered.update(_diagnostic_names_from_audits(args.covered_audit))
@@ -587,8 +783,11 @@ def main() -> int:
     attempted.update(_attempted_diagnostic_names_from_attempts(
         args.exclude_attempted_targets,
     ))
+    excluded = set(_ordered_diagnostic_names_from_text(
+        args.exclude_diag_name_file,
+    ))
     modes = sum((
-        bool(args.diag_name),
+        bool(args.diag_name or args.diag_name_file),
         args.auto_uncovered_limit is not None,
         bool(args.retry_requests),
         bool(args.successful_attempts),
@@ -603,7 +802,9 @@ def main() -> int:
             "--successful-attempts, --attempted-targets, --failed-attempts, "
             "or --observed-attempts"
         )
-    explicit_names = tuple(args.diag_name)
+    explicit_names = tuple(args.diag_name) + _ordered_diagnostic_names_from_text(
+        args.diag_name_file,
+    )
     if args.retry_requests:
         explicit_names = tuple(
             name
@@ -665,6 +866,7 @@ def main() -> int:
                 auto_uncovered_limit=args.auto_uncovered_limit,
                 covered=covered,
                 attempted=attempted,
+                excluded=excluded,
                 language=args.language,
                 cpp_standard=args.cpp_standard,
                 c_standard=args.c_standard,
@@ -677,6 +879,13 @@ def main() -> int:
         source for source in load_clean_sources_jsonl(args.clean_sources)
         if source.language == args.language
     ]
+    if args.feature_mode == "target" and any(
+        not _has_explicit_target(source.compile_cmd) for source in sources
+    ):
+        parser.error(
+            "--feature-mode=target requires every selected clean source to "
+            "carry an explicit --target, -target, or -triple compile flag"
+        )
     source_orders = _source_variant_orders(
         sources,
         start=args.source_start,
@@ -722,20 +931,51 @@ def main() -> int:
                 if selected is not None:
                     break
             if selected is None:
-                raise ValueError(
-                    f"not enough distinct real {args.language} sources contain any anchor for "
-                    f"{entry.name}"
+                source = (
+                    _anchorless_profile_source(
+                        sources_for_variant,
+                        used_by_target=target_used,
+                        used_global=used_global,
+                    )
+                    if args.allow_anchorless_profile_target
+                    else None
                 )
-            source, match = selected
+                if source is None and args.allow_anchorless_profile_target:
+                    # Match the ordinary anchor route: give a target a fresh
+                    # source when possible, but permit a distinct diagnostic
+                    # to reuse the only profile-clean real TU.
+                    source = _anchorless_profile_source(
+                        sources_for_variant,
+                        used_by_target=target_used,
+                        used_global=set(),
+                    )
+                if source is None:
+                    raise ValueError(
+                        f"not enough distinct real {args.language} sources contain any anchor for "
+                        f"{entry.name}"
+                    )
+                anchor = len(source.corrected_src)
+            else:
+                source, match = selected
+                anchor = match.start()
             target_used.add(source.source_id)
             used_global.add(source.source_id)
-            anchor = match.start()
             start, end = _window(source.corrected_src, anchor)
             tablegen = (
                 f"def {entry.name} : {entry.severity}<"
                 f"{json.dumps(entry.message, ensure_ascii=False)}>"
                 + (", DefaultError" if entry.default_error else "") + ";"
             )
+            evidence = (
+                emission_evidence_for(emission_index, entry.name)
+                or prompt_evidence.get(entry.name)
+            )
+            config_evidence = trigger_evidence.get(entry.name)
+            if config_evidence is not None:
+                evidence = (
+                    config_evidence if evidence is None
+                    else evidence + "\n\n" + config_evidence
+                )
             requests.append(CodeWitnessRequest(
                 diag_name=entry.name,
                 diag_id=None,
@@ -749,11 +989,27 @@ def main() -> int:
                 corrected_src=source.corrected_src,
                 window_start=start,
                 window_end=end,
-                emission_evidence=emission_evidence_for(
-                    emission_index, entry.name,
-                ),
+                emission_evidence=evidence,
                 component=entry.component,
+                feature_mode=args.feature_mode,
             ))
+    if args.regression_test_root is not None:
+        def attach_regression_evidence(request: CodeWitnessRequest) -> CodeWitnessRequest:
+            if has_regression_trigger_evidence(request.emission_evidence):
+                return request
+            regression = regression_evidence_for(
+                request.diag_message, args.regression_test_root,
+            )
+            if regression is None:
+                return request
+            evidence = (
+                regression if request.emission_evidence is None
+                else request.emission_evidence + "\n\n" + regression
+            )
+            return replace(request, emission_evidence=evidence)
+
+        with ThreadPoolExecutor(max_workers=args.regression_evidence_workers) as pool:
+            requests = list(pool.map(attach_regression_evidence, requests))
     args.out.parent.mkdir(parents=True, exist_ok=True)
     args.out.write_text("".join(
         json.dumps(item.to_dict(), ensure_ascii=False, sort_keys=True) + "\n"
@@ -775,6 +1031,7 @@ def main() -> int:
                 "requests": len(requests),
                 "covered_diagnostics_excluded": len(covered),
                 "attempted_diagnostics_excluded": len(attempted),
+                "out_of_scope_diagnostics_excluded": len(excluded),
                 "targets_with_emission_evidence": sum(
                     request.emission_evidence is not None for request in requests
                 ),

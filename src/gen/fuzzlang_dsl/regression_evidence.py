@@ -18,6 +18,36 @@ _PLACEHOLDER_RE = re.compile(
 )
 _MIN_FRAGMENT_CHARS = 12
 _SEARCH_TIMEOUT_SECONDS = 5
+_TRIGGER_EVIDENCE_MARKERS = (
+    "Regression-test trigger evidence",
+    "Clang regression-test trigger evidence",
+)
+_TEST_SOURCE_EVIDENCE_MARKER = "Regression-test trigger evidence (not a dataset source):"
+
+
+def has_regression_trigger_evidence(evidence: str | None) -> bool:
+    """Whether prompt evidence already comes from an exact test trigger.
+
+    A scan-derived compiler command is keyed by the typed diagnostic name and
+    is therefore stronger than a later message-substring search.  The latter
+    can find a different diagnostic with overlapping prose, so callers must
+    not append it once either form of test evidence is already present.
+    """
+    return evidence is not None and any(
+        marker in evidence for marker in _TRIGGER_EVIDENCE_MARKERS
+    )
+
+
+def has_regression_test_source_evidence(evidence: str | None) -> bool:
+    """Whether prompt evidence contains a bounded test-source excerpt.
+
+    A scan-derived typed diagnostic/configuration proves reachability, but it
+    does not show the model the syntactic precondition.  Direct Injector
+    synthesis may therefore safely enrich that configuration with a compact
+    test excerpt.  This predicate prevents only duplicate excerpts, rather
+    than treating the two kinds of evidence as interchangeable.
+    """
+    return evidence is not None and _TEST_SOURCE_EVIDENCE_MARKER in evidence
 
 
 def _literal_fragments(message: str) -> tuple[str, ...]:

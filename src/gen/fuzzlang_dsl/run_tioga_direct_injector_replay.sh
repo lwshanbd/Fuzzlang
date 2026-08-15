@@ -30,6 +30,7 @@ export PYTHONPATH=src${PYTHONPATH:+:$PYTHONPATH}
 # This launcher starts Gemma-4-31B locally and tears it down before compiler
 # replay.  The model is asked for an Injector, not a direct broken sample.
 REQUESTS="$REQUESTS" OUTPUT_DIR="$SYNTHESIS_DIR" \
+    REQUEST_START="${REQUEST_START:-0}" REQUEST_STOP="${REQUEST_STOP:-}" \
     REQUEST_BATCH_SIZE="${REQUEST_BATCH_SIZE:-16}" \
     VLLM_CONCURRENCY="${VLLM_CONCURRENCY:-16}" \
     CANDIDATES="${CANDIDATES:-4}" \

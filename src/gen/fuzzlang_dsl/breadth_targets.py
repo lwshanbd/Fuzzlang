@@ -44,9 +44,65 @@ _CPP20_MODE_RE = re.compile(
 _CPP23_MODE_RE = re.compile(
     r"(?:^|_)(?:deducing_this|explicit_object|static_lambda|if_consteval)(?:_|$)",
 )
+_COROUTINE_MODE_RE = re.compile(
+    r"(?:^|_)(?:coroutine|coawait|co_await|co_return|co_yield)(?:_|$)",
+)
+_SOURCE_LEVEL_EXTENSION_RE = re.compile(
+    r"(?:^|_)(?:address_space|addrspace|nullability|avail(?:ability)?)(?:_|$)",
+)
+
+# The TableGen spelling is normally a useful proxy for the compiler mode an
+# error needs.  These eight pinned-22.1.8 diagnostics are an intentionally
+# small exception: the direct Clang regression-test scan observed each under
+# ordinary ``-x c++ -std=c++2b`` with no target or feature flag.  Keeping this
+# evidence-backed set explicit prevents broadening the ordinary route merely
+# because a name happens to contain a target- or Objective-C-adjacent word.
+# The request builder still requires a clean non-test C++23 TU and exact typed
+# diagnostic replay, so this relaxes target selection rather than acceptance.
+_ORDINARY_CPP23_TEST_EVIDENCED_DIAGNOSTICS = frozenset({
+    "err_export_using_internal",
+    "err_hidden_device_kernel",
+    "err_implied_comparison_category_type_not_found",
+    "err_ownership_returns_index_mismatch",
+    "err_ptrauth_disabled",
+    "err_wasm_funcref_not_wasm",
+    "err_x86_builtin_invalid_rounding",
+    "err_x86_builtin_tile_arg_duplicate",
+})
+# These two parser limits are also emitted by pinned Clang regression tests
+# under the default C++ driver configuration (no dialect, target, or extension
+# flag).  They are expensive to trigger, but are still source-level errors:
+# an Injector can use compact macro or nested-declarator payloads and must pass
+# the normal exact-replay gate.  Keep the exception C++-only because the test
+# evidence is C++, rather than treating their names as generally ordinary-C.
+_ORDINARY_CPP_TEST_EVIDENCED_DIAGNOSTICS = frozenset({
+    "err_function_parameter_limit_exceeded",
+    "err_function_scope_depth_exceeded",
+})
+# These diagnostics require a concrete frontend option, but the pinned
+# Clang test suite gives that option directly.  A ``profile`` campaign must
+# re-clean-gate real source with the corresponding option before synthesis;
+# it is intentionally distinct from the ordinary source route.
+_COMPILE_PROFILE_TEST_EVIDENCED_DIAGNOSTICS = frozenset({
+    "err_defer_ts_labeled_stmt",
+    "err_gnu_inline_asm_disabled",
+    "err_inline_ms_asm_parsing",
+    "err_seh_expected_handler",
+})
+_CPP_COMPILE_PROFILE_TEST_EVIDENCED_DIAGNOSTICS = frozenset({
+    "err_sycl_entry_point_return_type",
+    "err_sycl_external_invalid_linkage",
+    "err_sycl_special_type_num_init_method",
+    # This diagnostic is declared as a Warning but promoted to an error by
+    # DefaultError.  The pinned Clang test uses -fsycl-is-device, so admit it
+    # only through the same explicit C++ profile route.
+    "warn_sycl_kernel_name_not_a_class_type",
+})
 _C11_MODE_RE = re.compile(r"(?:^|_)c11(?:_|$)")
 _C23_MODE_RE = re.compile(r"(?:^|_)(?:c23|c2y)(?:_|$)")
-_OPENMP_MODE_RE = re.compile(r"(?:^|_)(?:omp|openmp)(?:_|$)")
+_OPENMP_MODE_RE = re.compile(
+    r"(?:^|_)(?:omp|openmp|declare_target|declare_variant)(?:_|$)",
+)
 _BLOCKS_MODE_RE = re.compile(r"(?:^|_)(?:blocks?)(?:_|$)")
 _OPENACC_MODE_RE = re.compile(r"(?:^|_)(?:acc|openacc)(?:_|$)")
 _OBJC_MODE_RE = re.compile(
@@ -57,13 +113,19 @@ _OBJC_MODE_RE = re.compile(
     r"program_scope|after_super|illegal_super|super_in_using|method_proto)(?:_|$)",
 )
 _MODULES_MODE_RE = re.compile(
-    r"(?:^|_)(?:module|modules|modulemap|header_unit|pch|import)(?:_|$)",
+    r"(?:^|_)(?:module|modules|modulemap|header_unit|pch|import|export)(?:_|$)",
 )
 _PREPROCESSOR_MODE_RE = re.compile(
     r"(?:^|_)(?:pp|pragma|directive|macro|include|"
     r"expected_sequence_or_directive|expected_semantic_identifier|"
     r"modifier_expected_colon)(?:_|$)",
 )
+_TARGET_MODE_RE = re.compile(
+    r"(?:^|_)(?:aix|darwin|nvptx|sme|zt0|avr|arm|aarch64|riscv|wasm|"
+    r"webassembly|amdgpu|amdgcn|anyx86|x86\w*|x64|bpf|hexagon|mips|ppc|"
+    r"sve|rvv|neon|interrupt)(?:_|$)",
+)
+_NON_SOURCE_STATE_DIAGNOSTIC_RE = re.compile(r"^err_(?:drv|fe|mmap)_")
 
 # These spellings identify C++-only parser and semantic paths.  They are
 # filtered only for a C campaign; the default C++ campaign intentionally keeps
@@ -95,6 +157,27 @@ _CXX_SYNTAX_ONLY_RE = re.compile(
     r")(?:_|$)",
 )
 
+# TableGen names for some C++ semantic paths use neither the explicit
+# ``cxx``/``template`` spelling above nor one of the parser-only markers.
+# They still cannot arise in a C11/C17 translation unit: overload resolution,
+# reference binding, C++ object lifetime, and coroutine members have no C
+# analogue.  Keep this separate from ``_CXX_SYNTAX_ONLY_RE`` because these are
+# semantic diagnostics that otherwise looked deceptively C-compatible to the
+# broad C target selector.
+_CXX_SEMANTIC_ONLY_RE = re.compile(
+    r"(?:^|_)(?:"
+    r"ovl|deleted|this|await|type_pack|reference_bind|placement_new|"
+    r"default_member_initializer|initializer_list|"
+    r"pseudo_dtor|dtor|ctor|operator|mutable|defaulted|exception_spec|"
+    r"virtual|override|deduced|friend|capture|consteval|"
+    r"std|allocator|using|covariant|delegating|"
+    r"suitable_delete|unaddressable_function|"
+    r"temp_copy|ret_local_temp|ref_init|integer_sequence|"
+    r"cleanup_deallocator|function_member|member_function"
+    r")(?:_|$)",
+)
+_CONSTEXPR_DIAGNOSTIC_RE = re.compile(r"(?:^|_)constexpr(?:_|$)")
+
 _HIGH_VALUE_TERMS = (
     "expected", "typecheck", "invalid", "undeclared", "redefinition",
     "template", "argument", "operand", "pointer", "reference", "array",
@@ -110,19 +193,49 @@ def supports_default_diagnostic_name(
     """Whether a diagnostic is plausible in a selected C/C++ TU campaign."""
     if language not in {"c", "c++"}:
         raise ValueError("language must be 'c' or 'c++'")
-    if cpp_standard not in {"c++17", "c++20", "c++23"}:
-        raise ValueError("cpp_standard must be one of c++17, c++20, or c++23")
+    if cpp_standard not in {
+        "c++98", "c++11", "c++14", "c++17", "c++20", "c++23", "c++2c",
+    }:
+        raise ValueError(
+            "cpp_standard must be one of c++98, c++11, c++14, c++17, c++20, c++23, or c++2c",
+        )
     if c_standard not in {"c99", "c11", "c17", "c23"}:
         raise ValueError("c_standard must be one of c99, c11, c17, or c23")
     if feature_mode not in {
         "ordinary", "openmp", "blocks", "openacc", "objc", "modules",
-        "preprocessor",
+        "preprocessor", "target", "profile",
     }:
         raise ValueError(
             "feature_mode must be 'ordinary', 'openmp', 'blocks', 'openacc', "
-            "'objc', 'modules', or 'preprocessor'"
+            "'objc', 'modules', 'preprocessor', 'target', or 'profile'"
         )
     lowered = name.lower()
+    if (
+        language == "c++"
+        and cpp_standard in {"c++23", "c++2c"}
+        and feature_mode == "ordinary"
+        and lowered in _ORDINARY_CPP23_TEST_EVIDENCED_DIAGNOSTICS
+    ):
+        return True
+    if (
+        language == "c++"
+        and feature_mode == "ordinary"
+        and lowered in _ORDINARY_CPP_TEST_EVIDENCED_DIAGNOSTICS
+    ):
+        return True
+    if (
+        feature_mode == "profile"
+        and (
+            lowered in _COMPILE_PROFILE_TEST_EVIDENCED_DIAGNOSTICS
+            or (
+                language == "c++"
+                and lowered in _CPP_COMPILE_PROFILE_TEST_EVIDENCED_DIAGNOSTICS
+            )
+        )
+    ):
+        return True
+    if _NON_SOURCE_STATE_DIAGNOSTIC_RE.match(lowered):
+        return False
     if _SPECIAL_MODE_RE.search(lowered) and not (
         feature_mode == "openmp" and _OPENMP_MODE_RE.search(lowered)
     ) and not (
@@ -135,10 +248,26 @@ def supports_default_diagnostic_name(
         feature_mode == "modules" and _MODULES_MODE_RE.search(lowered)
     ) and not (
         feature_mode == "preprocessor" and _PREPROCESSOR_MODE_RE.search(lowered)
-    ):
+    ) and not (
+        feature_mode == "target" and _TARGET_MODE_RE.search(lowered)
+    ) and not (
+        language == "c++"
+        and cpp_standard in {"c++20", "c++23", "c++2c"}
+        and _COROUTINE_MODE_RE.search(lowered)
+    ) and not _SOURCE_LEVEL_EXTENSION_RE.search(lowered):
         return False
     if language == "c":
-        if _CPP_ONLY_RE.search(lowered) or _CXX_SYNTAX_ONLY_RE.search(lowered):
+        if (
+            _CPP_ONLY_RE.search(lowered)
+            or _CXX_SYNTAX_ONLY_RE.search(lowered)
+            or _CXX_SEMANTIC_ONLY_RE.search(lowered)
+            # C23 adds ``constexpr``; retain those diagnostics only in that
+            # dialect rather than treating the spelling as universally C++.
+            or (
+                c_standard != "c23"
+                and _CONSTEXPR_DIAGNOSTIC_RE.search(lowered)
+            )
+        ):
             return False
         if c_standard == "c99":
             return not (_C11_MODE_RE.search(lowered) or _C23_MODE_RE.search(lowered))
@@ -147,7 +276,7 @@ def supports_default_diagnostic_name(
         return True
     if _C11_MODE_RE.search(lowered) or _C23_MODE_RE.search(lowered):
         return False
-    if cpp_standard == "c++17":
+    if cpp_standard in {"c++98", "c++11", "c++14", "c++17"}:
         return not (_CPP20_MODE_RE.search(lowered) or _CPP23_MODE_RE.search(lowered))
     if cpp_standard == "c++20":
         return not _CPP23_MODE_RE.search(lowered)
@@ -181,6 +310,13 @@ def is_feature_specific_diagnostic_name(name: str, *, feature_mode: str) -> bool
         return bool(_MODULES_MODE_RE.search(lowered))
     if feature_mode == "preprocessor":
         return bool(_PREPROCESSOR_MODE_RE.search(lowered))
+    if feature_mode == "target":
+        return bool(_TARGET_MODE_RE.search(lowered))
+    if feature_mode == "profile":
+        return lowered in (
+            _COMPILE_PROFILE_TEST_EVIDENCED_DIAGNOSTICS
+            | _CPP_COMPILE_PROFILE_TEST_EVIDENCED_DIAGNOSTICS
+        )
     raise ValueError(f"unsupported feature_mode: {feature_mode}")
 
 

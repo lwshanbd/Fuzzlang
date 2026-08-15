@@ -83,6 +83,7 @@ def _request_from_dict(value: dict[str, Any]) -> SynthesisRequest:
                 "emission_evidence", evidence.get("emission_evidence")
             ),
         ),
+        single_witness_long_tail=value.get("single_witness_long_tail", False),
     )
 
 
@@ -135,7 +136,12 @@ class LocalGemma31BBackend:
             from transformers import AutoTokenizer
 
             self._tokenizer = AutoTokenizer.from_pretrained(
-                self.model_path, local_files_only=True,
+                self.model_path,
+                local_files_only=True,
+                # The pinned Gemma snapshot stores this as a legacy list while
+                # current Transformers expects a named mapping.  Preserve the
+                # token and make tokenizer loading version-compatible.
+                extra_special_tokens={"video_token": "<|video|>"},
             )
         return self._tokenizer
 

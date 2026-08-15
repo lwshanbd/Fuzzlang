@@ -5,7 +5,9 @@ from pathlib import Path
 
 from foundation.types import DiagInfo, VerifierResult
 from foundation.verifier.mock import MockVerifier, ok_result
-from gen.realcorpus.corpus import Fragment, build_fragment_index, sanitize_cmd
+from gen.realcorpus.corpus import (
+    Fragment, build_fragment_index, is_test_path, is_vendored_path, sanitize_cmd,
+)
 
 
 def test_sanitize_cmd_drops_werror_only():
@@ -88,3 +90,37 @@ def test_build_fragment_index_excludes_test_files(tmp_path):
     paths = {f.rel_path for f in frags}
     assert any("APInt.cpp" in p for p in paths)
     assert not any("FooTest.cpp" in p for p in paths)
+
+
+def test_vendored_third_party_source_is_not_a_project_source():
+    """A build tree that fetches a dependency makes that dependency's code look
+    like the project's own.  duckdb and protobuf both vendor Abseil under
+    `build/_deps/absl-src/`, so Abseil source entered training labelled as
+    duckdb/protobuf -- while Abseil was a held-out evaluation project.
+    """
+    assert is_vendored_path("build/_deps/absl-src/absl/strings/ascii.cc")
+    assert is_vendored_path("build/_deps/googletest-src/src/gtest.cc")
+    assert is_vendored_path("third_party/re2/re2.cc")
+    assert is_vendored_path("vendor/zlib/deflate.c")
+    assert is_vendored_path("contrib/lib.c")
+    assert is_vendored_path("deps/foo/bar.c")
+
+    # A project's own source must not be swept up.
+    assert not is_vendored_path("absl/strings/ascii.cc")
+    assert not is_vendored_path("src/duckdb/parser/parser.cpp")
+    assert not is_vendored_path("llvm/lib/Support/Path.cpp")
+    assert not is_vendored_path("libavcodec/h264dec.c")
+
+
+def test_generated_build_output_is_not_a_project_source():
+    """CMake unity-build stubs are generated `#include` lists, not real code."""
+    assert is_vendored_path(
+        "build/extension/core_functions/ub_duckdb_core_functions_math.cpp"
+    )
+    assert is_vendored_path("build/CMakeFiles/foo.dir/x.cc")
+    assert not is_vendored_path("src/ub_handwritten.cpp")
+
+
+def test_the_test_filter_is_unchanged_by_the_vendored_filter():
+    assert is_test_path("clang/test/Sema/x.cpp")
+    assert not is_test_path("absl/strings/ascii.cc")

@@ -1,8 +1,13 @@
 from __future__ import annotations
 
 import json
+import os
+import subprocess
 import sys
 from types import SimpleNamespace
+from pathlib import Path
+
+import pytest
 
 from foundation.diagnostics.catalog import Catalog, DiagEntry
 from foundation.types import DiagInfo, VerifierResult
@@ -20,9 +25,11 @@ from gen.fuzzlang_dsl.code_witness import (
 )
 from gen.fuzzlang_dsl.injector import FuzzLangInjector
 from gen.fuzzlang_dsl.run_local_code_witness import (
+    _accepted_target_names,
     _candidate_round_counts,
     _load_resume_checkpoint,
     _known_covered_only_round_streak,
+    _verify_candidate_sources,
     _write_checkpoint,
     with_regression_trigger_evidence,
     is_catalog_error_diagnostic_name,
@@ -34,8 +41,10 @@ from gen.fuzzlang_dsl.run_build_code_witness_requests import (
     _failed_target_slice,
     _anchor_pattern,
     _anchor_patterns,
+    _anchorless_profile_source,
     _matching_source_candidates,
     _observed_diagnostic_names_from_attempts,
+    _ordered_diagnostic_names_from_text,
     _diagnostic_names_from_audits,
     _diagnostic_names_from_jsonl,
     _ordered_diagnostic_names_from_jsonl,
@@ -43,11 +52,15 @@ from gen.fuzzlang_dsl.run_build_code_witness_requests import (
     _resolve_target_entries,
     _rotated_sources,
     _source_variant_orders,
+    _trigger_config_evidence_by_diagnostic,
 )
 from gen.fuzzlang_dsl import run_local_code_witness as witness_cli
+from gen.fuzzlang_dsl import run_build_code_witness_requests as request_builder_cli
+from gen.fuzzlang_dsl.run_split_injectors_by_mode import split_injectors_by_mode
 from gen.fuzzlang_dsl import run_build_direct_injector_requests as direct_cli
 from gen.fuzzlang_dsl.run_build_direct_injector_requests import (
     add_regression_trigger_evidence,
+    filter_regression_evidenced_requests,
     load_selected_witnesses,
 )
 from repair.agent.chat_backend import ChatResponse
@@ -88,6 +101,171 @@ def test_code_witness_prompt_and_single_occurrence_patch_round_trip():
     assert apply_code_witness_patch(request, patch) == "int f() { return ; }\n"
 
 
+def test_accepted_target_names_reads_replayable_injector_targets():
+    first = FuzzLangInjector.append_fragment(
+        target_diag="err_first", diag_id=1, language="c++", fragment="int a;",
+    )
+    second = FuzzLangInjector.append_fragment(
+        target_diag="err_second", diag_id=2, language="c++", fragment="int b;",
+    )
+
+    assert _accepted_target_names({
+        first.injector_id: first.to_dict(), second.injector_id: second.to_dict(),
+    }) == {"err_first", "err_second"}
+
+
+def test_parallel_candidate_verification_preserves_candidate_order():
+    class Verifier:
+        def verify(self, source, command, *, logical_path):
+            return (source, tuple(command), logical_path)
+
+    assert _verify_candidate_sources(
+        Verifier(), ["first", "second", "third"],
+        compile_cmd=["__CLANG__", "__SRC__"], logical_path="real.cc", workers=3,
+    ) == [
+        ("first", ("__CLANG__", "__SRC__"), "real.cc"),
+        ("second", ("__CLANG__", "__SRC__"), "real.cc"),
+        ("third", ("__CLANG__", "__SRC__"), "real.cc"),
+    ]
+
+
+def test_tioga_runner_uses_longer_compiler_verification_timeout():
+    """Real LLVM parents can exceed the old five-second verification budget."""
+    script = Path("src/gen/fuzzlang_dsl/run_tioga_vllm_code_witness.sh").read_text()
+
+    assert 'VERIFY_TIMEOUT="${VERIFY_TIMEOUT:-20}"' in script
+    assert '--timeout "${VERIFY_TIMEOUT:-20}"' in script
+    # ``setsid`` normally makes the launcher its process-group leader, but
+    # retain a direct-PID fallback so cleanup cannot strand a GPU allocation.
+    assert 'kill -KILL "$SERVE_PID" 2>/dev/null || true' in script
+    assert "cleanup must not block waiting for the container launcher" in script
+
+
+def test_tioga_runner_reclaims_a_client_after_a_fresh_durable_manifest():
+    """A completed checkpoint must not retain its eight-GPU server to walltime."""
+    script = Path("src/gen/fuzzlang_dsl/run_tioga_vllm_code_witness.sh").read_text()
+
+    assert 'RUN_MARKER="$OUTPUT_DIR/.fuzzlang-run-start"' in script
+    assert '"$OUTPUT_DIR/manifest.json" -nt "$RUN_MARKER"' in script
+    assert 'kill -TERM "$RUN_PID" 2>/dev/null || true' in script
+
+
+def test_tioga_witness_runner_uses_an_output_directory_writer_lock():
+    script = Path("src/gen/fuzzlang_dsl/run_tioga_vllm_code_witness.sh").read_text()
+
+    assert 'exec 9>"$OUTPUT_DIR/.fuzzlang-writer.lock"' in script
+    assert 'flock -n 9' in script
+
+
+def test_c11_fastlane_target_builder_keeps_only_uncovered_paper_scope(tmp_path):
+    """The C11 fast lane must be evidence-guided, non-test-source data work."""
+    root = Path("data/gen/experiments/clang-test-gap-injector-v0002")
+    script = root / "paper-scope-c11-test-fastlane-batch-0049" / "build_targets.py"
+    out = tmp_path / "targets"
+    environment = {**os.environ, "PYTHONPATH": "src"}
+
+    completed = subprocess.run(
+        [
+            sys.executable, str(script),
+            "--audit", str(root / "strict-injector-coverage-audit-batch0035-fixed.json"),
+            "--out", str(out),
+            "--exclude-targets",
+            str(root / "paper-scope-preprocessor-test-batch-0036" / "requests.jsonl"),
+            str(root / "paper-scope-cpp23-emission-tail-batch-0037" / "requests.jsonl"),
+        ],
+        cwd=Path.cwd(), env=environment, text=True, capture_output=True, check=False,
+    )
+
+    assert completed.returncode == 0, completed.stderr
+    metadata = json.loads((out / "target-selection.json").read_text())
+    targets = {
+        name for name in (out / "target-diagnostics.txt").read_text().splitlines()
+        if name
+    }
+    covered = set(json.loads(
+        (root / "strict-injector-coverage-audit-batch0035-fixed.json").read_text(),
+    )["verified_diagnostic_names"])
+
+    assert targets
+    assert not targets & covered
+    assert metadata["test_reachable_selected"] > 0
+    assert metadata["language"] == "c"
+    assert metadata["feature_mode"] == "ordinary"
+
+
+def test_fastlane_target_builder_can_make_a_test_only_cpp_pool(tmp_path):
+    root = Path("data/gen/experiments/clang-test-gap-injector-v0002")
+    script = root / "paper-scope-c11-test-fastlane-batch-0049" / "build_targets.py"
+    out = tmp_path / "targets"
+    completed = subprocess.run(
+        [
+            sys.executable, str(script),
+            "--audit", str(root / "strict-injector-coverage-audit-batch0035-fixed.json"),
+            "--out", str(out), "--language", "c++", "--cpp-standard", "c++23",
+            "--test-only", "--limit", "160",
+            "--exclude-targets",
+            str(root / "paper-scope-c11-test-fastlane-batch-0049" / "target-diagnostics.txt"),
+            str(root / "paper-scope-preprocessor-test-batch-0036" / "requests.jsonl"),
+            str(root / "paper-scope-cpp23-emission-tail-batch-0037" / "requests.jsonl"),
+        ],
+        cwd=Path.cwd(), env={**os.environ, "PYTHONPATH": "src"},
+        text=True, capture_output=True, check=False,
+    )
+
+    assert completed.returncode == 0, completed.stderr
+    metadata = json.loads((out / "target-selection.json").read_text())
+    assert metadata["language"] == "c++"
+    assert metadata["cpp_standard"] == "c++23"
+    assert metadata["test_only"] is True
+    assert metadata["test_reachable_selected"] == metadata["selected_target_types"]
+
+
+def test_direct_dsl_selector_prioritizes_the_ready_test_first_pool(tmp_path):
+    root = Path("data/gen/experiments/clang-test-gap-injector-v0002")
+    helper = root / "paper-scope-direct-dsl-test-batch-0047" / "build_targets.py"
+    out = tmp_path / "targets"
+    completed = subprocess.run(
+        [
+            sys.executable, str(helper),
+            "--audit", str(root / "strict-injector-coverage-audit-batch0035-fixed.json"),
+            "--out", str(out),
+        ],
+        cwd=Path.cwd(), env={**os.environ, "PYTHONPATH": "src"},
+        text=True, capture_output=True, check=False,
+    )
+
+    assert completed.returncode == 0, completed.stderr
+    metadata = json.loads((out / "target-selection.json").read_text())
+    assert metadata["priority_target_types_selected"] > 0
+
+
+def test_fixed_audit_accepts_a_campaign_path_as_well_as_a_campaign_name(tmp_path):
+    root = Path("data/gen/experiments/clang-test-gap-injector-v0002")
+    script = root / "build_batch0034_fixed_audit.py"
+    baseline_out = tmp_path / "baseline-audit.json"
+    baseline = subprocess.run(
+        [sys.executable, str(script), "--out", str(baseline_out)],
+        cwd=Path.cwd(), env={**os.environ, "PYTHONPATH": "src"},
+        text=True, capture_output=True, check=False,
+    )
+    out = tmp_path / "path-audit.json"
+    completed = subprocess.run(
+        [
+            sys.executable, str(script),
+            "--campaign", str(root / "paper-scope-preprocessor-test-batch-0036"),
+            "--out", str(out),
+        ],
+        cwd=Path.cwd(), env={**os.environ, "PYTHONPATH": "src"},
+        text=True, capture_output=True, check=False,
+    )
+
+    assert baseline.returncode == 0, baseline.stderr
+    assert completed.returncode == 0, completed.stderr
+    baseline_report = json.loads(baseline_out.read_text())
+    report = json.loads(out.read_text())
+    assert report["counts"]["input_injector_rows"] > baseline_report["counts"]["input_injector_rows"]
+
+
 def test_append_witness_prompt_and_fragment_round_trip():
     request = _request()
     messages = build_code_append_messages(request)
@@ -102,6 +280,88 @@ def test_append_witness_prompt_and_fragment_round_trip():
     assert apply_code_append_fragment(request, fragment) == (
         "int f() { return value; }\nint fuzzlang_bad = ;\n"
     )
+
+
+def test_append_prompt_treats_regression_evidence_as_trigger_semantics():
+    request = CodeWitnessRequest(**{
+        **_request().to_dict(),
+        "emission_evidence": (
+            "Regression-test trigger evidence (not a dataset source):\n"
+            "int example = ; // expected-error {{expected expression}}"
+        ),
+    })
+
+    messages = build_code_append_messages(request)
+
+    assert "derive an independent minimal fragment" in messages[0]["content"]
+    assert "do not copy its lines verbatim" in messages[0]["content"]
+
+
+def test_append_prompt_includes_verified_target_compile_mode():
+    request = CodeWitnessRequest(**{
+        **_request().to_dict(),
+        "compile_cmd": [
+            "__CLANG__", "-std=c++23", "--target=i386-apple-darwin9",
+            "-fsyntax-only", "__SRC__",
+        ],
+    })
+
+    messages = build_code_append_messages(request)
+    task = json.loads(messages[1]["content"])
+
+    assert task["verified_compile_mode"] == (
+        "Verified compilation mode: -std=c++23 --target=i386-apple-darwin9"
+    )
+
+
+def test_audit_gap_list_keeps_order_and_deduplicates(tmp_path):
+    gap_list = tmp_path / "clang-test-only.txt"
+    gap_list.write_text("err_first\n# comment\nerr_second\nerr_first\n\n")
+
+    assert _ordered_diagnostic_names_from_text([gap_list]) == (
+        "err_first", "err_second",
+    )
+
+
+def test_trigger_config_evidence_is_prompt_only_and_deduplicated(tmp_path):
+    scan = tmp_path / "scan.json"
+    scan.write_text(json.dumps({
+        "trigger_configs": {
+            "err_target": [
+                ["__CLANG__", "-x", "c++", "-std=c++2b", "-fsyntax-only", "__SRC__"],
+                ["__CLANG__", "-x", "c++", "-std=c++2b", "-fsyntax-only", "__SRC__"],
+            ],
+        },
+    }))
+
+    evidence = _trigger_config_evidence_by_diagnostic([scan])
+
+    assert evidence == {
+        "err_target": (
+            "Clang regression-test trigger evidence (not a dataset source):\n"
+            "  -x c++ -std=c++2b -fsyntax-only"
+        ),
+    }
+
+
+def test_mode_split_uses_request_provenance_not_model_guess():
+    grouped = split_injectors_by_mode(
+        requests=[
+            {"diag_name": "err_cpp20", "fuzzlang_mode_label": "c++20"},
+            {"diag_name": "err_blocks", "fuzzlang_mode_label": "blocks"},
+        ],
+        injectors=[
+            {"target": {"diag_name": "err_blocks"}},
+            {"target": {"diag_name": "err_cpp20"}},
+        ],
+    )
+
+    assert [item["target"]["diag_name"] for item in grouped["blocks"]] == [
+        "err_blocks",
+    ]
+    assert [item["target"]["diag_name"] for item in grouped["c++20"]] == [
+        "err_cpp20",
+    ]
 
 
 def test_append_witness_rejects_unpaired_unicode_surrogates():
@@ -160,6 +420,43 @@ def test_direct_injector_requests_group_distinct_real_source_windows():
     assert requests[0].evidence.tablegen_definition == first.tablegen_definition
 
 
+def test_direct_injector_single_witness_requires_explicit_long_tail_opt_in():
+    first = _request()
+
+    with pytest.raises(ValueError, match="allow_single_witness"):
+        build_direct_injector_requests((first,), snippets_per_target=1)
+
+    requests = build_direct_injector_requests(
+        (first,), snippets_per_target=1, allow_single_witness=True,
+    )
+
+    assert len(requests) == 1
+    assert requests[0].correct_snippets == (first.window,)
+    assert requests[0].single_witness_long_tail is True
+
+
+def test_direct_injector_requests_support_truthful_objective_c_language():
+    first = CodeWitnessRequest(**{
+        **_request().to_dict(),
+        "language": "objective-c",
+        "source_id": "libobjc2:objc/runtime.m",
+        "source_path": "objc/runtime.m",
+        "compile_cmd": ["__CLANG__", "-fsyntax-only", "__SRC__"],
+    })
+    second = CodeWitnessRequest(**{
+        **first.to_dict(),
+        "source_id": "libobjc2:objc/selector.m",
+        "source_path": "objc/selector.m",
+        "corrected_src": "@interface Other @end\n",
+        "window_start": 0,
+        "window_end": len("@interface Other @end\n"),
+    })
+
+    request = build_direct_injector_requests((first, second))[0]
+
+    assert request.language == "objective-c"
+
+
 def test_direct_injector_requests_preserve_verified_compile_mode_as_evidence():
     first = CodeWitnessRequest(**{
         **_request().to_dict(),
@@ -178,6 +475,29 @@ def test_direct_injector_requests_preserve_verified_compile_mode_as_evidence():
 
     assert request.evidence.emission_evidence == (
         "Verified compilation mode: -std=c++20 -fopenmp"
+    )
+
+
+def test_direct_injector_requests_preserve_sycl_device_mode_as_evidence():
+    first = CodeWitnessRequest(**{
+        **_request().to_dict(),
+        "compile_cmd": [
+            "__CLANG__", "-std=c++23", "-Xclang", "-fsycl-is-device", "__SRC__",
+        ],
+    })
+    second = CodeWitnessRequest(**{
+        **first.to_dict(),
+        "source_id": "demo:lib/g.cc",
+        "source_path": "lib/g.cc",
+        "corrected_src": "int g() { return item; }\n",
+        "window_start": 0,
+        "window_end": len("int g() { return item; }\n"),
+    })
+
+    request = build_direct_injector_requests((first, second))[0]
+
+    assert request.evidence.emission_evidence == (
+        "Verified compilation mode: -std=c++23 -Xclang -fsycl-is-device"
     )
 
 
@@ -201,6 +521,80 @@ def test_direct_injector_requests_preserve_verified_modules_mode_as_evidence():
 
     assert request.evidence.emission_evidence == (
         "Verified compilation mode: -std=c++20 -fmodules -fcxx-modules"
+    )
+
+
+def test_direct_injector_requests_preserve_verified_ms_extensions_mode():
+    first = CodeWitnessRequest(**{
+        **_request().to_dict(),
+        "language": "objective-c++",
+        "compile_cmd": [
+            "__CLANG__", "-std=c++20", "-fms-extensions", "-x",
+            "objective-c++", "__SRC__",
+        ],
+    })
+    second = CodeWitnessRequest(**{
+        **first.to_dict(),
+        "source_id": "demo:lib/g.mm",
+        "source_path": "lib/g.mm",
+        "corrected_src": "@interface Root @end\n",
+        "window_start": 0,
+        "window_end": len("@interface Root @end\n"),
+    })
+
+    request = build_direct_injector_requests((first, second))[0]
+
+    assert request.evidence.emission_evidence == (
+        "Verified compilation mode: -std=c++20 -fms-extensions -x objective-c++"
+    )
+
+
+def test_direct_injector_requests_preserve_verified_defer_ts_mode():
+    first = CodeWitnessRequest(**{
+        **_request().to_dict(),
+        "language": "c",
+        "compile_cmd": [
+            "__CLANG__", "-std=c11", "-fdefer-ts", "__SRC__",
+        ],
+    })
+    second = CodeWitnessRequest(**{
+        **first.to_dict(),
+        "source_id": "ffmpeg:lib/g.c",
+        "source_path": "lib/g.c",
+        "corrected_src": "int g(void) { return 0; }\n",
+        "window_start": 0,
+        "window_end": len("int g(void) { return 0; }\n"),
+    })
+
+    request = build_direct_injector_requests((first, second))[0]
+
+    assert request.evidence.emission_evidence == (
+        "Verified compilation mode: -std=c11 -fdefer-ts"
+    )
+
+
+def test_direct_injector_requests_preserve_verified_gnu_asm_disable_mode():
+    first = CodeWitnessRequest(**{
+        **_request().to_dict(),
+        "compile_cmd": [
+            "__CLANG__", "-std=c++17", "--target=i686-apple-darwin",
+            "-fno-gnu-inline-asm", "__SRC__",
+        ],
+    })
+    second = CodeWitnessRequest(**{
+        **first.to_dict(),
+        "source_id": "demo:lib/g.cc",
+        "source_path": "lib/g.cc",
+        "corrected_src": "int g() { return 0; }\n",
+        "window_start": 0,
+        "window_end": len("int g() { return 0; }\n"),
+    })
+
+    request = build_direct_injector_requests((first, second))[0]
+
+    assert request.evidence.emission_evidence == (
+        "Verified compilation mode: -std=c++17 --target=i686-apple-darwin "
+        "-fno-gnu-inline-asm"
     )
 
 
@@ -267,6 +661,87 @@ def test_direct_requests_keep_regression_tests_as_prompt_only_evidence(
 
     assert enriched[0].correct_snippets == request.correct_snippets
     assert enriched[0].evidence.emission_evidence == "test-only hint"
+
+
+def test_direct_requests_filter_to_regression_trigger_evidence(
+    tmp_path, monkeypatch,
+):
+    first = _request()
+    second = CodeWitnessRequest(**{
+        **first.to_dict(),
+        "source_id": "demo:lib/g.cc",
+        "source_path": "lib/g.cc",
+        "corrected_src": "int g() { return item; }\n",
+        "window_start": 0,
+        "window_end": len("int g() { return item; }\n"),
+    })
+    request = build_direct_injector_requests((first, second))[0]
+    monkeypatch.setattr(
+        direct_cli,
+        "regression_evidence_for",
+        lambda message, root: (
+            "Regression-test trigger evidence (not a dataset source): test-only hint"
+        ),
+    )
+    evidenced = add_regression_trigger_evidence((request,), test_root=tmp_path)
+
+    assert filter_regression_evidenced_requests((request,) + evidenced) == evidenced
+
+
+def test_direct_requests_do_not_duplicate_existing_regression_evidence(
+    tmp_path, monkeypatch,
+):
+    first = CodeWitnessRequest(**{
+        **_request().to_dict(),
+        "emission_evidence": "Regression-test trigger evidence (not a dataset source): hint",
+    })
+    second = CodeWitnessRequest(**{
+        **first.to_dict(),
+        "source_id": "demo:lib/g.cc",
+        "source_path": "lib/g.cc",
+        "corrected_src": "int g() { return item; }\n",
+        "window_start": 0,
+        "window_end": len("int g() { return item; }\n"),
+    })
+    request = build_direct_injector_requests((first, second))[0]
+    monkeypatch.setattr(
+        direct_cli, "regression_evidence_for", lambda message, root: "new hint",
+    )
+
+    enriched = add_regression_trigger_evidence((request,), test_root=tmp_path)
+
+    assert enriched == (request,)
+
+
+def test_direct_requests_enrich_scan_configuration_with_test_excerpt(
+    tmp_path, monkeypatch,
+):
+    first = CodeWitnessRequest(**{
+        **_request().to_dict(),
+        "emission_evidence": (
+            "Clang regression-test trigger evidence (not a dataset source):\n"
+            "  -fsyntax-only -x c++ -std=c++23"
+        ),
+    })
+    second = CodeWitnessRequest(**{
+        **first.to_dict(),
+        "source_id": "demo:lib/g.cc",
+        "source_path": "lib/g.cc",
+        "corrected_src": "int g() { return item; }\n",
+        "window_start": 0,
+        "window_end": len("int g() { return item; }\n"),
+    })
+    request = build_direct_injector_requests((first, second))[0]
+    monkeypatch.setattr(
+        direct_cli, "regression_evidence_for", lambda message, root: "test excerpt",
+    )
+
+    enriched = add_regression_trigger_evidence((request,), test_root=tmp_path)
+
+    assert enriched[0].evidence.emission_evidence == (
+        "Clang regression-test trigger evidence (not a dataset source):\n"
+        "  -fsyntax-only -x c++ -std=c++23\n\ntest excerpt"
+    )
 
 
 def test_candidate_round_counts_spread_budget_across_feedback_rounds():
@@ -523,7 +998,21 @@ def test_target_anchor_selection_has_real_source_fallback():
     patterns = _anchor_patterns("err_new_abi_tag_on_redeclaration")
 
     assert patterns[0].search('[[gnu::abi_tag("v1")]] void f();')
-    assert patterns[-1].search("return value;")
+    assert patterns[-2].search("return value;")
+    assert patterns[-1].search("LLVM_CLANG_SHLIB_EXPORT")
+
+
+def test_anchorless_profile_fallback_uses_one_fresh_real_source_only():
+    sources = (
+        SimpleNamespace(source_id="already-used", corrected_src="int f();"),
+        SimpleNamespace(source_id="available", corrected_src="int g();"),
+    )
+
+    selected = _anchorless_profile_source(
+        sources, used_by_target={"already-used"}, used_global=set(),
+    )
+
+    assert selected is sources[1]
 
 
 def test_source_rotation_selects_different_real_source_prefixes_per_batch():
@@ -604,6 +1093,63 @@ def test_coverage_first_target_resolution_uses_uncovered_unattempted_errors():
     ]
 
 
+def test_coverage_first_target_resolution_excludes_out_of_scope_diagnostics():
+    catalog = Catalog([
+        DiagEntry("err_expected_expression", "Error", "expected expression", "Parse"),
+        DiagEntry("err_typecheck_invalid_operands", "Error", "invalid operands", "Sema"),
+    ])
+
+    selected = _resolve_target_entries(
+        catalog,
+        explicit_names=(),
+        auto_uncovered_limit=2,
+        covered=set(),
+        attempted=set(),
+        excluded={"err_expected_expression"},
+    )
+
+    assert [entry.name for entry in selected] == [
+        "err_typecheck_invalid_operands",
+    ]
+
+
+def test_request_builder_cli_excludes_out_of_scope_names_in_auto_mode(
+    tmp_path, monkeypatch,
+):
+    catalog = Catalog([
+        DiagEntry("err_expected_expression", "Error", "expected expression", "Parse"),
+        DiagEntry("err_typecheck_invalid_operands", "Error", "invalid operands", "Sema"),
+    ])
+    source = SimpleNamespace(
+        source_id="llvm:llvm/lib/Real.cpp",
+        source_path="llvm/lib/Real.cpp",
+        project="llvm",
+        language="c++",
+        compile_cmd=("__CLANG__", "-std=c++20", "-fsyntax-only", "__SRC__"),
+        corrected_src="int f() { return value; }\n",
+    )
+    excluded = tmp_path / "out-of-scope.txt"
+    excluded.write_text("err_expected_expression\n")
+    out = tmp_path / "requests.jsonl"
+    monkeypatch.setattr(request_builder_cli, "load_catalog", lambda _path: catalog)
+    monkeypatch.setattr(
+        request_builder_cli, "load_clean_sources_jsonl", lambda _path: [source],
+    )
+    monkeypatch.setattr(sys, "argv", [
+        "run_build_code_witness_requests.py",
+        "--clean-sources", "unused.jsonl",
+        "--catalog-dir", "unused-catalog",
+        "--auto-uncovered-limit", "2",
+        "--exclude-diag-name-file", str(excluded),
+        "--out", str(out),
+    ])
+
+    assert request_builder_cli.main() == 0
+    emitted = [json.loads(line)["diag_name"] for line in out.read_text().splitlines()]
+
+    assert emitted == ["err_typecheck_invalid_operands"]
+
+
 def test_explicit_retry_targets_drop_unreachable_cpp_modes():
     catalog = Catalog([
         DiagEntry("err_expected_expression", "Error", "expected", "Parse"),
@@ -627,6 +1173,56 @@ def test_explicit_retry_targets_drop_unreachable_cpp_modes():
     )
 
     assert [entry.name for entry in selected] == ["err_expected_expression"]
+
+
+def test_explicit_target_mode_accepts_platform_diagnostic_only_for_target_route():
+    catalog = Catalog([
+        DiagEntry(
+            "err_alias_not_supported_on_darwin",
+            "Error",
+            "alias definitions are not supported on darwin",
+            "Sema",
+        ),
+    ])
+
+    ordinary = _resolve_target_entries(
+        catalog,
+        explicit_names=("err_alias_not_supported_on_darwin",),
+        auto_uncovered_limit=None,
+        covered=set(),
+        attempted=set(),
+    )
+    target = _resolve_target_entries(
+        catalog,
+        explicit_names=("err_alias_not_supported_on_darwin",),
+        auto_uncovered_limit=None,
+        covered=set(),
+        attempted=set(),
+        feature_mode="target",
+    )
+
+    assert ordinary == ()
+    assert [entry.name for entry in target] == [
+        "err_alias_not_supported_on_darwin",
+    ]
+
+
+def test_explicit_gap_targets_exclude_covered_and_prior_attempts():
+    catalog = Catalog([
+        DiagEntry("err_covered", "Error", "covered", "Sema"),
+        DiagEntry("err_attempted", "Error", "attempted", "Sema"),
+        DiagEntry("err_new", "Error", "new", "Sema"),
+    ])
+
+    selected = _resolve_target_entries(
+        catalog,
+        explicit_names=("err_covered", "err_attempted", "err_new"),
+        auto_uncovered_limit=None,
+        covered={"err_covered"},
+        attempted={"err_attempted"},
+    )
+
+    assert [entry.name for entry in selected] == ["err_new"]
 
 
 def test_explicit_targets_drop_catalog_errors_without_a_message_template():
@@ -780,6 +1376,25 @@ def test_code_witness_checkpoint_preserves_completed_requests(tmp_path):
     }
 
 
+def test_code_witness_checkpoint_commits_resume_cursor_last(tmp_path, monkeypatch):
+    written: list[str] = []
+
+    def capture(path, rows):
+        written.append(path.name)
+
+    monkeypatch.setattr(witness_cli, "_write", capture)
+    _write_checkpoint(
+        tmp_path,
+        attempts=[{"request_index": 0}], records=[],
+        undistillable_records=[], injectors={},
+    )
+
+    assert written == [
+        "records.jsonl", "undistillable_records.jsonl", "injectors.jsonl",
+        "attempts.jsonl",
+    ]
+
+
 def test_code_witness_cli_processes_every_request_and_writes_manifest(
     tmp_path, monkeypatch,
 ):
@@ -857,9 +1472,9 @@ def test_code_witness_cli_processes_every_request_and_writes_manifest(
     manifest = json.loads((tmp_path / "out" / "manifest.json").read_text())
     assert manifest["counts"]["requests"] == 2
     assert manifest["counts"]["attempts"] == 2
-    assert manifest["counts"]["records"] == 2
-    # Generation keeps one replay-verified, minimal Injector per witness.
-    # The two requests have identical edit semantics, so that Injector deduplicates.
+    assert manifest["counts"]["records"] == 1
+    # Once the target has an exact replayable Injector, breadth-first
+    # generation skips its remaining real-source variants.
     assert manifest["counts"]["portable_injectors"] == 1
     injectors = [
         json.loads(line)
@@ -870,21 +1485,14 @@ def test_code_witness_cli_processes_every_request_and_writes_manifest(
         for line in (tmp_path / "out" / "records.jsonl").read_text().splitlines()
     ]
     assert len(injectors) == 1
-    assert all(
-        record["provenance"]["detail"]["injector_id"] == injectors[0]["injector_id"]
-        for record in records
-    )
+    assert len(records) == 1
+    assert records[0]["provenance"]["detail"]["injector_id"] == injectors[0]["injector_id"]
 
 
-def test_code_witness_cli_wide_mode_checkpoints_between_model_microbatches(
+def test_code_witness_cli_wide_mode_skips_covered_target_variants(
     tmp_path, monkeypatch,
 ):
-    """A timed wide campaign must retain one microbatch before generating next.
-
-    This is what makes a large target shard resumable under the scheduler's
-    wall-time limit: a later Gemma call must never be required before the
-    earlier targets have passed compiler gating and been checkpointed.
-    """
+    """A breadth run does not spend a later microbatch on a covered target."""
     source = "int f() { return value; }\n"
     requests = [
         CodeWitnessRequest(
@@ -964,7 +1572,105 @@ def test_code_witness_cli_wide_mode_checkpoints_between_model_microbatches(
     ])
 
     assert witness_cli.main() == 0
-    assert calls == 2
+    assert calls == 1
+
+
+def test_code_witness_cli_wide_mode_does_not_prompt_unclean_baselines(
+    tmp_path, monkeypatch,
+):
+    source = "int f() { return value; }\n"
+    requests = [
+        CodeWitnessRequest(
+            diag_name="err_typecheck_invalid_lvalue_addrof",
+            diag_id=101,
+            diag_message="cannot take the address of an rvalue",
+            language="c++",
+            tablegen_definition="def err_target : Error<\"target\">;",
+            source_id=f"llvm:llvm/lib/{name}.cpp",
+            source_path=f"llvm/lib/{name}.cpp",
+            project="llvm",
+            compile_cmd=("__CLANG__", "-fsyntax-only", "__SRC__"),
+            corrected_src=source,
+            window_start=0,
+            window_end=len(source),
+        )
+        for name in ("good", "unclean")
+    ]
+    request_path = tmp_path / "requests.jsonl"
+    request_path.write_text("".join(
+        json.dumps(request.to_dict()) + "\n" for request in requests
+    ))
+
+    class _Backend:
+        def __init__(self, *args, **kwargs):
+            pass
+
+        def chat(self, **kwargs):
+            raise AssertionError("wide mode must batch the clean prompt")
+
+        def chat_batch(self, *, messages_batch, n, **kwargs):
+            assert len(messages_batch) == 1
+            return [[
+                ChatResponse('{"old_text":"value","new_text":"&value"}', 4)
+                for _ in range(n)
+            ]]
+
+    class _Verifier:
+        def __init__(self, *args, **kwargs):
+            pass
+
+        def verify(self, candidate, compile_cmd, *, logical_path):
+            if logical_path.endswith("unclean.cpp"):
+                return VerifierResult(False, DiagInfo(
+                    diag_id=1,
+                    diag_name="err_unrelated",
+                    diag_msg="unclean",
+                    file=logical_path,
+                    line=1,
+                    col=1,
+                    start_byte=0,
+                    end_byte=1,
+                    span_snippet="unclean",
+                ), "")
+            if "&value" not in candidate:
+                return VerifierResult(True, None, "")
+            return VerifierResult(False, DiagInfo(
+                diag_id=101,
+                diag_name="err_typecheck_invalid_lvalue_addrof",
+                diag_msg="target",
+                file=logical_path,
+                line=1,
+                col=1,
+                start_byte=0,
+                end_byte=1,
+                span_snippet="value",
+            ), "")
+
+    monkeypatch.setattr(witness_cli, "LocalGemma31BBackend", _Backend)
+    monkeypatch.setattr(witness_cli, "FuzzlangClangVerifier", _Verifier)
+    monkeypatch.setattr(sys, "argv", [
+        "run_local_code_witness.py",
+        "--requests", str(request_path),
+        "--clang-bin", "/mock/clang++",
+        "--clang-c-bin", "/mock/clang",
+        "--diagtool-bin", "/mock/diagtool",
+        "--output-dir", str(tmp_path / "out"),
+        "--candidates", "1",
+        "--feedback-rounds", "1",
+        "--request-batch-size", "2",
+    ])
+
+    assert witness_cli.main() == 0
+    manifest = json.loads((tmp_path / "out" / "manifest.json").read_text())
+    assert manifest["prefetched_prompt_count"] == 1
+    attempts = [
+        json.loads(line)
+        for line in (tmp_path / "out" / "attempts.jsonl").read_text().splitlines()
+    ]
+    assert any(
+        row["status"] == "target_already_accepted_in_campaign"
+        for row in attempts
+    )
 
 
 def test_code_witness_cli_append_mode_extracts_a_replayable_injector(
@@ -1165,7 +1871,6 @@ def test_code_witness_cli_uses_compiler_feedback_for_second_candidate_round(
         "--diagtool-bin", "/mock/diagtool",
         "--output-dir", str(tmp_path / "out"),
         "--candidates", "2",
-        "--no-admit-observed-errors",
     ])
 
     assert witness_cli.main() == 0
@@ -1305,6 +2010,7 @@ def test_code_witness_cli_skips_observed_types_with_an_existing_injector(
         "--output-dir", str(tmp_path / "out"),
         "--exclude-injectors", str(excluded),
         "--candidates", "1",
+        "--admit-observed-errors",
     ])
 
     assert witness_cli.main() == 0
@@ -1378,6 +2084,7 @@ def test_code_witness_cli_stops_after_two_known_covered_feedback_rounds(
         "--exclude-injectors", str(excluded),
         "--candidates", "4",
         "--feedback-rounds", "4",
+        "--admit-observed-errors",
     ])
 
     assert witness_cli.main() == 0

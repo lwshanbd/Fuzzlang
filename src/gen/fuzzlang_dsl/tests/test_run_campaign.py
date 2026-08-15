@@ -87,6 +87,29 @@ def _sha256(path) -> str:
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
 
+def test_select_injectors_shards_by_input_position_deterministically():
+    injectors = [
+        FuzzLangInjector(
+            target_diag=f"err_target_{index}",
+            language="c++",
+            operation="replace",
+            old_patterns=("<NUM>",),
+            new_text="bad_exact",
+            left_context=("return",),
+            right_context=(";",),
+            portable=True,
+            replacement_parts=(("literal", "bad_exact"),),
+        )
+        for index in range(5)
+    ]
+
+    selected = cli._select_injectors(
+        injectors, None, shard_count=2, shard_index=1,
+    )
+
+    assert [item.target_diag for item in selected] == ["err_target_1", "err_target_3"]
+
+
 def test_cli_writes_canonical_outputs_manifest_checksums_and_uses_both_drivers(
     tmp_path, monkeypatch,
 ):
@@ -277,6 +300,8 @@ def test_cli_can_limit_replay_to_requested_injector_ids(tmp_path, monkeypatch):
     assert payload["inputs"]["injectors"]["records"] == 2
     assert payload["injector_selection"] == {
         "requested_injector_ids": [selected.injector_id],
+        "shard_count": 1,
+        "shard_index": 0,
         "selected_input_rows": 1,
         "selected_injector_ids": [selected.injector_id],
     }

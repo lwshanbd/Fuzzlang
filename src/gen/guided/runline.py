@@ -98,3 +98,95 @@ def parse_cc1_configs(text: str, *, resource_dir: str) -> list[list[str]]:
             seen.add(key)
             configs.append(config)
     return configs
+
+
+def parse_driver_configs(text: str) -> list[list[str]]:
+    """Extract safe frontend-only configs from ``%clang``/``%clangxx`` RUN lines."""
+    configs: list[list[str]] = []
+    seen: set[tuple[str, ...]] = set()
+    for command in _runline_commands(text):
+        if ("%clang_cc1" in command or "%clang_analyze_cc1" in command
+                or "%clang_cl" in command or "-cc1" in command):
+            continue
+        tokens = command.split("|", 1)[0].split()
+        start = next((i for i, token in enumerate(tokens)
+                      if token.startswith("%clang")), None)
+        if start is None or "-###" in tokens[start + 1:]:
+            continue
+        flags: list[str] = []
+        i = start + 1
+        while i < len(tokens):
+            token = tokens[i]
+            if token in _DROP_WITH_ARG:
+                i += 2
+            elif token in _DROP_FLAGS or token in {"-c", "-###"}:
+                i += 1
+            elif token.startswith(_DROP_PREFIXES) or token.startswith("%"):
+                i += 1
+            elif token in {"not", "2>&1", "2>", "1>"}:
+                i += 1
+            elif token in {"-I", "-isystem", "-include", "-imacros"} and (
+                i + 1 >= len(tokens) or tokens[i + 1].startswith("%")
+            ):
+                i += 2
+            else:
+                flags.append(token)
+                i += 1
+        config = ["__CLANG__", *flags, "-fsyntax-only", PLACEHOLDER]
+        key = tuple(config)
+        if key not in seen:
+            seen.add(key)
+            configs.append(config)
+    return configs
+
+
+def parse_analyzer_configs(text: str, *, resource_dir: str) -> list[list[str]]:
+    """Extract ``%clang_analyze_cc1`` commands without losing ``-analyze``."""
+    configs: list[list[str]] = []
+    seen: set[tuple[str, ...]] = set()
+    for command in _runline_commands(text):
+        if "%clang_analyze_cc1" not in command:
+            continue
+        flags = _filter_flags(command)
+        config = ["__CLANG__", "-cc1", "-resource-dir", resource_dir,
+                  *flags, "-analyze", PLACEHOLDER]
+        key = tuple(config)
+        if key not in seen:
+            seen.add(key)
+            configs.append(config)
+    return configs
+
+
+def parse_cl_configs(text: str) -> list[list[str]]:
+    """Extract syntax-only ``%clang_cl`` driver commands."""
+    configs: list[list[str]] = []
+    seen: set[tuple[str, ...]] = set()
+    for command in _runline_commands(text):
+        if "%clang_cl" not in command:
+            continue
+        tokens = command.split("|", 1)[0].split()
+        start = next((i for i, token in enumerate(tokens)
+                      if token.startswith("%clang_cl")), None)
+        if start is None or "-###" in tokens[start + 1:]:
+            continue
+        flags: list[str] = []
+        i = start + 1
+        while i < len(tokens):
+            token = tokens[i]
+            if token in _DROP_WITH_ARG:
+                i += 2
+            elif token in _DROP_FLAGS or token in {"-c", "/c", "-###"}:
+                i += 1
+            elif token.startswith(_DROP_PREFIXES) or token.startswith("%"):
+                i += 1
+            elif token in {"not", "2>&1", "2>", "1>"}:
+                i += 1
+            else:
+                flags.append(token)
+                i += 1
+        config = ["__CLANG__", "--driver-mode=cl", *flags, "/Zs", PLACEHOLDER]
+        key = tuple(config)
+        if key not in seen:
+            seen.add(key)
+            configs.append(config)
+    return configs

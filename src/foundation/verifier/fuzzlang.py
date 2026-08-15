@@ -37,7 +37,7 @@ class FuzzlangClangVerifier(BaseVerifier):
         self.timeout_s = timeout_s
 
     def _compiler_for(self, compile_cmd: list[str], logical_path: str) -> str:
-        if _guess_suffix(compile_cmd, logical_path) == ".c":
+        if _guess_suffix(compile_cmd, logical_path) in {".c", ".m"}:
             return self.clang_c_bin
         return self.clang_bin
 
@@ -126,10 +126,14 @@ class FuzzlangClangVerifier(BaseVerifier):
 def _guess_suffix(
     compile_cmd: list[str], logical_path: Optional[str] = None,
 ) -> str:
-    # 1) Explicit C++ source file path in args.
+    # 1) Explicit source file path in args.
     for a in compile_cmd:
+        if a.endswith(".mm"):
+            return ".mm"
+        if a.endswith(".m"):
+            return ".m"
         if a.endswith((".cpp", ".cc", ".cxx", ".c++")):
-            return ".cpp"
+            return ".mm" if compile_cmd[i + 1] == "objective-c++" else ".cpp"
     # 2) An explicit -x language overrides filename and standard inference.
     for i, a in enumerate(compile_cmd):
         if (a == "-x" and i + 1 < len(compile_cmd)
@@ -137,11 +141,11 @@ def _guess_suffix(
             return ".cpp"
         if (a == "-x" and i + 1 < len(compile_cmd)
                 and compile_cmd[i + 1] in ("c", "objective-c")):
-            return ".c"
+            return ".m" if compile_cmd[i + 1] == "objective-c" else ".c"
         if a in ("-xc++", "-xobjective-c++"):
-            return ".cpp"
+            return ".mm" if a == "-xobjective-c++" else ".cpp"
         if a in ("-xc", "-xobjective-c"):
-            return ".c"
+            return ".m" if a == "-xobjective-c" else ".c"
     # 3) -std=c++... or -std=gnu++... implies C++. Stage 2 emits
     #    compile_cmds with __SRC__ placeholder so the source path is absent.
     for a in compile_cmd:
@@ -149,8 +153,10 @@ def _guess_suffix(
             return ".cpp"
     # 4) Some CMake databases rely on the original .cc/.cpp filename and omit
     #    both -x and -std.  The stable logical path retains that information.
-    if logical_path and logical_path.lower().endswith(
-        (".cpp", ".cc", ".cxx", ".c++")
-    ):
+    if logical_path and logical_path.lower().endswith(".mm"):
+        return ".mm"
+    if logical_path and logical_path.lower().endswith(".m"):
+        return ".m"
+    if logical_path and logical_path.lower().endswith((".cpp", ".cc", ".cxx", ".c++")):
         return ".cpp"
     return ".c"

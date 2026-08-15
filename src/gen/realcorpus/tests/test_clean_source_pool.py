@@ -20,6 +20,7 @@ from gen.realcorpus.clean_source_pool import (
 )
 from gen.realcorpus import run_clean_source_pool as cli
 from gen.realcorpus import run_clean_source_pool_from_records as record_cli
+from gen.realcorpus import run_revalidate_cpp_standard_pool as revalidate_cli
 
 
 def _source(*, path: str = "llvm/lib/IR/Thing.cpp", text: str = "int f() { return 0; }\n"):
@@ -92,6 +93,32 @@ def test_clean_source_tu_rejects_test_paths_bad_hash_and_invalid_command():
         )
 
 
+def test_clean_source_tu_accepts_non_test_objective_c_and_objective_cxx_tus():
+    objc = CleanSourceTU(
+        source_id="libobjc2:objc/runtime.m",
+        project="libobjc2",
+        source_path="objc/runtime.m",
+        language="objective-c",
+        corrected_src="@interface Root @end\n",
+        compile_cmd=("__CLANG__", "-fsyntax-only", "__SRC__"),
+        source_sha256=hashlib.sha256(b"@interface Root @end\n").hexdigest(),
+        baseline_compiler="llvmorg-22.1.8",
+    )
+    objcxx = CleanSourceTU(
+        source_id="libobjc2:objc/runtime.mm",
+        project="libobjc2",
+        source_path="objc/runtime.mm",
+        language="objective-c++",
+        corrected_src="@interface Root @end\n",
+        compile_cmd=("__CLANG__", "-fsyntax-only", "__SRC__"),
+        source_sha256=hashlib.sha256(b"@interface Root @end\n").hexdigest(),
+        baseline_compiler="llvmorg-22.1.8",
+    )
+
+    assert objc.language == "objective-c"
+    assert objcxx.language == "objective-c++"
+
+
 def test_revalidate_cpp_standard_pool_rewrites_flags_and_keeps_only_clean_sources():
     good = _source(path="llvm/lib/IR/Good.cpp", text="int good() { return 0; }\n")
     bad = _source(path="llvm/lib/IR/Bad.cpp", text="int bad() { return 0; }\n")
@@ -157,6 +184,35 @@ def test_revalidate_standard_pool_appends_feature_flags_before_source():
     )
 
 
+def test_revalidate_standard_pool_supports_objective_cxx_feature_mode():
+    text = "@interface Root @end\n"
+    source = CleanSourceTU(
+        source_id="libobjc2:objc/runtime.mm",
+        project="libobjc2",
+        source_path="objc/runtime.mm",
+        language="objective-c++",
+        corrected_src=text,
+        compile_cmd=("__CLANG__", "-std=gnu++20", "-fsyntax-only", "__SRC__"),
+        source_sha256=hashlib.sha256(text.encode()).hexdigest(),
+        baseline_compiler="llvmorg-22.1.8",
+    )
+
+    result = revalidate_standard_pool(
+        [source],
+        MockVerifier(lambda _src, command, _path: (
+            ok_result() if {
+                "-std=c++20", "-fms-extensions",
+            }.issubset(command) else VerifierResult(False, None, "error")
+        )),
+        language="objective-c++", standard="c++20",
+        extra_args=("-fms-extensions",),
+    )
+
+    assert result.sources[0].compile_cmd == (
+        "__CLANG__", "-std=c++20", "-fsyntax-only", "-fms-extensions", "__SRC__",
+    )
+
+
 def test_build_clean_source_pool_keeps_only_unseen_non_test_clean_tus(tmp_path):
     root = tmp_path / "llvm"
     good = root / "llvm/lib/IR/Good.cpp"
@@ -199,11 +255,37 @@ def test_build_clean_source_pool_keeps_only_unseen_non_test_clean_tus(tmp_path):
         "source_candidates": 3,
         "excluded_known_sources": 1,
         "test_sources": 1,
+        "vendored_sources": 0,
         "attempted_clean_gates": 2,
         "accepted_clean_sources": 1,
     }
     assert [(item.status, item.source_id) for item in result.rejections] == [
         ("corrected_not_clean", "llvm:llvm/lib/IR/Bad.cpp"),
+    ]
+
+
+def test_build_clean_source_pool_discovers_objective_c_extensions(tmp_path):
+    root = tmp_path / "libobjc2"
+    objc = root / "objc/runtime.m"
+    objcxx = root / "objc/selector.mm"
+    for path in (objc, objcxx):
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text("@interface Root @end\n")
+    ccdb = tmp_path / "compile_commands.json"
+    ccdb.write_text(json.dumps([
+        {"directory": str(tmp_path), "file": str(path),
+         "command": f"clang -c {path}"}
+        for path in (objc, objcxx)
+    ]))
+
+    result = build_clean_source_pool(
+        load_compile_db(ccdb), MockVerifier(lambda *_args: ok_result()),
+        project="libobjc2", source_root=str(root), workers=2,
+    )
+
+    assert [(item.source_path, item.language) for item in result.sources] == [
+        ("objc/runtime.m", "objective-c"),
+        ("objc/selector.mm", "objective-c++"),
     ]
 
 
@@ -266,6 +348,7 @@ def test_build_clean_source_pool_from_records_revalidates_real_paired_parents():
         "unique_source_candidates": 1,
         "duplicate_parent_records": 1,
         "test_sources": 1,
+        "vendored_sources": 0,
         "invalid_record_provenance": 1,
         "excluded_known_sources": 0,
         "attempted_clean_gates": 1,
@@ -366,3 +449,35 @@ def test_clean_source_pool_from_records_cli_revalidates_parent(tmp_path, monkeyp
     assert row["source_id"] == "abseil:absl/base/source.cc"
     assert payload["source_policy"]["record_derived_parents_revalidated"] is True
     assert payload["counts"]["accepted_clean_sources"] == 1
+
+
+def test_revalidate_pool_cli_can_bound_feature_mode_clean_gates(tmp_path, monkeypatch):
+    first = _source(path="llvm/lib/IR/First.cpp")
+    second = _source(path="llvm/lib/IR/Second.cpp")
+    inputs = tmp_path / "sources.jsonl"
+    inputs.write_text("".join(
+        json.dumps(item.to_dict(), sort_keys=True) + "\n"
+        for item in (first, second)
+    ))
+    out = tmp_path / "out.jsonl"
+    rejected = tmp_path / "rejected.jsonl"
+    manifest = tmp_path / "manifest.json"
+
+    class Verifier:
+        def __init__(self, *_args, **_kwargs):
+            pass
+
+        def verify(self, *_args, **_kwargs):
+            return ok_result()
+
+    monkeypatch.setattr(revalidate_cli, "FuzzlangClangVerifier", Verifier)
+    assert revalidate_cli.main([
+        "--clean-sources", str(inputs), "--language", "c++", "--standard", "c++20",
+        "--clang-bin", "/mock/clang++", "--clang-c-bin", "/mock/clang",
+        "--diagtool-bin", "/mock/diagtool", "--out", str(out),
+        "--rejections-out", str(rejected), "--manifest-out", str(manifest),
+        "--max-files", "1",
+    ]) == 0
+
+    assert len(out.read_text().splitlines()) == 1
+    assert json.loads(manifest.read_text())["selection"]["max_files"] == 1

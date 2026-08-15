@@ -10,7 +10,7 @@ is added as auditable derived provenance.
 from __future__ import annotations
 
 import argparse
-from collections import Counter
+from collections import Counter, defaultdict
 from copy import deepcopy
 from dataclasses import dataclass
 from datetime import datetime, timezone
@@ -174,12 +174,28 @@ def load_injector_map(
     }
 
 
+def validated_arm_row(
+    row: Mapping[str, Any],
+    *,
+    method: str,
+    location: str,
+    injector_by_recipe: Mapping[str, FuzzLangInjector],
+    injector_by_id: Mapping[str, FuzzLangInjector] | None = None,
+) -> dict[str, Any]:
+    """Public entry point; see :func:`_canonical_and_method_gate`."""
+    return _canonical_and_method_gate(
+        row, method=method, injector_by_recipe=injector_by_recipe,
+        injector_by_id=injector_by_id or {}, location=location,
+    )
+
+
 def _canonical_and_method_gate(
     row: Mapping[str, Any],
     *,
     method: str,
     injector_by_recipe: Mapping[str, FuzzLangInjector],
     location: str,
+    injector_by_id: Mapping[str, FuzzLangInjector] | None = None,
 ) -> dict[str, Any]:
     required_strings = ("record_id", "erroneous_src", "corrected_src")
     for key in required_strings:
@@ -213,23 +229,36 @@ def _canonical_and_method_gate(
     elif method == "fuzzlang":
         if origin != "mutate" or detail.get("strategy") not in {
             "learned_recipe_replay", "fuzzlang_dsl_replay",
+            "fuzzlang_library_replay",
         }:
             raise ValueError(
                 "FuzzLang arm requires verified recipe/DSL replay provenance at "
                 f"{location}"
             )
-        recipe_id = detail.get("recipe_id")
-        injector = injector_by_recipe.get(str(recipe_id))
-        if injector is None:
-            raise ValueError(
-                f"FuzzLang recipe {recipe_id!r} has no auditable Injector mapping "
-                f"at {location}"
-            )
-        existing_id = detail.get("injector_id")
-        if existing_id is not None and existing_id != injector.injector_id:
-            raise ValueError(
-                f"stored Injector ID disagrees with recipe mapping at {location}"
-            )
+        if detail.get("strategy") == "fuzzlang_library_replay":
+            # A released-library replay names its Injector directly.  The ID is
+            # a content hash of the artifact, so it is stronger provenance than
+            # the recipe indirection and needs no mapping table.
+            injector_id = detail.get("injector_id")
+            injector = (injector_by_id or {}).get(str(injector_id))
+            if injector is None:
+                raise ValueError(
+                    f"library-replay row names Injector {injector_id!r} which is "
+                    f"not in the pinned library at {location}"
+                )
+        else:
+            recipe_id = detail.get("recipe_id")
+            injector = injector_by_recipe.get(str(recipe_id))
+            if injector is None:
+                raise ValueError(
+                    f"FuzzLang recipe {recipe_id!r} has no auditable Injector "
+                    f"mapping at {location}"
+                )
+            existing_id = detail.get("injector_id")
+            if existing_id is not None and existing_id != injector.injector_id:
+                raise ValueError(
+                    f"stored Injector ID disagrees with recipe mapping at {location}"
+                )
     else:
         raise ValueError(f"unknown SFT arm: {method}")
 
@@ -238,13 +267,20 @@ def _canonical_and_method_gate(
     derived_detail["sft_arm"] = method
     derived_detail["source_split"] = row.get("split")
     if method == "fuzzlang":
-        injector = injector_by_recipe[str(detail["recipe_id"])]
+        library_replay = detail.get("strategy") == "fuzzlang_library_replay"
+        injector = (
+            (injector_by_id or {})[str(detail["injector_id"])] if library_replay
+            else injector_by_recipe[str(detail["recipe_id"])]
+        )
         derived_detail.update({
             "injector_id": injector.injector_id,
             "injector_schema": injector.schema,
             "injector_schema_version": injector.schema_version,
             "injector_content_hash": injector.content_hash,
-            "injector_mapping": "semantics_preserving_recipe_adapter",
+            "injector_mapping": (
+                "released_library_injector_id" if library_replay
+                else "semantics_preserving_recipe_adapter"
+            ),
         })
     derived["split"] = "train"
     return derived
@@ -303,7 +339,9 @@ def prepare_candidates(
     tokenizer: Any,
     eval_guard: EvalGuard,
     injector_by_recipe: Mapping[str, FuzzLangInjector],
+    injector_by_id: Mapping[str, FuzzLangInjector] | None = None,
     max_seq_len: int,
+    on_overlength: str = "error",
     context_lines: int = 8,
     max_window_chars: int = 8_000,
     max_edit_chars: int = 2_000,
@@ -319,6 +357,7 @@ def prepare_candidates(
             raw_row,
             method=method,
             injector_by_recipe=injector_by_recipe,
+            injector_by_id=injector_by_id,
             location=location,
         )
         normalized = run_sft._normalize_example(
@@ -340,11 +379,14 @@ def prepare_candidates(
         completion_tokens = len(tokenizer(
             training["completion"], truncation=False
         )["input_ids"])
-        if rendered_tokens > max_seq_len:
-            raise ValueError(
-                f"{method} record {row['record_id']} has {rendered_tokens} tokens, "
-                f"exceeding max_seq_len={max_seq_len}; no implicit truncation/drop"
-            )
+        overlength = overlength_disposition(
+            rendered_tokens=rendered_tokens, max_seq_len=max_seq_len,
+            on_overlength=on_overlength, record_id=str(row["record_id"]),
+            method=method,
+        )
+        if overlength is not None:
+            exclusions[overlength] += 1
+            continue
 
         source_key = str(row["provenance"]["source"])
         record_id = str(row["record_id"])
@@ -487,6 +529,107 @@ def select_count_to_budget(
     return sorted(selected, key=tie_key)
 
 
+def select_scaling_tiers(
+    candidates: Sequence[Candidate],
+    *,
+    sizes: Sequence[int],
+    seed: int,
+    arm: str = "fuzzlang",
+) -> dict[int, list[Candidate]]:
+    """Nested record sets at each requested size, for a data-scaling curve.
+
+    The tiers are **nested**: the 557-record arm is a prefix of the 1,500-record
+    arm, which is a prefix of the 5,000-record one.  Without that, a difference
+    between tiers could come from which records were drawn rather than from how
+    many, and the curve would not isolate quantity.
+
+    Ordering is a seeded hash of the record id, so it is deterministic, is
+    independent of the order records arrive in, and does not correlate with
+    length -- drawing the shortest records first would confound size with
+    example difficulty.
+    """
+    ordered = sorted(
+        candidates,
+        key=lambda candidate: _sha256_text(
+            f"{seed}|{arm}|scaling|{candidate.record_id}"
+        ),
+    )
+    tiers: dict[int, list[Candidate]] = {}
+    for size in sorted(sizes):
+        if size <= 0 or size > len(ordered):
+            raise ValueError(
+                f"invalid scaling size={size} for {len(ordered)} {arm} records"
+            )
+        tiers[size] = list(ordered[:size])
+    return tiers
+
+
+def select_by_breadth(
+    candidates: Sequence[Candidate],
+    *,
+    count: int,
+    mode: str,
+    seed: int,
+    arm: str = "fuzzlang",
+) -> list[Candidate]:
+    """Pick ``count`` records that are deliberately wide or deliberately narrow.
+
+    The scaling curve grew record count and diagnostic coverage together, so it
+    cannot say which one helped. These two modes hold the record count fixed and
+    move only the coverage:
+
+    * ``broad`` takes one record from every diagnostic before taking a second
+      from any, so coverage is as wide as the count allows;
+    * ``narrow`` fills from the most populous diagnostics first, so the same
+      number of records sits on as few diagnostics as possible.
+
+    Within a diagnostic the order is a seeded hash of the record id, so the
+    choice is deterministic and independent of input order.
+    """
+    if mode not in {"broad", "narrow"}:
+        raise ValueError(f"unknown breadth mode {mode!r}")
+    if count <= 0 or count > len(candidates):
+        raise ValueError(f"invalid count={count} for {len(candidates)} {arm} records")
+
+    tie_key = lambda candidate: _sha256_text(
+        f"{seed}|{arm}|breadth|{candidate.record_id}"
+    )
+    grouped: dict[str, list[Candidate]] = defaultdict(list)
+    for candidate in candidates:
+        grouped[candidate.diagnostic].append(candidate)
+    for records in grouped.values():
+        records.sort(key=tie_key)
+
+    if mode == "narrow":
+        # Most populous first; ties broken by name so the plan is reproducible.
+        order = sorted(grouped, key=lambda name: (-len(grouped[name]), name))
+        selected: list[Candidate] = []
+        for name in order:
+            for candidate in grouped[name]:
+                if len(selected) == count:
+                    return sorted(selected, key=tie_key)
+                selected.append(candidate)
+        return sorted(selected, key=tie_key)
+
+    order = sorted(grouped, key=lambda name: (-len(grouped[name]), name))
+    selected = []
+    depth = 0
+    while len(selected) < count:
+        progressed = False
+        for name in order:
+            records = grouped[name]
+            if depth >= len(records):
+                continue
+            selected.append(records[depth])
+            progressed = True
+            if len(selected) == count:
+                break
+        if not progressed:
+            break
+        depth += 1
+    return sorted(selected, key=tie_key)
+
+
 def _overlap_count(groups: Sequence[set[str]]) -> int:
     seen: set[str] = set()
     overlap: set[str] = set()
@@ -504,17 +647,54 @@ def _write_rows(path: Path, rows: Sequence[dict[str, Any]]) -> dict[str, Any]:
     return _file_report(path)
 
 
+def overlength_disposition(
+    *, rendered_tokens: int, max_seq_len: int, on_overlength: str,
+    record_id: str = "", method: str = "",
+) -> str | None:
+    """Decide what to do with an example wider than the context budget.
+
+    ``error`` (the default) refuses, because silently truncating an example can
+    remove the diagnostic or the repair itself.  ``exclude`` drops it but the
+    caller records the count, so the loss is reported rather than hidden.
+    """
+    if rendered_tokens <= max_seq_len:
+        return None
+    if on_overlength == "exclude":
+        return "overlength"
+    raise ValueError(
+        f"{method} record {record_id} has {rendered_tokens} tokens, "
+        f"exceeding max_seq_len={max_seq_len}; no implicit truncation/drop"
+    )
+
+
+def require_injector_authority(
+    *, recipes: Sequence[str | Path], library: Sequence[str | Path],
+) -> None:
+    """Every FuzzLang row must be attributable to an auditable Injector.
+
+    A recipe map and a pinned library are alternative authorities: recipe-derived
+    rows need the map, released-library replays name their Injector by content
+    hash. At least one must be supplied.
+    """
+    if not recipes and not library:
+        raise ValueError(
+            "the FuzzLang arm needs --fuzzlang-recipes or --injector-library"
+        )
+
+
 def build_matched_arms(
     *,
     arm_paths: Mapping[str, Sequence[str | Path]],
     eval_paths: Sequence[str | Path],
     recipe_paths: Sequence[str | Path],
+    injector_library_paths: Sequence[str | Path] = (),
     tokenizer: Any,
     tokenizer_name: str,
     model_revision: str | None,
     out_dir: str | Path,
     seed: int = 42,
     max_seq_len: int = 1024,
+    on_overlength: str = "error",
     context_lines: int = 8,
     max_window_chars: int = 8_000,
     max_edit_chars: int = 2_000,
@@ -529,6 +709,17 @@ def build_matched_arms(
         raise ValueError("max_relative_token_gap must lie in [0, 1)")
     diag_ids, diag_report = load_stable_diag_ids(diag_evidence_paths) if diag_evidence_paths else ({}, None)
     injector_map, injector_report = load_injector_map(recipe_paths, diag_ids=diag_ids)
+    # A released-library replay names its Injector by content hash, so the
+    # pinned library is the authority for those rows.
+    from gen.fuzzlang_dsl.library_replay import load_injector_library
+
+    library = (
+        load_injector_library([Path(p) for p in injector_library_paths])
+        if injector_library_paths else ()
+    )
+    injector_by_id = {injector.injector_id: injector for injector in library}
+    injector_report = dict(injector_report or {})
+    injector_report["pinned_library_injectors"] = len(injector_by_id)
     eval_guard, eval_report = build_eval_guard(
         eval_paths,
         context_lines=context_lines,
@@ -545,7 +736,9 @@ def build_matched_arms(
             tokenizer=tokenizer,
             eval_guard=eval_guard,
             injector_by_recipe=injector_map,
+            injector_by_id=injector_by_id,
             max_seq_len=max_seq_len,
+            on_overlength=on_overlength,
             context_lines=context_lines,
             max_window_chars=max_window_chars,
             max_edit_chars=max_edit_chars,
@@ -667,7 +860,7 @@ def build_matched_arms(
             "max_window_chars": max_window_chars,
             "max_edit_chars": max_edit_chars,
             "max_seq_len": max_seq_len,
-            "overlong_policy": "error",
+            "overlong_policy": on_overlength,
         },
         "token_budget": {
             "matching_unit": "complete rendered prompt plus completion tokens",
@@ -699,7 +892,11 @@ def _parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
     parser.add_argument("--mechanical", action="append", required=True)
     parser.add_argument("--direct-edit", action="append", required=True)
     parser.add_argument("--fuzzlang", action="append", required=True)
-    parser.add_argument("--fuzzlang-recipes", action="append", required=True)
+    parser.add_argument("--fuzzlang-recipes", action="append", default=[])
+    parser.add_argument(
+        "--injector-library", action="append", default=[],
+        help="pinned Injector JSONL authorising fuzzlang_library_replay rows",
+    )
     parser.add_argument("--eval", action="append", required=True)
     parser.add_argument("--diag-evidence", action="append", default=[])
     parser.add_argument("--tokenizer", required=True)
@@ -708,6 +905,11 @@ def _parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
     parser.add_argument("--seed", type=int, default=42)
     parser.add_argument("--budget-tokens", type=int)
     parser.add_argument("--max-seq-len", type=int, default=1024)
+    parser.add_argument(
+        "--on-overlength", choices=("error", "exclude"), default="error",
+        help="an example wider than --max-seq-len: refuse (default) or exclude "
+             "it and record the count in the exclusion report",
+    )
     parser.add_argument("--context-lines", type=int, default=8)
     parser.add_argument("--max-window-chars", type=int, default=8_000)
     parser.add_argument("--max-edit-chars", type=int, default=2_000)
@@ -726,6 +928,9 @@ def _parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
 
 def main(argv: Sequence[str] | None = None) -> int:
     args = _parse_args(argv)
+    require_injector_authority(
+        recipes=args.fuzzlang_recipes, library=args.injector_library,
+    )
     from transformers import AutoTokenizer
 
     tokenizer = AutoTokenizer.from_pretrained(
@@ -741,12 +946,14 @@ def main(argv: Sequence[str] | None = None) -> int:
         },
         eval_paths=args.eval,
         recipe_paths=args.fuzzlang_recipes,
+        injector_library_paths=args.injector_library,
         tokenizer=tokenizer,
         tokenizer_name=args.tokenizer,
         model_revision=args.model_revision,
         out_dir=args.out_dir,
         seed=args.seed,
         max_seq_len=args.max_seq_len,
+        on_overlength=args.on_overlength,
         context_lines=args.context_lines,
         max_window_chars=args.max_window_chars,
         max_edit_chars=args.max_edit_chars,

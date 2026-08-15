@@ -5,6 +5,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+from concurrent.futures import ThreadPoolExecutor
 from dataclasses import replace
 from pathlib import Path
 
@@ -30,7 +31,10 @@ from gen.fuzzlang_dsl.local_gemma import (
     DEFAULT_GEMMA_31B_MODEL, DEFAULT_GEMMA_31B_REVISION,
     DEFAULT_GEMMA_31B_SNAPSHOT, LocalGemma31BBackend,
 )
-from gen.fuzzlang_dsl.regression_evidence import regression_evidence_for
+from gen.fuzzlang_dsl.regression_evidence import (
+    has_regression_trigger_evidence, regression_evidence_for,
+)
+from repair.agent.chat_backend import ChatBackend, VLLMChatBackend
 
 
 DEFAULT_REGRESSION_TEST_ROOT = Path("external/llvm-project/clang/test")
@@ -40,7 +44,9 @@ def _load(path: Path) -> list[CodeWitnessRequest]:
     return [CodeWitnessRequest.from_dict(json.loads(line)) for line in path.read_text().splitlines() if line.strip()]
 
 
-def _supports_request_compile_mode(request: CodeWitnessRequest) -> bool:
+def _supports_request_compile_mode(
+    request: CodeWitnessRequest, *, allow_preprocessor_directives: bool = False,
+) -> bool:
     """Apply the breadth filter using the request's verified language mode.
 
     ``CodeWitnessRequest`` deliberately stores the complete verified compiler
@@ -48,21 +54,66 @@ def _supports_request_compile_mode(request: CodeWitnessRequest) -> bool:
     so C11/C23 and C++20/C++23 witnesses are not incorrectly screened as the
     default C++17 campaign before compiler verification.
     """
+    source_language = {
+        "objective-c": "c",
+        "objective-c++": "c++",
+    }.get(request.language, request.language)
     cpp_standard = "c++17"
     c_standard = "c17"
-    for argument in request.compile_cmd:
+    feature_modes = {"ordinary"}
+    command = request.compile_cmd
+    for argument in command:
         if not argument.startswith("-std="):
             continue
         standard = argument.removeprefix("-std=")
-        if standard in {"c++17", "c++20", "c++23"}:
+        if standard in {"c++17", "c++20", "c++23", "c++2c"}:
             cpp_standard = standard
         elif standard in {"c99", "c11", "c17", "c23"}:
             c_standard = standard
-    return supports_default_diagnostic_name(
-        request.diag_name,
-        language=request.language,
-        cpp_standard=cpp_standard,
-        c_standard=c_standard,
+    if "-fopenmp" in command:
+        feature_modes.add("openmp")
+    if "-fopenacc" in command:
+        feature_modes.add("openacc")
+    if "-fblocks" in command:
+        feature_modes.add("blocks")
+    if any(argument in {"-fmodules", "-fcxx-modules"}
+           or argument.startswith("-fmodule-file") for argument in command):
+        feature_modes.add("modules")
+    if any(
+        argument.startswith("--target=")
+        or argument in {"-target", "-triple"}
+        for argument in command
+    ):
+        feature_modes.add("target")
+    if any(
+        argument in {
+            "-fdefer-ts", "-fms-extensions", "-fno-gnu-inline-asm", "-fsycl",
+            "-fsycl-is-device",
+        }
+        for argument in command
+    ):
+        feature_modes.add("profile")
+    # A preprocessor witness needs no hidden driver flag, but it must be an
+    # explicitly labelled request and the caller must opt into bounded
+    # directive fragments.  Do not use this escape hatch for other special
+    # compilation modes, which require their concrete clean-gated flags.
+    if (
+        allow_preprocessor_directives
+        and request.feature_mode == "preprocessor"
+    ):
+        feature_modes.add("preprocessor")
+    for index, argument in enumerate(command[:-1]):
+        if argument == "-x" and command[index + 1].startswith("objective-"):
+            feature_modes.add("objc")
+    return any(
+        supports_default_diagnostic_name(
+            request.diag_name,
+            language=source_language,
+            cpp_standard=cpp_standard,
+            c_standard=c_standard,
+            feature_mode=feature_mode,
+        )
+        for feature_mode in feature_modes
     )
 
 
@@ -84,7 +135,13 @@ def load_excluded_injector_target_names(paths: list[Path]) -> frozenset[str]:
 
 def _write(path: Path, rows: list[dict]) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text("".join(json.dumps(row, ensure_ascii=False, sort_keys=True) + "\n" for row in rows))
+    payload = "".join(
+        json.dumps(row, ensure_ascii=False, sort_keys=True) + "\n"
+        for row in rows
+    )
+    temporary = path.with_name(f".{path.name}.tmp")
+    temporary.write_text(payload)
+    temporary.replace(path)
 
 
 def _write_checkpoint(
@@ -95,14 +152,20 @@ def _write_checkpoint(
     undistillable_records: list[dict],
     injectors: dict[str, dict],
 ) -> None:
-    """Persist all completed request results before issuing another model call."""
-    _write(output_dir / "attempts.jsonl", attempts)
+    """Persist result payloads before atomically advancing request progress.
+
+    ``attempts`` determines the resume cursor.  It must be the last file
+    replaced: a scheduler interruption can then replay at most one completed
+    request, rather than skip a request whose Injector or Record has not yet
+    reached durable storage.
+    """
     _write(output_dir / "records.jsonl", records)
     _write(
         output_dir / "undistillable_records.jsonl",
         undistillable_records,
     )
     _write(output_dir / "injectors.jsonl", list(injectors.values()))
+    _write(output_dir / "attempts.jsonl", attempts)
 
 
 def _load_resume_checkpoint(
@@ -138,6 +201,14 @@ def _load_resume_checkpoint(
     return attempts, records, undistillable_records, injectors, completed_indices
 
 
+def _accepted_target_names(injectors: dict[str, dict]) -> set[str]:
+    """Return campaign targets already backed by an exact replayable Injector."""
+    return {
+        FuzzLangInjector.from_dict(row).target_diag
+        for row in injectors.values()
+    }
+
+
 def _candidate_round_counts(
     candidates: int, feedback_rounds: int,
 ) -> tuple[int, ...]:
@@ -147,6 +218,27 @@ def _candidate_round_counts(
     rounds = min(candidates, feedback_rounds)
     base, remainder = divmod(candidates, rounds)
     return tuple(base + (index < remainder) for index in range(rounds))
+
+
+def _verify_candidate_sources(
+    verifier: object,
+    sources: list[str],
+    *,
+    compile_cmd: list[str],
+    logical_path: str,
+    workers: int,
+) -> list[object]:
+    """Verify independent candidate sources concurrently in stable order."""
+    if workers <= 0:
+        raise ValueError("verification workers must be positive")
+
+    def verify(source: str) -> object:
+        return verifier.verify(source, compile_cmd, logical_path=logical_path)
+
+    if workers == 1 or len(sources) < 2:
+        return [verify(source) for source in sources]
+    with ThreadPoolExecutor(max_workers=min(workers, len(sources))) as pool:
+        return list(pool.map(verify, sources))
 
 
 def _known_covered_only_round_streak(
@@ -188,6 +280,13 @@ def with_regression_trigger_evidence(
     source identity, and compile command.  The test snippet is only prompt
     context used to infer a rare diagnostic's trigger condition.
     """
+    # The large campaign request builder can already carry a bounded Clang
+    # regression-test window recovered in an earlier audit.  Do not launch one
+    # ripgrep scan per target merely to rediscover the same prompt-only text.
+    # This matters for 100--500-target single-node batches: evidence lookup is
+    # CPU/metadata bound and otherwise delays the GPU after it is healthy.
+    if has_regression_trigger_evidence(request.emission_evidence):
+        return request
     regression = regression_evidence_for(request.diag_message, test_root)
     if regression is None:
         return request
@@ -234,6 +333,18 @@ def _select_exact_replay(
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--requests", type=Path, required=True)
+    parser.add_argument(
+        "--backend", choices=("local", "vllm"), default="local",
+        help="local Transformers backend or the one-node TP=8 vLLM server",
+    )
+    parser.add_argument(
+        "--base-url", default="http://127.0.0.1:8000/v1",
+        help="OpenAI-compatible URL when --backend=vllm",
+    )
+    parser.add_argument(
+        "--vllm-concurrency", type=int, default=64,
+        help="maximum concurrent requests when --backend=vllm",
+    )
     parser.add_argument("--clang-bin", required=True)
     parser.add_argument("--clang-c-bin", required=True)
     parser.add_argument("--diagtool-bin", required=True)
@@ -258,6 +369,10 @@ def main() -> int:
     parser.add_argument("--max-tokens", type=int, default=400)
     parser.add_argument("--timeout", type=float, default=5.0)
     parser.add_argument(
+        "--verification-workers", type=int, default=16,
+        help="parallel Clang verifications per model candidate round",
+    )
+    parser.add_argument(
         "--resume", action="store_true",
         help="continue from the request-boundary checkpoint in --output-dir",
     )
@@ -266,6 +381,13 @@ def main() -> int:
         help=(
             "replace a bounded real-code substring, or append a bounded "
             "declaration witness before extracting the replayable Injector"
+        ),
+    )
+    parser.add_argument(
+        "--allow-preprocessor-directives", action="store_true",
+        help=(
+            "allow bounded #pragma-style append fragments for a selected "
+            "feature-mode campaign; disabled for ordinary C/C++ runs"
         ),
     )
     parser.add_argument(
@@ -284,10 +406,11 @@ def main() -> int:
     parser.add_argument("--seed", type=int, default=0)
     parser.add_argument(
         "--admit-observed-errors", action=argparse.BooleanOptionalAction,
-        default=True,
+        default=False,
         help=(
             "when a candidate misses its requested target, retain its actual "
-            "primary error only if it can itself be distilled and exactly replayed"
+            "primary error only if it can itself be distilled and exactly replayed; "
+            "disabled by default so gap-targeted campaigns preserve their target"
         ),
     )
     parser.add_argument(
@@ -303,8 +426,10 @@ def main() -> int:
         or args.timeout <= 0
     ):
         parser.error("candidate, token, and timeout bounds must be positive")
-    if args.request_batch_size > 1 and args.feedback_rounds != 1:
-        parser.error("--request-batch-size > 1 requires --feedback-rounds 1")
+    if args.vllm_concurrency <= 0:
+        parser.error("--vllm-concurrency must be positive")
+    if args.verification_workers <= 0:
+        parser.error("--verification-workers must be positive")
     context_tokens = tuple(
         args.recipe_context_tokens
         if args.recipe_context_tokens is not None
@@ -313,12 +438,24 @@ def main() -> int:
     if any(level < 0 for level in context_tokens):
         parser.error("recipe context levels must be non-negative")
     requests = _load(args.requests)
+    candidate_round_counts = _candidate_round_counts(
+        args.candidates, args.feedback_rounds,
+    )
     catalog_error_names = frozenset(entry.name for entry in load_catalog().errors())
     excluded_injector_ids = frozenset(load_excluded_injector_ids(args.exclude_injectors))
     excluded_injector_target_names = load_excluded_injector_target_names(
         args.exclude_injectors,
     )
-    backend = LocalGemma31BBackend(DEFAULT_GEMMA_31B_SNAPSHOT, seed=args.seed)
+    backend: ChatBackend
+    if args.backend == "vllm":
+        backend = VLLMChatBackend(
+            "gemma-4-31B-it",
+            base_url=args.base_url,
+            timeout_s=600.0,
+            max_concurrency=args.vllm_concurrency,
+        )
+    else:
+        backend = LocalGemma31BBackend(DEFAULT_GEMMA_31B_SNAPSHOT, seed=args.seed)
     verifier = FuzzlangClangVerifier(args.clang_bin, args.diagtool_bin, args.timeout, clang_c_bin=args.clang_c_bin)
     if args.resume:
         (
@@ -336,10 +473,12 @@ def main() -> int:
         FuzzLangInjector.from_dict(row).target_diag
         for row in injectors.values()
     )
+    accepted_target_names = _accepted_target_names(injectors)
     duplicate_existing_injector_candidates = 0
     feedback_round_requests = 0
     known_covered_observed_short_circuits = 0
     prefetched_responses: dict[int, list] = {}
+    prefetched_baseline_ok: dict[int, bool] = {}
     prefetched_prompt_count = 0
     _write_checkpoint(
         args.output_dir,
@@ -363,6 +502,19 @@ def main() -> int:
                 if batch_index in completed_request_indices:
                     continue
                 batch_request = requests[batch_index]
+                if batch_request.diag_name in accepted_target_names:
+                    continue
+                # Wide mode must not send prompts for a source that fails the
+                # core parent-compilation gate.  Cache successful checks so
+                # the normal per-request path does not compile them twice.
+                baseline = verifier.verify(
+                    batch_request.corrected_src,
+                    list(batch_request.compile_cmd),
+                    logical_path=batch_request.source_path,
+                )
+                prefetched_baseline_ok[batch_index] = baseline.ok
+                if not baseline.ok:
+                    continue
                 model_request = (
                     with_regression_trigger_evidence(
                         batch_request, args.regression_test_root,
@@ -370,7 +522,12 @@ def main() -> int:
                     if args.regression_evidence else batch_request
                 )
                 messages = (
-                    build_code_append_messages(model_request)
+                    build_code_append_messages(
+                        model_request,
+                        allow_preprocessor_directives=(
+                            args.allow_preprocessor_directives
+                        ),
+                    )
                     if args.witness_mode == "append"
                     else build_code_witness_messages(model_request)
                 )
@@ -380,7 +537,7 @@ def main() -> int:
                     messages_batch=[messages for _, messages in batch],
                     temperature=args.temperature,
                     max_tokens=args.max_tokens,
-                    n=args.candidates,
+                    n=candidate_round_counts[0],
                 )
                 for (batch_index, _), responses in zip(
                     batch, generated, strict=True,
@@ -403,11 +560,28 @@ def main() -> int:
                 injectors=injectors,
             )
             continue
+        if request.diag_name in accepted_target_names:
+            attempts.append({
+                "request_index": request_index,
+                "diag_name": request.diag_name,
+                "status": "target_already_accepted_in_campaign",
+            })
+            _write_checkpoint(
+                args.output_dir,
+                attempts=attempts,
+                records=records,
+                undistillable_records=undistillable_records,
+                injectors=injectors,
+            )
+            continue
         # Use the actual verified language standard of this source instead of
         # treating every request as ordinary C++17.  That keeps special C/C++
         # dialect targets reachable while preserving an inexpensive guard for
         # clearly incompatible default-mode diagnostics.
-        if not _supports_request_compile_mode(request):
+        if not _supports_request_compile_mode(
+            request,
+            allow_preprocessor_directives=args.allow_preprocessor_directives,
+        ):
             attempts.append({
                 "request_index": request_index,
                 "diag_name": request.diag_name,
@@ -421,8 +595,14 @@ def main() -> int:
                 injectors=injectors,
             )
             continue
-        baseline = verifier.verify(request.corrected_src, list(request.compile_cmd), logical_path=request.source_path)
-        if not baseline.ok:
+        baseline_ok = prefetched_baseline_ok.pop(request_index, None)
+        if baseline_ok is None:
+            baseline_ok = verifier.verify(
+                request.corrected_src,
+                list(request.compile_cmd),
+                logical_path=request.source_path,
+            ).ok
+        if not baseline_ok:
             attempts.append({"request_index": request_index, "diag_name": request.diag_name, "status": "baseline_not_clean"})
             _write_checkpoint(
                 args.output_dir,
@@ -439,7 +619,10 @@ def main() -> int:
             if args.regression_evidence else request
         )
         messages = (
-            build_code_append_messages(model_request)
+            build_code_append_messages(
+                model_request,
+                allow_preprocessor_directives=args.allow_preprocessor_directives,
+            )
             if args.witness_mode == "append"
             else build_code_witness_messages(model_request)
         )
@@ -448,23 +631,26 @@ def main() -> int:
         accepted = False
         candidate_index = 0
         known_covered_only_streak = 0
-        for round_index, candidate_count in enumerate(
-            _candidate_round_counts(args.candidates, args.feedback_rounds)
-        ):
+        for round_index, candidate_count in enumerate(candidate_round_counts):
             if accepted:
                 continue
             if round_index > 0:
                 feedback_round_requests += 1
-                retry = (
-                    build_code_append_retry_messages
-                    if args.witness_mode == "append"
-                    else build_code_witness_retry_messages
-                )
-                messages = retry(
-                    model_request,
-                    rejection_reasons=tuple(rejection_reasons),
-                    observed_diagnostics=tuple(observed_diagnostics),
-                )
+                if args.witness_mode == "append":
+                    messages = build_code_append_retry_messages(
+                        model_request,
+                        rejection_reasons=tuple(rejection_reasons),
+                        observed_diagnostics=tuple(observed_diagnostics),
+                        allow_preprocessor_directives=(
+                            args.allow_preprocessor_directives
+                        ),
+                    )
+                else:
+                    messages = build_code_witness_retry_messages(
+                        model_request,
+                        rejection_reasons=tuple(rejection_reasons),
+                        observed_diagnostics=tuple(observed_diagnostics),
+                    )
             prefetched = prefetched_responses.get(request_index)
             if round_index == 0 and prefetched:
                 responses = prefetched_responses.pop(request_index)
@@ -475,7 +661,8 @@ def main() -> int:
                     max_tokens=args.max_tokens,
                     n=candidate_count,
                 )
-            round_rejection_reasons: set[str] = set()
+            parsed_candidates = []
+            candidate_sources: list[str] = []
             for response in responses:
                 if args.witness_mode == "append":
                     patch, reason = parse_code_append_fragment(
@@ -485,6 +672,22 @@ def main() -> int:
                     patch, reason = parse_code_witness_patch(
                         response.text, request,
                     )
+                parsed_candidates.append((response, patch, reason))
+                if patch is not None:
+                    candidate_sources.append(
+                        apply_code_append_fragment(request, patch)
+                        if args.witness_mode == "append"
+                        else apply_code_witness_patch(request, patch)
+                    )
+            verified_candidates = iter(_verify_candidate_sources(
+                verifier,
+                candidate_sources,
+                compile_cmd=list(request.compile_cmd),
+                logical_path=request.source_path,
+                workers=args.verification_workers,
+            ))
+            round_rejection_reasons: set[str] = set()
+            for response, patch, reason in parsed_candidates:
                 row = {
                     "request_index": request_index,
                     "diag_name": request.diag_name,
@@ -506,11 +709,7 @@ def main() -> int:
                     if args.witness_mode == "append"
                     else apply_code_witness_patch(request, patch)
                 )
-                verified = verifier.verify(
-                    erroneous,
-                    list(request.compile_cmd),
-                    logical_path=request.source_path,
-                )
+                verified = next(verified_candidates)
                 if verified.ok or verified.diag is None:
                     row["status"] = "rejected"
                     row["reason"] = "candidate_clean_or_wrong_primary"
@@ -643,6 +842,9 @@ def main() -> int:
                             ),
                             "injector_id": injector.injector_id,
                             "injector_replay_exact": True,
+                            "allow_preprocessor_directives": (
+                                args.allow_preprocessor_directives
+                            ),
                         },
                     ),
                 )
@@ -661,6 +863,7 @@ def main() -> int:
                     row["observed_diag"] = target_diag_name
                 attempts.append(row)
                 records.append(replay_record.to_dict())
+                accepted_target_names.add(target_diag_name)
                 if opportunistic:
                     observed_admitted_target_names.add(target_diag_name)
                 accepted = True
@@ -685,7 +888,7 @@ def main() -> int:
         undistillable_records=undistillable_records,
         injectors=injectors,
     )
-    manifest = {"schema": "fuzzlang.code_witness_bootstrap", "model": {"name": DEFAULT_GEMMA_31B_MODEL, "revision": DEFAULT_GEMMA_31B_REVISION, "parameters": "31B"}, "paid_api_calls": False, "witness_mode": args.witness_mode, "request_batch_size": args.request_batch_size, "prefetched_prompt_count": prefetched_prompt_count, "recipe_context_tokens": list(context_tokens), "counts": {"requests": len(requests), "attempts": len(attempts), "records": len(records), "undistillable_records": len(undistillable_records), "portable_injectors": len(injectors), "excluded_injector_identities": len(excluded_injector_ids), "duplicate_existing_injector_candidates": duplicate_existing_injector_candidates, "feedback_round_requests": feedback_round_requests, "known_covered_observed_short_circuits": known_covered_observed_short_circuits}}
+    manifest = {"schema": "fuzzlang.code_witness_bootstrap", "model": {"name": DEFAULT_GEMMA_31B_MODEL, "revision": DEFAULT_GEMMA_31B_REVISION, "parameters": "31B"}, "paid_api_calls": False, "witness_mode": args.witness_mode, "allow_preprocessor_directives": args.allow_preprocessor_directives, "request_batch_size": args.request_batch_size, "prefetched_prompt_count": prefetched_prompt_count, "recipe_context_tokens": list(context_tokens), "counts": {"requests": len(requests), "attempts": len(attempts), "records": len(records), "undistillable_records": len(undistillable_records), "portable_injectors": len(injectors), "excluded_injector_identities": len(excluded_injector_ids), "duplicate_existing_injector_candidates": duplicate_existing_injector_candidates, "feedback_round_requests": feedback_round_requests, "known_covered_observed_short_circuits": known_covered_observed_short_circuits}}
     (args.output_dir / "manifest.json").write_text(json.dumps(manifest, sort_keys=True) + "\n")
     print(json.dumps(manifest["counts"], sort_keys=True))
     return 0
