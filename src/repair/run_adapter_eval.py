@@ -251,6 +251,20 @@ def _parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
     parser.add_argument("--max-edit-chars", type=int, default=2_000)
     parser.add_argument("--seed", type=int, default=42)
     parser.add_argument("--local-files-only", action="store_true")
+    parser.add_argument(
+        "--backend", choices=("local", "vllm"), default="local",
+        help=(
+            "local: load the model in-process with device_map=auto. That runs "
+            "one layer group at a time, so a large model idles most of the "
+            "node. vllm: drive an already-served model over its OpenAI API, "
+            "which uses tensor parallelism across every GPU."
+        ),
+    )
+    parser.add_argument("--base-url", default="http://127.0.0.1:8000/v1")
+    parser.add_argument(
+        "--served-model-name",
+        help="Model name the server advertises; discovered from /v1/models if omitted.",
+    )
     return parser.parse_args(argv)
 
 
@@ -318,6 +332,35 @@ def _generate(
     ).strip()
 
 
+def generate_via_chat_backend(
+    backend: Any,
+    example: LocalizedRepairExample,
+    *,
+    max_new_tokens: int,
+    target_format: str,
+) -> str:
+    """Same prompt, same decoding, executed by a served model instead.
+
+    A 31B model sharded across GPUs with ``device_map="auto"`` runs one layer
+    group at a time, so seven of eight GPUs idle and a 150-instance cohort takes
+    hours. Serving it with tensor parallelism uses the whole node. Only the
+    execution changes: the messages come from the same builder the local path
+    uses, and decoding stays greedy, or the served model would be answering a
+    different exam.
+    """
+    training_row = example.to_training_example()
+    messages = _messages_for_example(training_row, target_format=target_format)
+    responses = backend.chat(
+        messages=messages[:-1],
+        temperature=0.0,
+        max_tokens=max_new_tokens,
+        n=1,
+    )
+    if not responses:
+        raise ValueError("chat backend returned no completion")
+    return (responses[0].text or "").strip()
+
+
 def main(argv: Sequence[str] | None = None) -> int:
     args = _parse_args(argv)
     if args.max_new_tokens <= 0:
@@ -327,11 +370,22 @@ def main(argv: Sequence[str] | None = None) -> int:
         allow_mismatch=args.allow_target_format_mismatch,
     )
 
-    import torch
-
-    torch.manual_seed(args.seed)
     rows = load_rows(args.data_path, max_instances=args.max_instances)
-    model, tokenizer = _load_model(args)
+    backend = None
+    model = tokenizer = None
+    if args.backend == "vllm":
+        from gen.fuzzlang_dsl.run_e1_experiment import served_model_name
+        from repair.agent.chat_backend import OpenAIChatBackend
+
+        backend = OpenAIChatBackend(
+            model_name=args.served_model_name or served_model_name(args.base_url),
+            base_url=args.base_url,
+        )
+    else:
+        import torch
+
+        torch.manual_seed(args.seed)
+        model, tokenizer = _load_model(args)
     verifier = FuzzlangClangVerifier(
         clang_bin=args.clang_bin,
         diagtool_bin=args.diagtool_bin,
@@ -347,12 +401,18 @@ def main(argv: Sequence[str] | None = None) -> int:
             max_window_chars=args.max_window_chars,
             max_edit_chars=args.max_edit_chars,
         )
-        response = _generate(
-            model,
-            tokenizer,
-            example,
-            max_new_tokens=args.max_new_tokens,
-            target_format=args.target_format,
+        response = (
+            generate_via_chat_backend(
+                backend, example,
+                max_new_tokens=args.max_new_tokens,
+                target_format=args.target_format,
+            )
+            if backend is not None else
+            _generate(
+                model, tokenizer, example,
+                max_new_tokens=args.max_new_tokens,
+                target_format=args.target_format,
+            )
         )
         provenance = row.get("provenance") or {}
         detail = provenance.get("detail") or {}

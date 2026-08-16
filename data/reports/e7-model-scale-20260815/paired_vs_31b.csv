@@ -1,0 +1,3 @@
+cohort,contrast,mean_difference,ci95_low,ci95_high,wins,losses
+eval_unseen_tu,4B+FuzzLang4000_minus_31B_zeroshot,0.1533,0.0867,0.2200,27,4
+heldout_project,4B+FuzzLang4000_minus_31B_zeroshot,0.0667,0.0000,0.1333,18,8

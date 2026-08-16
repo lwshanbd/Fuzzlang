@@ -1,0 +1,5 @@
+model,cohort,verified_fixes,degenerate,degenerate_share,median_edit_chars
+gemma-4-31B-it zero-shot,eval_unseen_tu,111,2,0.018,34.0
+gemma-4-31B-it zero-shot,heldout_project,118,1,0.008,27.5
+gemma-3-4b-it + FuzzLang,eval_unseen_tu,117,7.7,0.066,56.0
+gemma-3-4b-it + FuzzLang,heldout_project,110,4.0,0.036,44.0

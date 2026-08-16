@@ -1,0 +1,6 @@
+model,params,fine_tuned,unseen_file_fix,unseen_file_exact,unseen_file_parse,unseen_project_fix,unseen_project_exact,unseen_project_parse
+gemma-3-4b-it,4B,no,0.167,0.007,0.860,0.060,0.007,0.847
+gemma-4-31B-it,31B,no,0.740,0.033,0.920,0.787,0.073,0.980
+gemma-3-4b-it + FuzzLang 557,4B,yes,0.787,0.560,0.993,0.687,0.473,0.980
+gemma-3-4b-it + FuzzLang 1500,4B,yes,0.827,0.653,0.993,0.813,0.667,0.993
+gemma-3-4b-it + FuzzLang 4000,4B,yes,0.893,0.733,1.000,0.853,0.693,1.000

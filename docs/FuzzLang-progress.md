@@ -23,13 +23,29 @@ projects produced **13,007 verified records covering 514 diagnostics**, using
 on average, and 110 of them work across project boundaries. On four projects
 the library had never seen, it produced 2,325 records in 139 seconds.
 
-**3. The dataset makes a model better — done.** Fine-tuning Gemma-3-4B on
-FuzzLang data lifts verified repair from 17% to 79% on unseen files, and from
-6% to 69% on unseen projects. Feed it more data and it keeps improving: at
-4,000 records it reaches **89% and 85%**, and the curve has not flattened. A
-control trained on mechanical mutations comes out *worse* than no fine-tuning
-at all, because its repairs are one character wide and the model just learns to
+**3. The dataset makes a model better — done, but state it against the right
+baseline.** Fine-tuning Gemma-3-4B on 4,000 FuzzLang records reaches **89% on
+unseen files and 85% on unseen projects**, and the curve has not flattened. A
+control trained on mechanical mutations comes out *worse* than no fine-tuning at
+all, because its repairs are one character wide and the model just learns to
 copy its input.
+
+**Do not quote "17% → 89%".** The 4B base model's 17% is a weak comparison. An
+un-fine-tuned **Gemma-4-31B scores 74% and 79%** on the same cohorts, so most of
+that gap is base-model choice, not what the data teaches. The claim the evidence
+supports is:
+
+> A 4B model fine-tuned on 4,000 FuzzLang records beats a model eight times its
+> size that has not been fine-tuned: **+0.153** on unseen files [+0.087, +0.220]
+> and **+0.067** on unseen projects [+0.000, +0.133], instance-paired.
+
+The 31B is not cheating — a degeneracy audit finds delete-to-compile behaviour
+in 1.8% of its fixes, lower than the fine-tuned model's 6.6%. It produces
+genuine alternative repairs; it just rarely picks the developer's, reproducing
+the reference on 3% of instances against the fine-tuned model's 73%. Report that
+as *agreement with the reference repair*, and note the confound: the fine-tuned
+model was trained on records from the same injector library that built the
+evaluation. See `data/reports/e7-model-scale-20260815/`.
 
 **4. Errors we did not create (NatErr) — not a dataset, but a finding.** We
 tried to mine real compile errors from git history and got 3 usable records.
@@ -72,7 +88,13 @@ model better. See `data/reports/e6-breadth-20260815/`.
 
 **What is still missing.**
 
-1. **One model only.** Every fine-tuning result uses Gemma-3-4B.
+1. **Only the 4B has been fine-tuned.** The 31B has been measured zero-shot but
+   never trained, so we cannot say whether FuzzLang data helps a model that is
+   already competent, or only one that is not.
+2. **The 31B was evaluated at a 512-token output budget** chosen when every
+   model under test was fine-tuned to be terse. It is verbose, and 11 of its 12
+   parse failures are truncations. A re-run at 1,024 is outstanding; it raises
+   its numbers somewhat and cannot flip the unseen-file result.
 
 **Corrections made recently — do not cite the old numbers.**
 
