@@ -49,6 +49,7 @@ def test_every_named_invariant_is_actually_checked():
         _record("diag_mismatch", diagnostics=[{"diag_name": "err_b", "diag_id": 2}]),
         _record("no_injector", detail={"injector_id": ""}),
         _record("twice"), _record("twice"),
+        _record("marked", erroneous_src="int fuzzlang_tmp = ;\n"),
     ]
     violations = verify_invariants(broken)
 
@@ -60,6 +61,7 @@ def test_every_named_invariant_is_actually_checked():
     assert violations["target_not_relabelled"] == ["relabelled"]
     assert violations["primary_matches_target"] == ["diag_mismatch"]
     assert violations["injector_recorded"] == ["no_injector"]
+    assert violations["provenance_marker"] == ["marked"]
 
 
 def test_duplicate_record_ids_are_a_violation():
@@ -86,3 +88,27 @@ def test_records_are_split_on_the_frozen_assignment_not_the_file_they_came_in():
 def test_an_unknown_split_is_an_error_not_a_silent_drop():
     with pytest.raises(ValueError):
         split_records([_record("x", detail={"source_split": "nonsense"})])
+
+
+def test_a_token_naming_the_generator_on_the_broken_side_is_a_violation():
+    # 41-46% of released evaluation instances contained the literal string
+    # `fuzzlang` on the erroneous side and never on the corrected side, because
+    # injected placeholders were named `fuzzlang_tmp`. A model can find the
+    # error by searching for it, and the fine-tuned one learned to. The freeze
+    # has to refuse that rather than leave it to be discovered downstream.
+    clean = _record()
+    assert "provenance_marker" not in verify_invariants([clean])
+
+    marked = _record("marked", erroneous_src="int fuzzlang_tmp = ;\n")
+    assert verify_invariants([marked])["provenance_marker"] == ["marked"]
+
+
+def test_a_marker_present_on_both_sides_is_the_projects_own_code():
+    # If the string appears in the corrected source too it came from the host
+    # project, not from us, and carries no signal about which side is broken.
+    both = _record(
+        "both",
+        erroneous_src="int fuzzlang_helper = ;\n",
+        corrected_src="int fuzzlang_helper = 0;\n",
+    )
+    assert "provenance_marker" not in verify_invariants([both])

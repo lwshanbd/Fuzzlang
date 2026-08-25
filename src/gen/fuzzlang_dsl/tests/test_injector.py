@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import re
+
 import json
 from dataclasses import replace
 
@@ -210,9 +212,15 @@ def test_v1_fresh_identifier_round_trip_and_replay():
 
     assert restored.schema_version == 2
     assert restored.injector_id.startswith("fuzzlang-v2-")
-    assert [application.src for application in applications] == [
-        "int g(){ int fuzzlang_tmp = 0; return fuzzlang_tmp + item; }"
-    ]
+    # The generated name is host-file-derived, so assert the shape and that the
+    # same name is reused, not a literal. A pinned literal is what allowed
+    # `fuzzlang_tmp` to remain a giveaway marker in the released cohorts.
+    assert len(applications) == 1
+    generated = re.search(r"int (\w+) = 0", applications[0].src)
+    assert generated, applications[0].src
+    name = generated.group(1)
+    assert "fuzzlang" not in name.lower()
+    assert applications[0].src == f"int g()\u007b int {name} = 0; return {name} + item; \u007d"
 
 
 def test_v2_append_injector_replays_at_end_of_real_source():

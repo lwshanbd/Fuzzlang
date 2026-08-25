@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import re
+
 from foundation.record import Origin, Provenance, Record, Split
 from foundation.types import DiagInfo
 from gen.realcorpus.recipes import (
@@ -119,9 +121,15 @@ def test_opt_in_fresh_identifiers_make_payload_local_names_portable():
     applications = apply_recipe(
         "int g(){ return item; }", recipe,
     )
-    assert [app.src for app in applications] == [
-        "int g(){ int fuzzlang_tmp = 0; return fuzzlang_tmp + item; }"
-    ]
+    # The generated name is derived from the host file, so assert its shape and
+    # its consistent reuse rather than a literal -- pinning the literal is what
+    # let `fuzzlang_tmp` survive as a giveaway marker for weeks.
+    assert len(applications) == 1
+    generated = re.search(r"int (\w+) = 0", applications[0].src)
+    assert generated, applications[0].src
+    name = generated.group(1)
+    assert "fuzzlang" not in name.lower()
+    assert applications[0].src == f"int g()\u007b int {name} = 0; return {name} + item; \u007d"
 
 
 def test_fresh_identifier_avoids_existing_source_names():
@@ -133,12 +141,18 @@ def test_fresh_identifier_avoids_existing_source_names():
     )
     recipe = extract_recipe(rec, allow_fresh_identifiers=True)
 
+    # Whatever name the recipe would pick, declaring it in the host file must
+    # push the renderer to a different one.
+    from gen.realcorpus.recipes import fresh_identifier_name
+
+    collided = fresh_identifier_name(0, used_identifiers={"item"})
     applications = apply_recipe(
-        "int fuzzlang_tmp; int g(){ return item; }", recipe,
+        f"int {collided}; int g()\u007b return item; \u007d", recipe,
     )
 
     assert applications
-    assert "int fuzzlang_tmp_1 = 0" in applications[0].src
+    generated = re.search(r"int (\w+) = 0", applications[0].src)
+    assert generated and generated.group(1) != collided
 
 
 def test_literal_payloads_remain_opt_in():
@@ -330,3 +344,46 @@ def test_indexed_replay_matches_unindexed_replay():
     assert apply_recipe(
         src, recipe, tokens=tokens, token_index=build_token_index(tokens)
     ) == apply_recipe(src, recipe)
+
+
+def test_generated_identifiers_do_not_announce_their_own_provenance():
+    # Injected code named its placeholders `fuzzlang_tmp`, so 41-46% of
+    # evaluation instances carried a literal marker on the broken side and never
+    # on the fixed side. A model can find the error by searching for it, and the
+    # fine-tuned one learned to. Generated names must be collision-free without
+    # being recognisable.
+    from gen.realcorpus.recipes import fresh_identifier_name
+
+    name = fresh_identifier_name(0, used_identifiers={"item", "count"})
+    assert "fuzzlang" not in name.lower()
+    assert re.fullmatch(r"[A-Za-z_][A-Za-z0-9_]*", name)
+
+
+def test_generated_identifiers_avoid_collisions_with_the_host_file():
+    from gen.realcorpus.recipes import fresh_identifier_name
+
+    used = {"item"}
+    first = fresh_identifier_name(0, used_identifiers=used)
+    # Pretend the host file already contains it; the next attempt must move on.
+    second = fresh_identifier_name(0, used_identifiers=used | {first})
+    assert first != second
+
+
+def test_generated_identifiers_differ_between_files_so_they_are_not_a_constant_tell():
+    from gen.realcorpus.recipes import fresh_identifier_name
+
+    a = fresh_identifier_name(0, used_identifiers={"alpha", "beta"})
+    b = fresh_identifier_name(0, used_identifiers={"gamma", "delta"})
+    assert a != b
+
+
+def test_generated_identifiers_are_deterministic_for_the_same_file():
+    from gen.realcorpus.recipes import fresh_identifier_name
+
+    used = {"alpha", "beta"}
+    assert fresh_identifier_name(0, used_identifiers=used) == fresh_identifier_name(
+        0, used_identifiers=set(used)
+    )
+    assert fresh_identifier_name(0, used_identifiers=used) != fresh_identifier_name(
+        1, used_identifiers=used
+    )

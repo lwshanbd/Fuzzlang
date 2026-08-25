@@ -493,6 +493,36 @@ def _is_placeholder(pattern: str) -> bool:
     )
 
 
+def fresh_identifier_name(index: int, *, used_identifiers: set[str]) -> str:
+    """A collision-free placeholder name that does not identify its origin.
+
+    These used to be ``fuzzlang_tmp``, ``fuzzlang_tmp_1`` and so on. That is
+    collision-free but it labels the injected code: in the evaluation cohorts
+    41-46% of instances carried the literal string on the broken side and none
+    on the fixed side, and a fine-tuned model learned to find the error by
+    searching for it rather than by reading the code.
+
+    The replacement is derived from the host file's own identifiers, so it is
+    deterministic for a given file, differs between files -- a constant name
+    would be the same tell in a new costume -- and reads like ordinary
+    generated code.
+    """
+    digest = hashlib.sha256(
+        "\0".join(sorted(used_identifiers)).encode("utf-8")
+    ).hexdigest()
+    attempt = 0
+    while True:
+        # Fold the attempt into the digest so a collision moves to an unrelated
+        # name rather than to a visibly adjacent one.
+        salt = hashlib.sha256(
+            f"{digest}|{index}|{attempt}".encode("utf-8")
+        ).hexdigest()[:6]
+        candidate = f"tmp_{salt}"
+        if candidate not in used_identifiers:
+            return candidate
+        attempt += 1
+
+
 def _render_replacement(
     recipe: LearnedRecipe,
     bindings: dict[str, str],
@@ -505,13 +535,10 @@ def _render_replacement(
     def fresh_identifier(label: str) -> str:
         if label in fresh:
             return fresh[label]
-        suffix = 0
-        while True:
-            candidate = "fuzzlang_tmp" if suffix == 0 else f"fuzzlang_tmp_{suffix}"
-            if candidate not in used_identifiers and candidate not in fresh.values():
-                fresh[label] = candidate
-                return candidate
-            suffix += 1
+        taken = set(used_identifiers) | set(fresh.values())
+        candidate = fresh_identifier_name(len(fresh), used_identifiers=taken)
+        fresh[label] = candidate
+        return candidate
 
     for kind, value in parts:
         if kind == "literal":

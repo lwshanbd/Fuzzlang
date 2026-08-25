@@ -26,9 +26,16 @@ RELEASE_INVARIANTS = (
     "primary_matches_target",
     "injector_recorded",
     "unique_record_id",
+    "provenance_marker",
 )
 
 SPLITS = ("train", "eval_unseen_tu", "heldout_project")
+
+#: Tokens that would identify a record as ours. Injected placeholders were once
+#: named ``fuzzlang_tmp``, which put this string on the broken side of 41-46% of
+#: released evaluation instances and on the fixed side of none -- a label a model
+#: can search for instead of reading the code, and the fine-tuned one did.
+PROVENANCE_MARKERS = ("fuzzlang", "injector")
 
 
 def _detail(record: Mapping[str, Any]) -> Mapping[str, Any]:
@@ -68,6 +75,15 @@ def verify_invariants(
             violations["primary_matches_target"].append(record_id)
         if not detail.get("injector_id"):
             violations["injector_recorded"].append(record_id)
+        lowered_error = erroneous.lower()
+        lowered_fixed = corrected.lower()
+        # Only a marker that appears on one side is a giveaway. On both sides it
+        # is the host project's own code and says nothing about what is broken.
+        if any(
+            marker in lowered_error and marker not in lowered_fixed
+            for marker in PROVENANCE_MARKERS
+        ):
+            violations["provenance_marker"].append(record_id)
         if record_id in seen:
             violations["unique_record_id"].append(record_id)
         seen.add(record_id)

@@ -1,5 +1,18 @@
 # FuzzLang-RealSource v1
 
+> **Known defect (2026-08-25): 25% of these records label themselves.**
+> Injected placeholders were named `fuzzlang_tmp`, so **3,274 of 13,007 records
+> carry the literal string `fuzzlang` on the broken side and never on the fixed
+> side** (train 35%, eval_unseen_tu 33%, heldout_project 13%). A model can
+> locate the error by searching for it rather than reading the code, and a
+> fine-tuned one did -- inflating measured repair rates by about 4 points. See
+> [e9-ablation-20260825](../../../reports/e9-ablation-20260825/README.md).
+>
+> The generator no longer emits identifying names and the freeze now refuses
+> such records (`provenance_marker`), so **v1 would not pass its own gate
+> today**. Until v2 is rebuilt, report results on the unmarked subset and treat
+> v1 as superseded for training and evaluation alike.
+
 Compiler-verified compilation errors introduced into correct source from 13 real
 C/C++ projects. Built by replaying the FuzzLang Injector library — **no GPU
 time and no model calls**. Every record is a pair: source that compiles, and the
@@ -54,6 +67,7 @@ Checked over all 13,007 at freeze time; a single failure aborts the freeze.
 | `primary_matches_target` | the compiler's first error matches that target exactly |
 | `injector_recorded` | the injector that produced it is named |
 | `unique_record_id` | no duplicates |
+| `provenance_marker` | **added 2026-08-25**; no token identifying the generator on the broken side only. **v1 predates this gate and 3,274 records fail it.** |
 
 2,090 records were dropped for `no_vendored_source`. They were real records, but
 their source belonged to a dependency the project had fetched, so attributing
