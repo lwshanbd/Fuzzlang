@@ -7,6 +7,10 @@
 # sit free; three short jobs backfill immediately and run concurrently.  Tiers
 # are independent -- nested subsets are decided at arm-build time, not here.
 set -uo pipefail
+# The verifier compiles deliberately broken source, so Clang crashes are
+# routine. Each crash dropped a core file into the working directory --
+# 124 of them accumulated, all truncated to 16KB and useless for debugging.
+ulimit -c 0
 
 REPO=${REPO:-/p/lustre2/shan4/new-fuzzlang}
 SIZE=${SIZE:?SIZE (557|1500|4000) is required}

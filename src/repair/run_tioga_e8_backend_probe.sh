@@ -19,6 +19,10 @@
 # re-measured the way the baseline was. That costs ~3.5h per cohort, which is
 # what a valid comparison costs here.
 set -uo pipefail
+# The verifier compiles deliberately broken source, so Clang crashes are
+# routine. Each crash dropped a core file into the working directory --
+# 124 of them accumulated, all truncated to 16KB and useless for debugging.
+ulimit -c 0
 
 REPO=${REPO:-/p/lustre2/shan4/new-fuzzlang}
 BIG=${BIG:-/p/lustre1/shan4/gemma/hf/hub/models--google--gemma-4-31B-it/snapshots/518276fb130dc81caf9a4f772e65e63ef2526493}

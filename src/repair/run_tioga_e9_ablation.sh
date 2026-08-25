@@ -15,6 +15,10 @@
 # measures reliance on the hint, not what they could learn without it -- worth
 # stating plainly, because they are different questions.
 set -uo pipefail
+# The verifier compiles deliberately broken source, so Clang crashes are
+# routine. Each crash dropped a core file into the working directory --
+# 124 of them accumulated, all truncated to 16KB and useless for debugging.
+ulimit -c 0
 
 REPO=${REPO:-/p/lustre2/shan4/new-fuzzlang}
 ADAPTER=${ADAPTER:-$REPO/.artifacts/sft-runs/e5-scaling/fuzzlang4000-seed42/adapter}

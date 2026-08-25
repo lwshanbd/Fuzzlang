@@ -6,6 +6,10 @@
 # ~40% C, and compiling a .c file with clang++ produced a spurious failure in an
 # earlier evaluation.
 set -uo pipefail
+# The verifier compiles deliberately broken source, so Clang crashes are
+# routine. Each crash dropped a core file into the working directory --
+# 124 of them accumulated, all truncated to 16KB and useless for debugging.
+ulimit -c 0
 
 REPO=${REPO:-/p/lustre2/shan4/new-fuzzlang}
 RUNS=${RUNS:-$REPO/.artifacts/sft-runs/e3-v0002}

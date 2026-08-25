@@ -7,6 +7,10 @@
 # `narrow` concentrates the same 3,500 records on 135. Rendered tokens differ by
 # 4%, so the comparison is about which errors are represented, not how much text.
 set -uo pipefail
+# The verifier compiles deliberately broken source, so Clang crashes are
+# routine. Each crash dropped a core file into the working directory --
+# 124 of them accumulated, all truncated to 16KB and useless for debugging.
+ulimit -c 0
 
 REPO=${REPO:-/p/lustre2/shan4/new-fuzzlang}
 MODE=${MODE:?MODE (broad|narrow) is required}

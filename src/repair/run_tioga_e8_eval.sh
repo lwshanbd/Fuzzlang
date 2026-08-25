@@ -5,6 +5,10 @@
 # GPUs. vLLM shards with tensor parallelism, so this takes minutes where the
 # in-process path in E7 took 3h17m per cohort on the same hardware.
 set -uo pipefail
+# The verifier compiles deliberately broken source, so Clang crashes are
+# routine. Each crash dropped a core file into the working directory --
+# 124 of them accumulated, all truncated to 16KB and useless for debugging.
+ulimit -c 0
 
 REPO=${REPO:-/p/lustre2/shan4/new-fuzzlang}
 ADAPTER=${ADAPTER:-$REPO/.artifacts/sft-runs/e8-big/fuzzlang4000-31b-seed42/adapter}

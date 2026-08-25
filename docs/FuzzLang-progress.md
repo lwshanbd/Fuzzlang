@@ -69,6 +69,28 @@ documented rather than smoothed over: LLVM is 65% of `train`, FFmpeg is 87% of
 `heldout_project`, and the language mix flips from 75% C++ in training to 88% C
 in the held-out split.
 
+**Defect found (2026-08-25): the injected code labels itself.** 688 of 9,844
+injectors emit placeholder identifiers named `fuzzlang_tmp`, so **41-46% of
+evaluation instances contain the literal string `fuzzlang` on the broken side
+and never on the fixed side**. A model can find the error by searching for it.
+
+The inflation is about 4 points. Trustworthy figures are the unmarked subset:
+**0.854** on unseen files and **0.815** on unseen projects, against 0.893 and
+0.853 as reported. It is a learned exploit rather than an easier subset — the
+un-fine-tuned base model scores *lower* on marked instances (-0.060, -0.084).
+Every FuzzLang-4B number in E3, E5, E6, and E8 is affected by roughly this much.
+
+Fixing it needs collision-free but non-identifying placeholder names in the
+generator, a library rebuild, and a release gate forbidding any token that
+identifies a record's provenance on one side only. See
+`data/reports/e9-ablation-20260825/`.
+
+**Withholding the diagnostic costs almost nothing (2026-08-25).** Re-running the
+same adapter with the prompt hiding the compiler's answer: on unmarked instances
+`full` scores 0.854 / 0.815 and `none` scores 0.888 / 0.778. So the model is not
+merely following the compiler's instructions -- and that claim now rests on
+instances carrying no giveaway marker.
+
 **More data or more variety? Answered (2026-08-15) — it is the data.** Two arms
 of 3,500 records each, one covering 135 diagnostics and one covering 427:
 0.873 vs 0.900 on unseen files, 0.800 vs 0.833 on unseen projects. Both paired

@@ -1,0 +1,9 @@
+cohort,model,diagnostic_detail,overall,marked,n_marked,unmarked,n_unmarked,gap
+eval_unseen_tu,fuzzlang4000,full,0.8933,0.9508,61,0.8539,89,0.0969
+eval_unseen_tu,fuzzlang4000,no-location,0.9,0.9508,61,0.8652,89,0.0857
+eval_unseen_tu,fuzzlang4000,none,0.9133,0.9508,61,0.8876,89,0.0632
+eval_unseen_tu,base,full,0.1667,0.1311,61,0.191,89,-0.0599
+heldout_project,fuzzlang4000,full,0.8533,0.8986,69,0.8148,81,0.0837
+heldout_project,fuzzlang4000,no-location,0.84,0.8841,69,0.8025,81,0.0816
+heldout_project,fuzzlang4000,none,0.8333,0.8986,69,0.7778,81,0.1208
+heldout_project,base,full,0.06,0.0145,69,0.0988,81,-0.0843
