@@ -76,3 +76,37 @@ def test_an_empty_completion_list_is_an_error_not_an_empty_answer():
             MockChatBackend([[]]), _example(),
             max_new_tokens=64, target_format="window-rewrite",
         )
+
+
+def test_concurrency_does_not_change_the_order_or_content_of_results():
+    # vLLM answers many requests at once; sending one at a time leaves the
+    # server idle between calls. Overlapping them is only safe if the archived
+    # per-instance results are identical, in the same order, at any width.
+    from repair.run_adapter_eval import map_with_concurrency
+
+    def work(n):
+        return n * 2
+
+    serial = map_with_concurrency(work, list(range(20)), concurrency=1)
+    parallel = map_with_concurrency(work, list(range(20)), concurrency=8)
+
+    assert serial == parallel == [n * 2 for n in range(20)]
+
+
+def test_a_failure_inside_a_worker_is_not_swallowed():
+    from repair.run_adapter_eval import map_with_concurrency
+
+    def work(n):
+        if n == 3:
+            raise RuntimeError("boom")
+        return n
+
+    with pytest.raises(RuntimeError):
+        map_with_concurrency(work, list(range(6)), concurrency=4)
+
+
+def test_concurrency_must_be_at_least_one():
+    from repair.run_adapter_eval import map_with_concurrency
+
+    with pytest.raises(ValueError):
+        map_with_concurrency(lambda n: n, [1], concurrency=0)

@@ -366,3 +366,75 @@ def test_token_length_preflight_drops_only_with_explicit_opt_in() -> None:
         "median_tokens": 14.5,
         "max_tokens": 24,
     }
+
+
+def test_only_the_main_process_writes_the_run_manifest(monkeypatch):
+    # Under torchrun every rank runs main(). If each writes the manifest, the
+    # non-zero ranks race rank 0's adapter save and abort a training run that
+    # actually succeeded -- which is what happened to the 31B run after all
+    # 3,000 steps had completed.
+    from repair import run_sft
+
+    monkeypatch.setenv("RANK", "2")
+    assert run_sft.is_main_process() is False
+
+    monkeypatch.setenv("RANK", "0")
+    assert run_sft.is_main_process() is True
+
+    monkeypatch.delenv("RANK", raising=False)
+    monkeypatch.delenv("LOCAL_RANK", raising=False)
+    assert run_sft.is_main_process() is True
+
+
+def test_diagnostic_detail_levels_control_what_the_prompt_reveals():
+    # The prompt hands the model the diagnostic name, its message, and the exact
+    # file:line:col. A reviewer will ask how much of the repair rate is the
+    # model and how much is being told where to look, so the prompt has to be
+    # able to withhold each part.
+    from repair.run_sft import _messages_for_example
+
+    row = {
+        "source": "int x = y;",
+        "error": "err_undeclared_var_use [DiagID: 12]: use of undeclared "
+                 "identifier 'y' (src/a.cpp:1:9)",
+        "fix": '{"corrected_window": "int x = 0;"}',
+    }
+
+    full = _messages_for_example(row, target_format="window-rewrite")[0]["content"]
+    assert "err_undeclared_var_use" in full and "src/a.cpp:1:9" in full
+
+    no_loc = _messages_for_example(
+        row, target_format="window-rewrite", diagnostic_detail="no-location",
+    )[0]["content"]
+    assert "err_undeclared_var_use" in no_loc
+    assert "src/a.cpp:1:9" not in no_loc
+
+    none = _messages_for_example(
+        row, target_format="window-rewrite", diagnostic_detail="none",
+    )[0]["content"]
+    assert "err_undeclared_var_use" not in none
+    assert "Compiler diagnostic" not in none
+    # The task still has to be stated, or the model is being asked nothing.
+    assert "int x = y;" in none
+
+
+def test_the_default_prompt_is_unchanged_so_training_is_not_affected():
+    from repair.run_sft import _messages_for_example
+
+    row = {"source": "s", "error": "e (a.cpp:1:1)", "fix": "f"}
+    assert (
+        _messages_for_example(row, target_format="window-rewrite")
+        == _messages_for_example(
+            row, target_format="window-rewrite", diagnostic_detail="full")
+    )
+
+
+def test_an_unknown_detail_level_is_rejected():
+    import pytest as _pytest
+    from repair.run_sft import _messages_for_example
+
+    with _pytest.raises(ValueError):
+        _messages_for_example(
+            {"source": "s", "error": "e", "fix": "f"},
+            target_format="window-rewrite", diagnostic_detail="nonsense",
+        )

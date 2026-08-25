@@ -11,6 +11,7 @@ from __future__ import annotations
 
 import argparse
 import json
+from concurrent.futures import ThreadPoolExecutor
 import sys
 import time
 from pathlib import Path
@@ -252,6 +253,15 @@ def _parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
     parser.add_argument("--seed", type=int, default=42)
     parser.add_argument("--local-files-only", action="store_true")
     parser.add_argument(
+        "--diagnostic-detail", choices=("full", "no-location", "none"),
+        default="full",
+        help=(
+            "How much of the compiler's answer the prompt reveals. `full` is "
+            "what the models were trained on. The others measure how much of "
+            "the repair rate comes from being told the error and its line."
+        ),
+    )
+    parser.add_argument(
         "--backend", choices=("local", "vllm"), default="local",
         help=(
             "local: load the model in-process with device_map=auto. That runs "
@@ -261,6 +271,13 @@ def _parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
         ),
     )
     parser.add_argument("--base-url", default="http://127.0.0.1:8000/v1")
+    parser.add_argument(
+        "--concurrency", type=int, default=16,
+        help=(
+            "Requests in flight against a served model. Ignored for the local "
+            "backend. Results keep input order at any value."
+        ),
+    )
     parser.add_argument(
         "--served-model-name",
         help="Model name the server advertises; discovered from /v1/models if omitted.",
@@ -304,11 +321,15 @@ def _generate(
     *,
     max_new_tokens: int,
     target_format: str,
+    diagnostic_detail: str = "full",
 ) -> str:
     import torch
 
     training_row = example.to_training_example()
-    messages = _messages_for_example(training_row, target_format=target_format)
+    messages = _messages_for_example(
+        training_row, target_format=target_format,
+        diagnostic_detail=diagnostic_detail,
+    )
     encoded = tokenizer.apply_chat_template(
         messages[:-1],
         tokenize=True,
@@ -332,12 +353,35 @@ def _generate(
     ).strip()
 
 
+def map_with_concurrency(
+    work: Any, items: Sequence[Any], *, concurrency: int,
+) -> list[Any]:
+    """Apply ``work`` to every item, up to ``concurrency`` at a time, in order.
+
+    A served model answers many requests at once; issuing them one at a time
+    leaves it idle between calls, which is the same waste as allocating eight
+    GPUs to run one. Threads rather than processes: the cost is HTTP and
+    subprocess waits, not Python.
+
+    Order is preserved, so archived per-instance results are byte-identical at
+    any width, and an exception in a worker propagates rather than silently
+    becoming a failed repair.
+    """
+    if concurrency < 1:
+        raise ValueError(f"concurrency must be at least 1, got {concurrency}")
+    if concurrency == 1:
+        return [work(item) for item in items]
+    with ThreadPoolExecutor(max_workers=concurrency) as pool:
+        return list(pool.map(work, items))
+
+
 def generate_via_chat_backend(
     backend: Any,
     example: LocalizedRepairExample,
     *,
     max_new_tokens: int,
     target_format: str,
+    diagnostic_detail: str = "full",
 ) -> str:
     """Same prompt, same decoding, executed by a served model instead.
 
@@ -349,7 +393,10 @@ def generate_via_chat_backend(
     different exam.
     """
     training_row = example.to_training_example()
-    messages = _messages_for_example(training_row, target_format=target_format)
+    messages = _messages_for_example(
+        training_row, target_format=target_format,
+        diagnostic_detail=diagnostic_detail,
+    )
     responses = backend.chat(
         messages=messages[:-1],
         temperature=0.0,
@@ -392,9 +439,9 @@ def main(argv: Sequence[str] | None = None) -> int:
         timeout_s=30.0,
         clang_c_bin=args.clang_c_bin,
     )
-    results: list[dict[str, Any]] = []
     started = time.time()
-    for index, row in enumerate(rows, start=1):
+
+    def evaluate_row(row: dict) -> dict[str, Any]:
         example = make_localized_repair_example(
             row,
             context_lines=args.context_lines,
@@ -406,12 +453,14 @@ def main(argv: Sequence[str] | None = None) -> int:
                 backend, example,
                 max_new_tokens=args.max_new_tokens,
                 target_format=args.target_format,
+                diagnostic_detail=args.diagnostic_detail,
             )
             if backend is not None else
             _generate(
                 model, tokenizer, example,
                 max_new_tokens=args.max_new_tokens,
                 target_format=args.target_format,
+                diagnostic_detail=args.diagnostic_detail,
             )
         )
         provenance = row.get("provenance") or {}
@@ -456,9 +505,15 @@ def main(argv: Sequence[str] | None = None) -> int:
                 item["result_diag_msg"] = verified.diag.diag_msg
         except ValueError as exc:
             item["parse_error"] = str(exc)
-        results.append(item)
+        return item
+
+    # Concurrency only helps the served path; a local model is already saturated
+    # by one request and extra threads would just contend for the same GPUs.
+    width = args.concurrency if backend is not None else 1
+    results = map_with_concurrency(evaluate_row, rows, concurrency=width)
+    for index, item in enumerate(results, start=1):
         print(
-            f"[adapter_eval] {index}/{len(rows)} id={row.get('record_id')} "
+            f"[adapter_eval] {index}/{len(rows)} id={item.get('record_id')} "
             f"parse={item['parse_ok']} compile={item['compile_ok']} "
             f"exact={item['exact_match']}",
             flush=True,
@@ -475,6 +530,7 @@ def main(argv: Sequence[str] | None = None) -> int:
             "seed": args.seed,
             "max_new_tokens": args.max_new_tokens,
             "target_format": args.target_format,
+            "diagnostic_detail": args.diagnostic_detail,
             "elapsed_seconds": round(time.time() - started, 3),
             "ground_truth_compile_ok": sum(
                 bool(row["ground_truth_ok"]) for row in results

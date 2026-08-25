@@ -17,6 +17,7 @@ from collections import Counter
 from datetime import datetime, timezone
 import hashlib
 import json
+import re
 import statistics
 import sys
 from pathlib import Path
@@ -288,10 +289,34 @@ def _load_examples(
     return examples
 
 
+_DIAGNOSTIC_DETAIL_LEVELS = ("full", "no-location", "none")
+
+#: Trailing "(path:line:col)" the verifier appends to every diagnostic string.
+_DIAG_LOCATION_RE = re.compile(r"\s*\([^()]*:\d+:\d+\)\s*$")
+
+
 def _messages_for_example(
-    row: dict[str, str], *, target_format: str = "full-source"
+    row: dict[str, str],
+    *,
+    target_format: str = "full-source",
+    diagnostic_detail: str = "full",
 ) -> list[dict[str, str]]:
-    """Build Gemma-compatible user/assistant messages (Gemma has no system turn)."""
+    """Build Gemma-compatible user/assistant messages (Gemma has no system turn).
+
+    ``diagnostic_detail`` controls how much of the compiler's answer the prompt
+    hands over. ``full`` is what training uses and must stay the default. The
+    other levels exist to measure how much of the repair rate is the model and
+    how much is being told the error and its exact line:
+
+    * ``no-location`` keeps the diagnostic but removes ``(path:line:col)``;
+    * ``none`` omits the diagnostic entirely, leaving only "this does not
+      compile, repair it".
+    """
+    if diagnostic_detail not in _DIAGNOSTIC_DETAIL_LEVELS:
+        raise ValueError(
+            f"unknown diagnostic detail {diagnostic_detail!r}; "
+            f"expected one of {_DIAGNOSTIC_DETAIL_LEVELS}"
+        )
 
     if target_format == "full-source":
         instruction = _REPAIR_INSTRUCTION
@@ -304,11 +329,12 @@ def _messages_for_example(
         source_label = "Source window"
     else:
         raise ValueError(f"unknown target format: {target_format}")
-    user = (
-        f"{instruction}\n\n"
-        f"{source_label}:\n```\n{row['source']}\n```\n"
-        f"Compiler diagnostic:\n{row['error']}"
-    )
+    user = f"{instruction}\n\n{source_label}:\n```\n{row['source']}\n```"
+    if diagnostic_detail != "none":
+        error = str(row["error"])
+        if diagnostic_detail == "no-location":
+            error = _DIAG_LOCATION_RE.sub("", error)
+        user += f"\nCompiler diagnostic:\n{error}"
     return [
         {"role": "user", "content": user},
         {"role": "assistant", "content": row["fix"]},
@@ -460,6 +486,18 @@ def _sha256_file(path: str | Path) -> str:
         for chunk in iter(lambda: f.read(1024 * 1024), b""):
             digest.update(chunk)
     return digest.hexdigest()
+
+
+def is_main_process() -> bool:
+    """True on rank 0, and on a plain single-process run.
+
+    Under ``torchrun`` every rank executes ``main``. Only one may write the
+    adapter manifest: the others reach the check before rank 0's save has
+    landed and abort a run that has already finished training.
+    """
+    import os
+
+    return int(os.environ.get("RANK", os.environ.get("LOCAL_RANK", 0))) == 0
 
 
 def _write_run_manifest(
@@ -678,6 +716,8 @@ def main(argv: Sequence[str] | None = None) -> int:
     trainer.model.print_trainable_parameters()
     train_output = trainer.train()
     trainer.save_model(args.adapter_out)
+    if not is_main_process():
+        return 0
     manifest_path = _write_run_manifest(
         args,
         n_train=len(training_rows),
